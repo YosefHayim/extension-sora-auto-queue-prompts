@@ -1,41 +1,59 @@
 "use client";
+
+import { Controller, useFormContext } from "react-hook-form";
+import {
+  FormControl,
+  FormDescription,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 type Props = {
-  labelName: string;
+  labelName: string; // must match schema key: "username" | "password"
   type?: string;
-  setOnChange?: (v: string) => void;
-  changedValue?: string;
+  formFieldDescription?: string;
   placeholderText?: string;
-  classNameDivWrapper?: string;
   classNameInput?: string;
 };
 
 export default function LabelAndInput({
   labelName,
   type = "text",
-  setOnChange,
-  changedValue,
+  formFieldDescription,
   placeholderText,
-  classNameDivWrapper,
   classNameInput,
 }: Props) {
+  const methods = useFormContext();
+
+  if (!methods) {
+    throw new Error("LabelAndInput must be used within a FormProvider");
+  }
+
   return (
-    <div
-      className={
-        classNameDivWrapper || "flex flex-col items-start justify-start gap-2"
-      }
-    >
-      <Label htmlFor={labelName}>{labelName}</Label>
-      <Input
-        className={classNameInput}
-        defaultValue={changedValue}
-        id={labelName}
+    <div>
+      <Controller
+        control={methods.control}
         name={labelName}
-        onChange={setOnChange ? (e) => setOnChange(e.target.value) : undefined}
-        placeholder={placeholderText}
-        type={type}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel htmlFor={labelName}>{labelName}</FormLabel>
+            <FormControl>
+              <Input
+                className={classNameInput}
+                id={labelName}
+                placeholder={placeholderText}
+                type={type}
+                {...field}
+              />
+            </FormControl>
+            {formFieldDescription && (
+              <FormDescription>{formFieldDescription}</FormDescription>
+            )}
+            <FormMessage />
+          </FormItem>
+        )}
       />
     </div>
   );

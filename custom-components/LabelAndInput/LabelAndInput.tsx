@@ -1,3 +1,5 @@
+"use client";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -8,14 +10,13 @@ type LabelAndInputProps = {
   changedValue?: string;
   placeholderText?: string;
   classNameDivWrapper?: string;
-  classNameInput?: string
+  classNameInput?: string;
 };
 
 const LabelAndInput: React.FC<LabelAndInputProps> = (props) => {
   return (
-    <div className={props.classNameDivWrapper}>
-
-      <Label>{props.labelName}</Label>
+    <div className={props.classNameDivWrapper || "flex flex-col items-start justify-start gap-2"}>
+      <Label htmlFor={props.labelName}>{props.labelName}</Label>
       <Input
         className={props.classNameInput}
         defaultValue={props.changedValue}

@@ -1,13 +1,16 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+'use client'
+import LabelAndInput from "@/custom-components/LabelAndInput/LabelAndInput";
 
 const page = () => {
+
+
   return (
     <div>
       <form>
-        <Label />
-        <Input id="email" name="email" />
-        <Input id="password" name="password" />
+        <LabelAndInput
+          labelName="Username"
+          type="text"
+        />
       </form>
     </div>
   );

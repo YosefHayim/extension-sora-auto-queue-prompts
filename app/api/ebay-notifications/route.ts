@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type { NextRequest } from "next/server";
 
 function sha256Hex(s: string) {

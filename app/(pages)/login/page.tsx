@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import LabelAndInput from "@/custom-global-components/LabelAndInput/LabelAndInput";
-import { loginAction } from "./actions";
 import SubmitButton from "@/custom-global-components/SubmitButton/SubmitButton";
-
+import { loginAction } from "./actions";
 
 export default function Page() {
   const [u, setU] = useState("");

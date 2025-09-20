@@ -1,6 +1,6 @@
-const TermsOfService = () => {
+const page = () => {
   return (
-    <main>
+    <div>
       <h1>Terms of Service — Autobay</h1>
       <p>Effective Date: September 19, 2025</p>
 
@@ -89,8 +89,8 @@ const TermsOfService = () => {
         For questions regarding these Terms, contact us at:{" "}
         <a href="mailto:yosefisabag@gmail.com">yosefisabag@gmail.com</a>
       </p>
-    </main>
+    </div>
   );
 };
 
-export default TermsOfService;
+export default page;

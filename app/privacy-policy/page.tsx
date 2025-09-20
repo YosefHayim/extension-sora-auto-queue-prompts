@@ -1,6 +1,6 @@
-const PrivacyPolicy = () => {
+const page = () => {
   return (
-    <main>
+    <div>
       <h1>Privacy Policy — Autobay</h1>
       <p>Effective Date: September 19, 2025</p>
 
@@ -111,8 +111,8 @@ const PrivacyPolicy = () => {
         <li>We promptly revoke and delete tokens upon disconnect or prolonged inactivity.</li>
         <li>We do not use data for advertising or profiling unrelated to your app functionality.</li>
       </ul>
-    </main>
+    </div>
   );
 };
 
-export default PrivacyPolicy;
+export default page;

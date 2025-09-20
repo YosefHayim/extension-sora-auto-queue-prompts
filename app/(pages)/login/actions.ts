@@ -1,14 +1,22 @@
 "use server";
 
+import { loginFormValidator } from "@/lib/form-validations/login";
 import { redirect } from "next/navigation";
 
 export async function loginAction(formData: FormData) {
-  const username = formData.get("Username") as string;
-  const password = formData.get("Password") as string;
+  const {success,error,data} = loginFormValidator.safeParse({
+    username: formData.get("Username"),
+    passwrd: formData.get("Password"),
+  })
 
-  if (!(username && password)) {
-    throw new Error("Missing credentials");
+  const {username,password} = data
+
+  if (!success) {
+    console.log(error)
+  } else {
+    console.log(data)
   }
+
 
   redirect("/login");
 }

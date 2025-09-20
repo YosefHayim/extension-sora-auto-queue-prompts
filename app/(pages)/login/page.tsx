@@ -6,7 +6,6 @@ import { loginAction } from "./actions";
 import SubmitButton from "@/custom-global-components/SubmitButton/SubmitButton";
 
 
-
 export default function Page() {
   const [u, setU] = useState("");
   const [p, setP] = useState("");

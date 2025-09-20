@@ -5,6 +5,9 @@
     "rules": {
       "suspicious": {
         "useAwait": "off"
+      },
+      "performance": {
+        "noNamespaceImport": "off"
       }
     }
   }

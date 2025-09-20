@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const Policy = () => {
-  return (
-    <div>Policy</div>
-  )
-}
+  return <div>Policy</div>;
+};
 
-export default Policy
+export default Policy;

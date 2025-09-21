@@ -13,8 +13,7 @@ export class Ebay {
     "Content-Type": "application/json",
   };
 
-  // ---- Core HTTP ----
-  private async request<T>(baseUrlName: string, path: string): Promise<T> {
+  private async request<T>(baseUrlName: string, path: string, method = 'GET', body?: any,): Promise<T> {
     let baseUrl: string;
     switch (baseUrlName) {
       case 'finance':
@@ -32,6 +31,8 @@ export class Ebay {
         break;
     }
     const res = await fetch(`${baseUrl}${path}`, {
+      method,
+      body: JSON.stringify(body),
       headers: this.headers,
       cache: "no-store",
     });
@@ -117,72 +118,101 @@ export class Ebay {
     buy: {
       searchItems: async (query: string, limit: number) =>
         this.request(
-          'default', `/ buy / browse / v1 / item_summary / search ? q = ${query} & limit=${limit}`
+          'default', `/ buy / browse / ${this.apiVersionV1} / item_summary / search ? q = ${query} & limit=${limit}`
         ),
     },
 
     sell: {
-      metaData: {
-        getSalesTax: async (countryCode: string, taxJurisdictionId: string) =>
-          this.request(
-            'default',
-            `/ sell / account / ${this.apiVersionV1} / sales_tax / ${countryCode} / ${taxJurisdictionId}`,
-          ),
-
+      inventory: {
+        bulkUpdatePriceQuantity: async (bodyRequest: {
+          requests: {
+            sku?: string,
+            shipToLocationAvailability?: { quantity?: number },
+            offers: [{ availableQuantity?: number, offerId: string, price?: { currency: string, value: string } }]
+          }[]
+        }) => {
+          return this.request(
+            `default`,
+            `/sell/inventory/${this.apiVersionV1}/bulk_update_price_quantity`,
+            'POST',
+            bodyRequest
+          )
+        },
       },
-      analytics: {
-        getCustomerServiceMetric: async (ebayMarketPlaceId: string) => {
-          this.request(`analytics`, ` / sell / analytics / ${this.apiVersionV1} / customer_service_metric / CURRENT ? evaluation_marketplace_id = ${ebayMarketPlaceId}`)
-        },
-        getTrafficReport: async (marketplaceIds: string, dateRange: string, dimension: string, metrics: string) => {
-          this.request(`analytics`, ` / sell / analytics / ${this.apiVersionV1} / traffic_report ? filter = marketplace_ids : ${marketplaceIds}, date_range: ${dateRange} & dimension=${dimension} & metric=${metrics}`)
-        },
+      bulkGetInventoryItems: async (bodyRequest: { requests: [{ sku: string }] }) => {
+        this.request(`default`, `/ sell / inventory / ${this.apiVersionV1} /bulk_get_inventory_item`, 'POST', bodyRequest.requests)
       },
-      finance: {
-        getPayoutsSummary: async () => {
-          this.request(`finance`, ` / sell / finances / ${this.apiVersionV1} / payout_summary`)
-        },
-        getSellerFundsSummary: async () => {
-          this.request('finance', `/ sell / finances / ${this.apiVersionV1} / seller_funds_summary`)
-        },
-        getPayouts: async () => {
-          this.request('finance', `/ sell / finances / ${this.apiVersionV1} / payouts`)
-        },
-        getTransactions: async () => {
-          this.request('finance', `/ sell / finances / ${this.apiVersionV1} / transaction`)
-        }
+      getListingsFee: async () => {
+        this.request('default', `sell/inventory/${this.apiVersionV1}/offer/get_listing_fees`)
       },
-
-      accountV2: {
-        getPayoutSettings: async () => {
-          this.request(`default`, `/sell/account/${this.apiVersionV2}/payout_settings`)
-        }
+      getInventoryItems: async (limit: number, offset: number) => {
+        this.request(`default`, `/ sell / inventory / ${this.apiVersionV1} / inventory_item?limit=${limit}offest=${offset}`)
       },
-      accountV1: {
-        getFulfillmentPolicies: async (marketplaceId = "EBAY_US") =>
-          this.request(
-            'default', `/ sell / account / ${this.apiVersionV1} / fulfillment_policy ? marketplace_id = ${marketplaceId}`
-          ),
+      deleteInventoryItems: async (sku: string) => {
+        this.request(`default`, `/ sell / inventory / ${this.apiVersionV1} / inventory_item/${sku}`)
+      }
+    },
+    metaData: {
+      getSalesTax: async (countryCode: string, taxJurisdictionId: string) =>
+        this.request(
+          'default',
+          `/ sell / account / ${this.apiVersionV1} / sales_tax / ${countryCode} / ${taxJurisdictionId}`,
+        ),
 
-        getSubscription: async () =>
-          this.request('default', `/ sell / account / ${this.apiVersionV1} / subscription`),
-
-        getPaymentPolicies: async (marketplaceId = "EBAY_US") =>
-          this.request(
-            'default', `/ sell / account / ${this.apiVersionV1} / payment_policy ? marketplace_id = ${marketplaceId}`
-          ),
-
-        getReturnPolicies: async (marketplaceId = "EBAY_US") =>
-          this.request(
-            'default', `/ sell / account / ${this.apiVersionV1} / return_policy ? marketplace_id = ${marketplaceId}`
-          ),
-
-        getStore: async () =>
-          this.request('default', `/ sell / account / ${this.apiVersionV1} / store`),
-
-        getStoreCategories: async () =>
-          this.request('default', `/ sell / account / ${this.apiVersionV1} / store / categories`),
+    },
+    analytics: {
+      getCustomerServiceMetric: async (ebayMarketPlaceId: string) => {
+        this.request(`analytics`, ` / sell / analytics / ${this.apiVersionV1} / customer_service_metric / CURRENT ? evaluation_marketplace_id = ${ebayMarketPlaceId}`)
+      },
+      getTrafficReport: async (marketplaceIds: string, dateRange: string, dimension: string, metrics: string) => {
+        this.request(`analytics`, ` / sell / analytics / ${this.apiVersionV1} / traffic_report ? filter = marketplace_ids : ${marketplaceIds}, date_range: ${dateRange} & dimension=${dimension} & metric=${metrics}`)
       },
     },
-  };
+    finance: {
+      getPayoutsSummary: async () => {
+        this.request(`finance`, ` / sell / finances / ${this.apiVersionV1} / payout_summary`)
+      },
+      getSellerFundsSummary: async () => {
+        this.request('finance', `/ sell / finances / ${this.apiVersionV1} / seller_funds_summary`)
+      },
+      getPayouts: async () => {
+        this.request('finance', `/ sell / finances / ${this.apiVersionV1} / payouts`)
+      },
+      getTransactions: async () => {
+        this.request('finance', `/ sell / finances / ${this.apiVersionV1} / transaction`)
+      }
+    },
+
+    accountV2: {
+      getPayoutSettings: async () => {
+        this.request(`default`, `/sell/account/${this.apiVersionV2}/payout_settings`)
+      }
+    },
+    accountV1: {
+      getFulfillmentPolicies: async (marketplaceId = "EBAY_US") =>
+        this.request(
+          'default', `/ sell / account / ${this.apiVersionV1} / fulfillment_policy ? marketplace_id = ${marketplaceId}`
+        ),
+
+      getSubscription: async () =>
+        this.request('default', `/ sell / account / ${this.apiVersionV1} / subscription`),
+
+      getPaymentPolicies: async (marketplaceId = "EBAY_US") =>
+        this.request(
+          'default', `/ sell / account / ${this.apiVersionV1} / payment_policy ? marketplace_id = ${marketplaceId}`
+        ),
+
+      getReturnPolicies: async (marketplaceId = "EBAY_US") =>
+        this.request(
+          'default', `/ sell / account / ${this.apiVersionV1} / return_policy ? marketplace_id = ${marketplaceId}`
+        ),
+
+      getStore: async () =>
+        this.request('default', `/ sell / account / ${this.apiVersionV1} / store`),
+
+      getStoreCategories: async () =>
+        this.request('default', `/ sell / account / ${this.apiVersionV1} / store / categories`),
+    },
+  },
+};
 }

@@ -22,14 +22,16 @@ export class Ebay {
     method: "GET" | "POST" | "PUT" | "DELETE" = "GET",
     body?: unknown
   ): Promise<T> {
-    const baseUrl =
-      base === "finance"
-        ? this.financeBaseUrl
-        : base === "commerce"
-          ? this.commerceBaseUrl
-          : base === "analytics"
-            ? this.analyticsBaseUrl
-            : this.baseUrl;
+    let baseUrl: string;
+    if (base === "finance") {
+      baseUrl = this.financeBaseUrl;
+    } else if (base === "commerce") {
+      baseUrl = this.commerceBaseUrl;
+    } else if (base === "analytics") {
+      baseUrl = this.analyticsBaseUrl;
+    } else {
+      baseUrl = this.baseUrl;
+    }
 
     const res = await fetch(`${baseUrl}${path}`, {
       method,

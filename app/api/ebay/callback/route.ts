@@ -7,8 +7,17 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get("state");
   const cookieState = req.cookies.get("ebay_oauth_state")?.value;
 
-  if (!(code && state) || state !== cookieState) {
-    return new NextResponse("Invalid state or missing code", { status: 400 });
+  if (!(code && state)) {
+    return new NextResponse("Invalid state and missing code", { status: 400 });
+  }
+  if (state !== cookieState) {
+    return new NextResponse("Invalid state", { status: 400 });
+  }
+  if (!code) {
+    return new NextResponse("Missing code", { status: 400 });
+  }
+  if (!state) {
+    return new NextResponse("Missing state", { status: 400 });
   }
 
   try {

@@ -1,4 +1,4 @@
-// lib/ebay/ebayClass.ts
+import 'server-only'
 import { randomBytes } from "node:crypto";
 import EbayAuthToken from "ebay-oauth-nodejs-client";
 import { SCOPES } from "../definitions";

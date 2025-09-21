@@ -31,7 +31,8 @@ export class Ebay {
       new EbayAuthToken({
         clientId: process?.env?.APP_ID_PROD || "",
         clientSecret: process?.env?.CERT_ID_PROD || "",
-        redirectUri: process?.env?.REDIRECT_URI_PROD || "",
+        redirectUri:
+          "https://main.d2ei06gwwpqof9.amplifyapp.com/api/ebay/callback",
         scope: SCOPES,
         baseUrl: this.baseUrl,
       }),

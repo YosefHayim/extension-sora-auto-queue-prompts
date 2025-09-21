@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(_request: NextRequest) {
   return new NextResponse({
     appId: process.env.APP_ID_PROD,

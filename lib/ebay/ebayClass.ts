@@ -29,9 +29,9 @@ export class Ebay {
   auth = {
     instance: async (): Promise<EbayAuthToken> =>
       new EbayAuthToken({
-        clientId: process?.env?.APP_ID_PROD || "",
-        clientSecret: process?.env?.CERT_ID_PROD || "",
-        redirectUri: process?.env?.REDIRECT_URI_PROD || "",
+        clientId: process?.env?.NEXT_PUBLIC_APP_ID_PROD || "",
+        clientSecret: process?.env?.NEXT_PUBLIC_CERT_ID_PROD || "",
+        redirectUri: process?.env?.NEXT_PUBLIC_REDIRECT_URI_PROD || "",
         scope: SCOPES,
         baseUrl: this.baseUrl,
       }),

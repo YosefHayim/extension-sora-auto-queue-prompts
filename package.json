@@ -32,6 +32,7 @@
     "@swc/cli": "^0.7.8",
     "@swc/core": "^1.13.5",
     "@tailwindcss/postcss": "^4",
+    "@types/ebay-oauth-nodejs-client": "^1.2.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -66,6 +66,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.13
+      '@types/ebay-oauth-nodejs-client':
+        specifier: ^1.2.4
+        version: 1.2.4
       '@types/node':
         specifier: ^20
         version: 20.19.17
@@ -992,6 +995,9 @@ packages:
 
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
+
+  '@types/ebay-oauth-nodejs-client@1.2.4':
+    resolution: {integrity: sha512-v2ABjemtKhFpe6x4+8rxqoo6N4cg/vrBXeXWh6Ru+jRU0UqqygxzZdqxuvF6zy3A9l8L5qRQC09X+3vcu9KTSA==}
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
@@ -2815,6 +2821,8 @@ snapshots:
       '@types/deep-eql': 4.0.2
 
   '@types/deep-eql@4.0.2': {}
+
+  '@types/ebay-oauth-nodejs-client@1.2.4': {}
 
   '@types/estree@1.0.8': {}
 

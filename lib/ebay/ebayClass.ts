@@ -1,13 +1,55 @@
+import EbayAuthToken from "ebay-oauth-nodejs-client";
+import { SCOPES } from "../definitions";
+
 export class Ebay {
   private readonly baseUrl = "https://api.ebay.com";
   private readonly apiVersion = "v1";
+  private readonly headers = {
+    "Content-Type": "application/json",
+  };
 
-  private get headers() {
-    return {
-      Authorization: `Bearer ${process.env.OAUTH_USER_TOKEN_ME}`,
-      "Content-Type": "application/json",
-      "Accept-Encoding": "identity",
-    };
+  async ebayAuthTokenInstance() {
+    const ebayAuthToken = new EbayAuthToken({
+      clientId: process?.env?.APP_ID_PROD || "",
+      clientSecret: process?.env?.CERT_ID_PROD || "",
+      redirectUri: encodeURIComponent(process?.env?.REDIRECT_URI_PROD || ""),
+      scope: SCOPES,
+      baseUrl: "https://api.ebay.com",
+    });
+    return ebayAuthToken;
+  }
+
+  async generateClientCredentialToken() {
+    const getAppToken = (
+      await this.ebayAuthTokenInstance()
+    ).getApplicationToken("PRODUCTION");
+    return getAppToken;
+  }
+
+  async generateUserAuthUrl() {
+    const state = crypto.getRandomValues(new Uint8Array(16)).toString();
+
+    const ebayAuthToken = await this.ebayAuthTokenInstance();
+    const userAuthUrl = ebayAuthToken.generateUserAuthorizationUrl(
+      "PRODUCTION",
+      SCOPES.join(" "),
+      { state, prompt: "consent" }
+    );
+    return userAuthUrl;
+  }
+
+  async getUserAccessToken(code: string) {
+    const accessToken = (
+      await this.ebayAuthTokenInstance()
+    ).exchangeCodeForAccessToken("PRODUCTION", code);
+    return accessToken;
+  }
+
+  async updateUserAccessToken() {
+    const updateAccessToken = (
+      await this.ebayAuthTokenInstance()
+    ).getAccessToken("PRODUCTION");
+    return updateAccessToken;
   }
 
   private async request<T>(path: string): Promise<T> {

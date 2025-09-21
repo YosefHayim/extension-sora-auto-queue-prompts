@@ -1,3 +1,6 @@
+import { defineFunction } from "@aws-amplify/backend";
+import { config } from "./config";
+
 export const EbayMarketplaces = {
   AT: {
     id: "EBAY_AT",
@@ -124,3 +127,18 @@ export const SCOPES = [
   "https://api.ebay.com/oauth/scope/sell.edelivery",
   "https://api.ebay.com/oauth/api_scope/commerce.vero",
 ];
+
+
+
+export const myFn = defineFunction({
+  entry: "./lib/definitions.ts",
+  environment: {
+    APP_ID_PROD: config.appIdProd,
+    DEV_ID_PROD: config.devIdProd,
+    CERT_ID_PROD: config.certIdProd,
+    DOPPLER_CONFIG: config.dopplerConfig,
+    DOPPLER_ENVIRONMENT: config.dopplerEnvironment,
+    REDIRECT_URI_PROD: config.redirectUriProd,
+    DOPPLER_PROJECT: config.dopplerProject,
+  },
+});

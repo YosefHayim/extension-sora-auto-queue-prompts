@@ -12,9 +12,9 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Invalid state and missing code", { status: 400 });
   }
 
-  // if (state !== cookieState) {
-  //   return new NextResponse("Invalid state", { status: 400 });
-  // }
+  if (state !== cookieState) {
+    return new NextResponse("Invalid state", { status: 400 });
+  }
 
   if (!code) {
     return new NextResponse("Missing code", { status: 400 });

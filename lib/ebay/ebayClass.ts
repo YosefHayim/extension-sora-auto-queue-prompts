@@ -31,7 +31,7 @@ export class Ebay {
       new EbayAuthToken({
         clientId: process?.env?.APP_ID_PROD || "",
         clientSecret: process?.env?.CERT_ID_PROD || "",
-        redirectUri: encodeURIComponent(process?.env?.REDIRECT_URI_PROD || ""),
+        redirectUri: process?.env?.REDIRECT_URI_PROD || "",
         scope: SCOPES,
         baseUrl: this.baseUrl,
       }),

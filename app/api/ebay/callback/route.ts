@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { Ebay } from "@/lib/ebay/ebayClass";
 //s
 export async function GET(req: NextRequest) {
+  console.log(req);
   const { searchParams, origin } = new URL(req.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");

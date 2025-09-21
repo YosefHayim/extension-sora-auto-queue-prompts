@@ -128,8 +128,6 @@ export const SCOPES = [
   "https://api.ebay.com/oauth/api_scope/commerce.vero",
 ];
 
-
-
 export const myFn = defineFunction({
   entry: "./lib/definitions.ts",
   environment: {

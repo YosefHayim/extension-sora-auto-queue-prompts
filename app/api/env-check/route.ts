@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   return NextResponse.json({
-    NEXT_PUBLIC_APP_ID_PROD: process.env.NEXT_PUBLIC_APP_ID_PROD,
-    NEXT_PUBLIC_CERT_ID_PROD: process.env.NEXT_PUBLIC_CERT_ID_PROD,
-    NEXT_PUBLIC_DEV_ID_PROD: process.env.NEXT_PUBLIC_DEV_ID_PROD,
+    APP_ID_PROD: process.env.APP_ID_PROD,
+    CERT_ID_PROD: process.env.CERT_ID_PROD,
+    DEV_ID_PROD: process.env.DEV_ID_PROD,
     DOPPLER_CONFIG: process.env.DOPPLER_CONFIG,
-    NEXT_PUBLIC_REDIRECT_URI_PROD: process.env.NEXT_PUBLIC_REDIRECT_URI_PROD,
+    REDIRECT_URI_PROD: process.env.REDIRECT_URI_PROD,
   });
 }

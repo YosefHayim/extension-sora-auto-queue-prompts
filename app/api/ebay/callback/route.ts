@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const ebay = new Ebay();
-    const tokens = await ebay.getUserAccessToken(code);
+    const tokens = await ebay.auth.getUserAccessToken(code);
 
     console.log("tokens received: ", tokens);
 

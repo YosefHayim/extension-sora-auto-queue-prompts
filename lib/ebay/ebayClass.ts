@@ -5,54 +5,11 @@ import { SCOPES } from "../definitions";
 export class Ebay {
   private readonly baseUrl = "https://api.ebay.com";
   private readonly apiVersion = "v1";
-  private readonly headers = {
+  private readonly headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  async ebayAuthTokenInstance() {
-    const ebayAuthToken = new EbayAuthToken({
-      clientId: process?.env?.APP_ID_PROD || "",
-      clientSecret: process?.env?.CERT_ID_PROD || "",
-      redirectUri: process?.env?.REDIRECT_URI_PROD || "",
-      scope: SCOPES,
-      baseUrl: "https://api.ebay.com",
-    });
-    return ebayAuthToken;
-  }
-
-  async generateClientCredentialToken() {
-    const getAppToken = (
-      await this.ebayAuthTokenInstance()
-    ).getApplicationToken("PRODUCTION");
-    return getAppToken;
-  }
-
-  async generateUserAuthUrl() {
-    const state = crypto.getRandomValues(new Uint8Array(16)).toString();
-
-    const ebayAuthToken = await this.ebayAuthTokenInstance();
-    const userAuthUrl = ebayAuthToken.generateUserAuthorizationUrl(
-      "PRODUCTION",
-      SCOPES.join(" "),
-      { state, prompt: "consent" }
-    );
-    return userAuthUrl?.toString();
-  }
-
-  async getUserAccessToken(code: string) {
-    const accessToken = (
-      await this.ebayAuthTokenInstance()
-    ).exchangeCodeForAccessToken("PRODUCTION", code);
-    return accessToken;
-  }
-
-  async updateUserAccessToken(refreshToken: string) {
-    const updateAccessToken = (
-      await this.ebayAuthTokenInstance()
-    ).getAccessToken("PRODUCTION", refreshToken, SCOPES);
-    return updateAccessToken;
-  }
-
+  // ---- Core HTTP ----
   private async request<T>(path: string): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const res = await fetch(url, {
@@ -68,57 +25,81 @@ export class Ebay {
     return res.json() as Promise<T>;
   }
 
-  async searchItemsOnEbay(query: string, limit: number) {
-    return this.request(
-      `/buy/browse/v1/item_summary/search?q=${query}&limit=${limit}`
-    );
-  }
+  // ---- Auth (nested) ----
+  auth = {
+    instance: async (): Promise<EbayAuthToken> =>
+      new EbayAuthToken({
+        clientId: process?.env?.APP_ID_PROD || "",
+        clientSecret: process?.env?.CERT_ID_PROD || "",
+        redirectUri: encodeURIComponent(process?.env?.REDIRECT_URI_PROD || ""),
+        scope: SCOPES,
+        baseUrl: this.baseUrl,
+      }),
 
-  /**
-   * Retrieves fulfillment policies.
-   */
-  async getFulfillmentPolicies(marketplaceId = "EBAY_US") {
-    return this.request(
-      `/sell/account/${this.apiVersion}/fulfillment_policy?marketplace_id=${marketplaceId}`
-    );
-  }
+    generateClientCredentialToken: async () => {
+      const ebay = await this.auth.instance();
+      return ebay.getApplicationToken("PRODUCTION");
+    },
 
-  /**
-   * Retrieves seller subscription info.
-   */
-  async getSubscription() {
-    return this.request(`/sell/account/${this.apiVersion}/subscription`);
-  }
+    generateUserAuthUrl: async () => {
+      const state = crypto.getRandomValues(new Uint8Array(16)).toString();
+      const ebay = await this.auth.instance();
+      const url = ebay.generateUserAuthorizationUrl(
+        "PRODUCTION",
+        SCOPES.join(" "),
+        { state, prompt: "consent" }
+      );
+      return url?.toString();
+    },
 
-  /**
-   * Retrieves payment policies.
-   */
-  async getPaymentPolicies(marketplaceId = "EBAY_US") {
-    return this.request(
-      `/sell/account/${this.apiVersion}/payment_policy?marketplace_id=${marketplaceId}`
-    );
-  }
+    getUserAccessToken: async (code: string) => {
+      const ebay = await this.auth.instance();
+      return ebay.exchangeCodeForAccessToken("PRODUCTION", code);
+    },
 
-  /**
-   * Retrieves return policies.
-   */
-  async getReturnPolicies(marketplaceId = "EBAY_US") {
-    return this.request(
-      `/sell/account/${this.apiVersion}/return_policy?marketplace_id=${marketplaceId}`
-    );
-  }
+    updateUserAccessToken: async (refreshToken: string) => {
+      const ebay = await this.auth.instance();
+      return ebay.getAccessToken("PRODUCTION", refreshToken, SCOPES);
+    },
+  };
 
-  /**
-   * Retrieves store subscription.
-   */
-  async getStore() {
-    return this.request(`/sell/account/${this.apiVersion}/store`);
-  }
+  // ---- Endpoints (nested) ----
+  endpoints = {
+    // Buy APIs
+    buy: {
+      searchItems: async (query: string, limit: number) =>
+        this.request(
+          `/buy/browse/v1/item_summary/search?q=${query}&limit=${limit}`
+        ),
+    },
 
-  /**
-   * Retrieves get store categories.
-   */
-  async getStoreCategories() {
-    return this.request(`/sell/account/${this.apiVersion}/store/categories`);
-  }
+    // Sell Account APIs
+    sell: {
+      account: {
+        getFulfillmentPolicies: async (marketplaceId = "EBAY_US") =>
+          this.request(
+            `/sell/account/${this.apiVersion}/fulfillment_policy?marketplace_id=${marketplaceId}`
+          ),
+
+        getSubscription: async () =>
+          this.request(`/sell/account/${this.apiVersion}/subscription`),
+
+        getPaymentPolicies: async (marketplaceId = "EBAY_US") =>
+          this.request(
+            `/sell/account/${this.apiVersion}/payment_policy?marketplace_id=${marketplaceId}`
+          ),
+
+        getReturnPolicies: async (marketplaceId = "EBAY_US") =>
+          this.request(
+            `/sell/account/${this.apiVersion}/return_policy?marketplace_id=${marketplaceId}`
+          ),
+
+        getStore: async () =>
+          this.request(`/sell/account/${this.apiVersion}/store`),
+
+        getStoreCategories: async () =>
+          this.request(`/sell/account/${this.apiVersion}/store/categories`),
+      },
+    },
+  };
 }

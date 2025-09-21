@@ -1,9 +1,9 @@
 import { Ebay } from "@/lib/ebay/ebayClass";
 
 export async function GET(_request: Request) {
-  return new Response({
-    clientId: process?.env?.APP_ID_PROD || "",
-    clientSecret: process?.env?.CERT_ID_PROD || "",
-    redirectUri: process?.env?.REDIRECT_URI_PROD || "",
-  });
+  const ebay = new Ebay();
+  const instance = await ebay.auth.instance();
+  console.log(instance);
+  // biome-ignore lint/suspicious/useStaticResponseMethods: <explanation>
+  return new Response(JSON.stringify({ instance }));
 }

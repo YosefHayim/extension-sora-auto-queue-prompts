@@ -16,7 +16,7 @@ type Props = {
   formFieldDescription?: string;
   placeholderText?: string;
   classNameInput?: string;
-  labelClassName?: string
+  labelClassName?: string;
 };
 
 export default function LabelAndInput(props: Props) {
@@ -33,7 +33,10 @@ export default function LabelAndInput(props: Props) {
         name={props.labelName}
         render={({ field }) => (
           <FormItem>
-            <FormLabel className={props.labelClassName} htmlFor={props.labelName}>
+            <FormLabel
+              className={props.labelClassName}
+              htmlFor={props.labelName}
+            >
               {props.labelName}
             </FormLabel>
             <FormControl>

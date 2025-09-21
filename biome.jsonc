@@ -1,10 +1,18 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite"],
+  "files": {
+    "includes": ["**/*.ts", "**/*.js", "**/*.tsx", "**/*.jsx"],
+    "ignoreUnknown": true
+  },
   "linter": {
     "rules": {
+      "complexity": {
+        "noUselessLoneBlockStatements": "off"
+      },
       "style": {
-        "noMagicNumbers": "off"
+        "noMagicNumbers": "off",
+        "useFilenamingConvention": "off"
       },
       "suspicious": {
         "useAwait": "off",

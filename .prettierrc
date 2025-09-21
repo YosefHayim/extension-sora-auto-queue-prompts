@@ -1,0 +1,8 @@
+{
+  ("plugins");
+  : ["@tailwindcss/postcss"],
+  "tailwindStylesheet": "./app/globals.css",
+  "tailwindFunctions": ["clsx", "cn", "tw"],
+  "tailwindPreserveWhitespace": true,
+  "tailwindPreserveDuplicates": true
+}

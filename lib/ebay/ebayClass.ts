@@ -83,9 +83,26 @@ export class Ebay {
   };
 
   endpoints = {
+    translation: {
+      translate: async () => {
+        this.request('default', `/commerce/translation/v1_beta/translate`)
+      }
+    },
+    identity: {
+      getUser: async () => {
+        this.request(`finance`, `commerce/identity/v1/identity/user/`)
+      }
+    },
     taxamony: {
       getCategoryTree: async () => {
         this.request(`commerce`, `/commerce/taxamony/v1/category_tree/`)
+      },
+      getCategorySuggestion: async (q: string) => {
+        this.request(`commerce`, `/commerce/taxamony/v1/category_tree/0/get_category_suggestion?q=${q}`)
+
+      },
+      getCategorySubTree: async (categoryId: string) => {
+        this.request(`commerce`, `/commerce/taxamony/v1/category_tree/15/get_category_subtree?category_id=${categoryId}`)
       }
     },
     fulfillment: {

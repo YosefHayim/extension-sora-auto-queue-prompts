@@ -3,19 +3,41 @@ frontend:
   phases:
     preBuild:
       commands:
-        - node -v
-        - corepack enable
-        - corepack prepare pnpm@9 --activate
-        - pnpm -v
-        - pnpm install --frozen-lockfile
+        - pnpm install
     build:
       commands:
-        - pnpm build
+        # 1) Pull decrypted params from SSM (adjust the path root once if needed)
+        - export APP_ID_PROD=$(aws ssm get-parameter --name "/amplify/yosefsab-saasds-PRD-712c11d4d-0745302f/APP_ID_PROD" --with-decryption --query "Parameter.Value" --output text)
+        - export CERT_ID_PROD=$(aws ssm get-parameter --name "/amplify/yosefsab-saasds-PRD-712c11d4d-0745302f/CERT_ID_PROD" --with-decryption --query "Parameter.Value" --output text)
+        - export DEV_ID_PROD=$(aws ssm get-parameter --name "/amplify/yosefsab-saasds-PRD-712c11d4d-0745302f/DEV_ID_PROD" --with-decryption --query "Parameter.Value" --output text)
+        - export DOPPLER_CONFIG=$(aws ssm get-parameter --name "/amplify/yosefsab-saasds-PRD-712c11d4d-0745302f/DOPPLER_CONFIG" --with-decryption --query "Parameter.Value" --output text)
+        - export DOPPLER_ENVIRONMENT=$(aws ssm get-parameter --name "/amplify/yosefsab-saasds-PRD-712c11d4d-0745302f/DOPPLER_ENVIRONMENT" --with-decryption --query "Parameter.Value" --output text)
+        - export DOPPLER_PROJECT=$(aws ssm get-parameter --name "/amplify/yosefsab-saasds-PRD-712c11d4d-0745302f/DOPPLER_PROJECT" --with-decryption --query "Parameter.Value" --output text)
+        - export REDIRECT_URI_PROD=$(aws ssm get-parameter --name "/amplify/yosefsab-saasds-PRD-712c11d4d-0745302f/REDIRECT_URI_PROD" --with-decryption --query "Parameter.Value" --output text)
+
+        # 2) Write to Next.js env file for production build
+        - rm -f .env.production
+        - echo "APP_ID_PROD=$APP_ID_PROD" >> .env.production
+        - echo "CERT_ID_PROD=$CERT_ID_PROD" >> .env.production
+        - echo "DEV_ID_PROD=$DEV_ID_PROD" >> .env.production
+        - echo "DOPPLER_CONFIG=$DOPPLER_CONFIG" >> .env.production
+        - echo "DOPPLER_ENVIRONMENT=$DOPPLER_ENVIRONMENT" >> .env.production
+        - echo "DOPPLER_PROJECT=$DOPPLER_PROJECT" >> .env.production
+        # Expose to browser only if truly needed
+        - echo "NEXT_PUBLIC_REDIRECT_URI_PROD=$REDIRECT_URI_PROD" >> .env.production
+
+        # 3) Sanity checks (do NOT print values)
+        - test -n "$APP_ID_PROD" && echo "APP_ID_PROD=SET" || (echo "APP_ID_PROD=EMPTY" && exit 1)
+        - test -n "$CERT_ID_PROD" && echo "CERT_ID_PROD=SET" || (echo "CERT_ID_PROD=EMPTY" && exit 1)
+        - test -n "$DEV_ID_PROD" && echo "DEV_ID_PROD=SET" || (echo "DEV_ID_PROD=EMPTY" && exit 1)
+        - grep -q "^NEXT_PUBLIC_REDIRECT_URI_PROD=" .env.production && echo "NEXT_PUBLIC_REDIRECT_URI_PROD=SET" || echo "NEXT_PUBLIC_REDIRECT_URI_PROD=MISSING"
+
+        - pnpm run build
   artifacts:
     baseDirectory: .next
     files:
-      - "**/*"
+      - '**/*'
   cache:
     paths:
+      - .next/cache/**/*
       - node_modules/**/*
-      - .pnpm-store/**/*

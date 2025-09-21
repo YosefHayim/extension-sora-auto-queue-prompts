@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import EbayAuthToken from "ebay-oauth-nodejs-client";
 import { SCOPES } from "../definitions";
 
@@ -12,7 +13,7 @@ export class Ebay {
     const ebayAuthToken = new EbayAuthToken({
       clientId: process?.env?.APP_ID_PROD || "",
       clientSecret: process?.env?.CERT_ID_PROD || "",
-      redirectUri: encodeURIComponent(process?.env?.REDIRECT_URI_PROD || ""),
+      redirectUri: process?.env?.REDIRECT_URI_PROD || "",
       scope: SCOPES,
       baseUrl: "https://api.ebay.com",
     });

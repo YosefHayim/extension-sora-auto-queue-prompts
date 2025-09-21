@@ -3,6 +3,9 @@
   "extends": ["ultracite"],
   "linter": {
     "rules": {
+      "style": {
+        "noMagicNumbers": "off"
+      },
       "suspicious": {
         "useAwait": "off",
         "noConsole": "off"

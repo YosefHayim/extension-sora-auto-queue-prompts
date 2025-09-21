@@ -2,21 +2,24 @@ import { type NextRequest, NextResponse } from "next/server";
 import { Ebay } from "@/lib/ebay/ebayClass";
 //s
 export async function GET(req: NextRequest) {
-  console.log(req);
   const { searchParams, origin } = new URL(req.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const cookieState = req.cookies.get("ebay_oauth_state")?.value;
+  console.log(cookieState);
 
   if (!(code && state)) {
     return new NextResponse("Invalid state and missing code", { status: 400 });
   }
-  if (state !== cookieState) {
-    return new NextResponse("Invalid state", { status: 400 });
-  }
+
+  // if (state !== cookieState) {
+  //   return new NextResponse("Invalid state", { status: 400 });
+  // }
+
   if (!code) {
     return new NextResponse("Missing code", { status: 400 });
   }
+
   if (!state) {
     return new NextResponse("Missing state", { status: 400 });
   }

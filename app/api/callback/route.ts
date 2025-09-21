@@ -17,8 +17,12 @@ export async function GET(req: NextRequest) {
 
     console.log("tokens received: ", tokens);
 
+    // const updateAccessToken = await ebay.updateUserAccessToken(
+    //   tokens.refresh_token
+    // );
+
     // TODO: persist tokens securely in DB or KV store
-    const res = NextResponse.redirect(`${origin}/dashboard`);
+    const res = NextResponse.redirect(`${origin}/`);
     res.cookies.set("ebay_oauth_state", "", { maxAge: 0, path: "/" });
     return res;
   } catch (err) {

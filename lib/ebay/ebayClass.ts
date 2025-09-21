@@ -45,10 +45,10 @@ export class Ebay {
     return accessToken;
   }
 
-  async updateUserAccessToken() {
+  async updateUserAccessToken(refreshToken: string) {
     const updateAccessToken = (
       await this.ebayAuthTokenInstance()
-    ).getAccessToken("PRODUCTION");
+    ).getAccessToken("PRODUCTION", refreshToken, SCOPES);
     return updateAccessToken;
   }
 

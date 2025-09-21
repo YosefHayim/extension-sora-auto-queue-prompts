@@ -11,20 +11,15 @@ import {
 import { Input } from "@/components/ui/input";
 
 type Props = {
-  labelName: string; // must match schema key: "username" | "password"
+  labelName: string;
   type?: string;
   formFieldDescription?: string;
   placeholderText?: string;
   classNameInput?: string;
+  labelClassName?: string
 };
 
-export default function LabelAndInput({
-  labelName,
-  type = "text",
-  formFieldDescription,
-  placeholderText,
-  classNameInput,
-}: Props) {
+export default function LabelAndInput(props: Props) {
   const methods = useFormContext();
 
   if (!methods) {
@@ -35,21 +30,23 @@ export default function LabelAndInput({
     <div>
       <Controller
         control={methods.control}
-        name={labelName}
+        name={props.labelName}
         render={({ field }) => (
           <FormItem>
-            <FormLabel htmlFor={labelName}>{labelName}</FormLabel>
+            <FormLabel className={props.labelClassName} htmlFor={props.labelName}>
+              {props.labelName}
+            </FormLabel>
             <FormControl>
               <Input
-                className={classNameInput}
-                id={labelName}
-                placeholder={placeholderText}
-                type={type}
+                className={props.classNameInput}
+                id={props.labelName}
+                placeholder={props.placeholderText}
+                type={props.type}
                 {...field}
               />
             </FormControl>
-            {formFieldDescription && (
-              <FormDescription>{formFieldDescription}</FormDescription>
+            {props.formFieldDescription && (
+              <FormDescription>{props.formFieldDescription}</FormDescription>
             )}
             <FormMessage />
           </FormItem>

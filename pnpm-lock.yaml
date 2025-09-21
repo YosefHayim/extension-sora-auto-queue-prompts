@@ -11,6 +11,9 @@ importers:
       '@aws-amplify/backend':
         specifier: ^1.16.1
         version: 1.16.1(@aws-cdk/cli-plugin-contract@2.181.1)(@aws-sdk/client-cloudformation@3.893.0)(@aws-sdk/client-s3@3.893.0)(@aws-sdk/types@3.893.0)(aws-cdk-lib@2.215.0(constructs@10.4.2))(constructs@10.4.2)(zod@4.1.9)
+      '@daniel-rose/envex':
+        specifier: ^1.2.0
+        version: 1.2.0(next@15.5.3(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.63.0(react@19.1.1))
@@ -1131,6 +1134,13 @@ packages:
 
   '@clack/prompts@0.11.0':
     resolution: {integrity: sha512-pMN5FcrEw9hUkZA4f+zLlzivQSeQf5dRGJjSUbvVYDLvpKCdQx5OaknvKzgbtXOizhP+SJJJjqEbOe55uKKfAw==}
+
+  '@daniel-rose/envex@1.2.0':
+    resolution: {integrity: sha512-2I53So5+9jb8sUEGnZWoIGqtL1LVuND0hM7xx53lwdV4kqpzXqdewGO0Di66P0T4F/UQapaLmPmhl2cbR1K5HQ==}
+    peerDependencies:
+      next: ^15
+      react: ^19
+      react-dom: ^19
 
   '@emnapi/runtime@1.5.0':
     resolution: {integrity: sha512-97/BJ3iXHww3djw6hYIfErCZFee7qCtrneuLa20UXFCOTCfBM2cvQHjWJ2EG0s0MtdNwInarqCTz35i4wWXHsQ==}
@@ -7277,6 +7287,12 @@ snapshots:
       '@clack/core': 0.5.0
       picocolors: 1.1.1
       sisteransi: 1.0.5
+
+  '@daniel-rose/envex@1.2.0(next@15.5.3(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+    dependencies:
+      next: 15.5.3(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react: 19.1.1
+      react-dom: 19.1.1(react@19.1.1)
 
   '@emnapi/runtime@1.5.0':
     dependencies:

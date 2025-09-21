@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@aws-amplify/backend": "^1.16.1",
+    "@daniel-rose/envex": "^1.2.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",

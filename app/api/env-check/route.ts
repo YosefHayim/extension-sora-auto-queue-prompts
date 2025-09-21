@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
 export async function GET() {
   return NextResponse.json({
     NEXT_PUBLIC_APP_ID_PROD: process.env.NEXT_PUBLIC_APP_ID_PROD,

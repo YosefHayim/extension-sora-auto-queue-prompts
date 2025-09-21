@@ -35,7 +35,7 @@ export class Ebay {
       SCOPES.join(" "),
       { state, prompt: "consent" }
     );
-    return userAuthUrl;
+    return userAuthUrl?.toString();
   }
 
   async getUserAccessToken(code: string) {

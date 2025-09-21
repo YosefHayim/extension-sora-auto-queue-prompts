@@ -11,7 +11,7 @@ export async function GET() {
     // const currentReturnPolicies = await ebay.getReturnPolicies();
     // const currentAppToken = await ebay.generateClientCredentialToken();
 
-    return NextResponse.redirect(userAuthUrl.toString());
+    return NextResponse.redirect(userAuthUrl);
 
     // return NextResponse.json({
     //   userAuthUrl: userAuthUrl ?? null,

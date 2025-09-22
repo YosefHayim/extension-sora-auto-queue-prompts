@@ -1,7 +1,7 @@
-import crypto from "node:crypto";
+/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
+import { randomBytes } from "node:crypto";
 import EbayAuthToken from "ebay-oauth-nodejs-client";
 import { SCOPES } from "../definitions";
-
 export class Ebay {
   private readonly baseUrl = "https://api.ebay.com";
   private readonly financeBaseUrl = "https://apiz.ebay.com";
@@ -17,6 +17,7 @@ export class Ebay {
     baseUrlName: string,
     path: string,
     method = "GET",
+
     body?: Record<string, any>
   ): Promise<T> {
     let baseUrl: string;
@@ -34,9 +35,10 @@ export class Ebay {
         baseUrl = this.baseUrl;
         break;
     }
+
     const res = await fetch(`${baseUrl}${path}`, {
       method,
-      body: JSON.stringify(body),
+      body: body ? JSON.stringify(body) : undefined,
       headers: this.headers,
       cache: "no-store",
     });
@@ -45,11 +47,14 @@ export class Ebay {
       const text = await res.text();
       throw new Error(`eBay API error ${res.status}: ${text}`);
     }
-
-    return res.json() as Promise<T>;
+    // Some endpoints legitimately return 204
+    if (res.status === 204) {
+      return {} as T;
+    }
+    return (await res.json()) as T;
   }
 
-  // ---- Auth (nested) ----
+  // ---- Auth ----
   auth = {
     instance: async (): Promise<EbayAuthToken> =>
       new EbayAuthToken({
@@ -66,14 +71,12 @@ export class Ebay {
     },
 
     generateUserAuthUrl: async () => {
-      const state = crypto.getRandomValues(new Uint8Array(16)).toString();
+      const state = randomBytes(16).toString("hex");
       const ebay = await this.auth.instance();
-      const url = ebay.generateUserAuthorizationUrl(
-        "PRODUCTION",
-        SCOPES.join(" "),
-        { state, prompt: "consent" }
-      );
-      return url?.toString();
+      return ebay.generateUserAuthorizationUrl("PRODUCTION", SCOPES.join(" "), {
+        state,
+        prompt: "consent",
+      });
     },
 
     getUserAccessToken: async (code: string) => {
@@ -87,18 +90,21 @@ export class Ebay {
     },
   };
 
+  // ---- Endpoints ----
   endpoints = {
     translation: {
       translate: async () => {
         this.request("default", "/commerce/translation/v1_beta/translate");
       },
     },
+
     identity: {
       getUser: async () => {
         this.request("finance", "commerce/identity/v1/identity/user/");
       },
     },
-    taxamony: {
+
+    taxonomy: {
       getCategoryTree: async () => {
         this.request("commerce", "/commerce/taxamony/v1/category_tree/");
       },
@@ -115,6 +121,7 @@ export class Ebay {
         );
       },
     },
+
     fulfillment: {
       getOrders: async () => {
         this.request("default", `/sell/fulfillment/${this.apiVersionV1}/order`);
@@ -194,6 +201,7 @@ export class Ebay {
           `/ sell / account / ${this.apiVersionV1} / sales_tax / ${countryCode} / ${taxJurisdictionId}`
         ),
     },
+
     analytics: {
       getCustomerServiceMetric: async (ebayMarketPlaceId: string) => {
         this.request(
@@ -213,6 +221,7 @@ export class Ebay {
         );
       },
     },
+
     finance: {
       getPayoutsSummary: async () => {
         this.request(
@@ -248,6 +257,7 @@ export class Ebay {
         );
       },
     },
+
     accountV1: {
       getFulfillmentPolicies: async (marketplaceId = "EBAY_US") =>
         this.request(

@@ -6,7 +6,10 @@ export async function GET(req: NextRequest) {
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const cookieState = req.cookies.get("ebay_oauth_state")?.value;
-  console.log(cookieState);
+
+  console.log("code: ", code);
+  console.log("state: ", state);
+  console.log("cookieState: ", cookieState)
 
   if (!(code && state)) {
     return new NextResponse("Invalid state and missing code", { status: 400 });

@@ -43,4 +43,4 @@ jobs:
         run: |
           echo "Image: ${{ env.image }}"
           echo "Tag:   ${{ env.tag }}"
-          echo "FQDN:  ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${{ env.tag }}"
+          echo "FQDN:  ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/${{env.ECR_REPO}}:${{ env.tag }}"

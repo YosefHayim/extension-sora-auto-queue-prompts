@@ -1,52 +1,40 @@
+// app/api/ebay/callback/route.ts
 import { type NextRequest, NextResponse } from "next/server";
 import { Ebay } from "@/lib/ebay/ebayClass";
-//s
-export async function GET(req: NextRequest) {
-  const { searchParams, origin } = new URL(req.url);
-  const code = searchParams.get("code");
-  const state = searchParams.get("state");
-  const cookieState = req.cookies.get("ebay_oauth_state")?.value;
 
-  console.log("code: ", code);
-  console.log("state: ", state);
-  console.log("cookieState: ", cookieState)
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+  const cookieState = req.cookies.get("ebay_oauth_state")?.value;
 
   if (!(code && state)) {
     return new NextResponse("Invalid state and missing code", { status: 400 });
+  }
+  if (!cookieState) {
+    return new NextResponse(
+      "State cookie missing; check cookie settings/domain/SameSite",
+      { status: 400 }
+    );
   }
 
   if (state !== cookieState) {
     return new NextResponse("Invalid state", { status: 400 });
   }
 
-  if (!code) {
-    return new NextResponse("Missing code", { status: 400 });
-  }
-
-  if (!state) {
-    return new NextResponse("Missing state", { status: 400 });
-  }
-
   try {
     const ebay = new Ebay();
     const tokens = await ebay.auth.getUserAccessToken(code);
+    console.log('tokens: ', tokens)
 
-    console.log("tokens received: ", tokens);
+    const res = NextResponse.redirect('/');
 
-    // const updateAccessToken = await ebay.updateUserAccessToken(
-    //   tokens.refresh_token
-    // );
-
-    // TODO: persist tokens securely in DB or KV store
-    const res = NextResponse.redirect(`${origin}/`);
     res.cookies.set("ebay_oauth_state", "", { maxAge: 0, path: "/" });
     return res;
   } catch (err) {
-    return new NextResponse(
-      `Token exchange failed: ${(err as Error & { message: string }).message}`,
-      {
-        status: 400,
-      }
-    );
+    const message = (err as Error)?.message || "Unknown error";
+    return new NextResponse(`Token exchange failed: ${message}`, {
+      status: 400,
+    });
   }
 }

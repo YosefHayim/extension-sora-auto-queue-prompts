@@ -24,8 +24,16 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Use the committed production env file
-COPY .env.production .env
+
+ARG APP_ID
+ARG DEV_ID
+ARG CERT_ID
+ARG REDIRECT_URI
+ENV APP_ID=$APP_ID \
+    DEV_ID=$DEV_ID \
+    CERT_ID=$CERT_ID \
+    REDIRECT_URI=$REDIRECT_URI
+
 RUN npm run build
 
 # 3. Production image, copy all the files and run next

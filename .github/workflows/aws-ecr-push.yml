@@ -20,9 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create .env.production
+      - name: Create .env
         run: |
-          cat > .env.production << 'EOF'
+          cat > .env << 'EOF'
           APP_ID_PROD=${{ secrets.APP_ID_PROD }}
           DEV_ID_PROD=${{ secrets.DEV_ID_PROD }}
           CERT_ID_PROD=${{ secrets.CERT_ID_PROD }}

@@ -17,10 +17,7 @@ export async function GET(req: NextRequest) {
   const code = url.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.json(
-      { status: "error", reason: "missing code" },
-      { status: ResponseStatus.BAD_REQUEST }
-    );
+    return NextResponse.json({ status: "error", reason: "missing code" }, { status: ResponseStatus.BAD_REQUEST });
   }
 
   let r: GetTokenResponse | null = null;
@@ -35,9 +32,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("OAuth token exchange failed:", error);
-    return NextResponse.json(
-      { status: ResponseStatus.INTERNAL_ERROR, data: r },
-      { status: ResponseStatus.INTERNAL_ERROR }
-    );
+    return NextResponse.json({ status: ResponseStatus.INTERNAL_ERROR, data: r }, { status: ResponseStatus.INTERNAL_ERROR });
   }
 }

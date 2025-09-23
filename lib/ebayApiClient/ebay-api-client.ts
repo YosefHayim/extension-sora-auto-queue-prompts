@@ -25,13 +25,7 @@ export class EbayService {
   readonly apiVersionV1 = "v1";
   readonly apiVersionV2 = "v2";
 
-  readonly headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    Authorization: `Basic ${Buffer.from(
-      `${this.clientId}:${this.clientSecret}`
-    ).toString("base64")}`
-  };
+
 
   private getBaseUrl(name: BaseUrlName): string {
     switch (name) {
@@ -47,23 +41,41 @@ export class EbayService {
     }
   }
 
-  private form(formType: "code" | "refreshToken") {
-    if (formType === "code" && this.code) {
+  private form(grantType: "authorizationCode" | "refreshToken") {
+    if (grantType === "authorizationCode" && this.code) {
       return new URLSearchParams({
         grant_type: "authorization_code",
         code: this.code,
         scope: this.scope,
+        redirect_uri: this.redirectUri
       });
     }
-    if (formType === "refreshToken" && this.refreshToken) {
+    if (grantType === "refreshToken" && this.refreshToken) {
       return new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: this.refreshToken,
         scope: this.scope,
+        redirect_uri: this.redirectUri
       });
     }
     return new URLSearchParams();
   }
+
+  authorizeHeaders(type: "json" | "form") {
+    const contentType =
+      type === "json"
+        ? "application/json"
+        : "application/x-www-form-urlencoded";
+
+    return {
+      "Content-Type": contentType,
+      Accept: "application/json",
+      Authorization: `Basic ${Buffer.from(
+        `${this.clientId}:${this.clientSecret}`
+      ).toString("base64")}`,
+    };
+  }
+
 
   accessToken: string | null = null;
   refreshToken: string | null = null;
@@ -79,28 +91,15 @@ export class EbayService {
     baseUrlName,
     path,
     method = "GET",
-    headers,
+    headers = this.authorizeHeaders('json'),
     body,
   }: RequestOptions): Promise<T> {
     const base = this.getBaseUrl(baseUrlName);
     const url = path ? `${base}${path}` : base;
 
-    const mergedHeaders: Record<string, string> = {
-      ...this.headers,
-      ...headers,
-    };
-
-    if (
-      !mergedHeaders.Authorization &&
-      baseUrlName !== "oauth" &&
-      this.accessToken
-    ) {
-      mergedHeaders.Authorization = `Bearer ${this.accessToken}`;
-    }
-
     const res = await fetch(url, {
       method,
-      headers: mergedHeaders,
+      headers,
       body,
       cache: "no-store",
     });
@@ -125,13 +124,8 @@ export class EbayService {
       const data = await this.request<EbayTokenResponse>({
         baseUrlName: "oauth",
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${Buffer.from(
-            `${this.clientId}:${this.clientSecret}`
-          ).toString("base64")}`,
-        },
-        body: this.form("code"),
+        headers: this.authorizeHeaders('form'),
+        body: this.form("authorizationCode"),
       });
 
       this.accessToken = data.access_token;
@@ -151,10 +145,7 @@ export class EbayService {
       return this.request<EbayTokenResponse>({
         baseUrlName: "oauth",
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          ...this.headers
-        },
+        headers: this.authorizeHeaders('form'),
         body: this.form("refreshToken"),
       });
     },

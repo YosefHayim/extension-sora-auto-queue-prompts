@@ -1,12 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { z } from "zod";
-
 // shadcn/ui
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -93,12 +93,12 @@ function useRootTheme(mode: Mode) {
   useEffect(() => {
     const root = document.documentElement;
     if (mode === "mixed") {
-      return; // do not override when showing side-by-side
+      return root.classList.add('light')
     }
     if (mode === "dark") {
       root.classList.add("dark");
     } else {
-      root.classList.remove("dark");
+      root.classList.remove("light");
     }
   }, [mode]);
 }
@@ -162,41 +162,41 @@ export default function ShowcasePage() {
   const alertTimer = useRef<number | null>(null);
   const dialogTimer = useRef<number | null>(null);
 
-  useEffect(() => {
-    progressTimer.current = window.setInterval(() => setProgress((p) => (p >= 100 ? 0 : p + 5)), 900);
-    return () => {
-      if (progressTimer.current) {
-        window.clearInterval(progressTimer.current);
-      }
-    };
-  }, []);
+  // useEffect(() => {
+  //   progressTimer.current = window.setInterval(() => setProgress((p) => (p >= 100 ? 0 : p + 5)), 900);
+  //   return () => {
+  //     if (progressTimer.current) {
+  //       window.clearInterval(progressTimer.current);
+  //     }
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    alertTimer.current = window.setInterval(() => {
-      setAlertVariantDestructive((v) => !v);
-      setShowAlert(true);
-      const hide = window.setTimeout(() => setShowAlert(false), 2400);
-      return () => window.clearTimeout(hide);
-    }, 5200) as unknown as number;
-    return () => {
-      if (alertTimer.current) {
-        window.clearInterval(alertTimer.current);
-      }
-    };
-  }, []);
+  // useEffect(() => {
+  //   alertTimer.current = window.setInterval(() => {
+  //     setAlertVariantDestructive((v) => !v);
+  //     setShowAlert(true);
+  //     const hide = window.setTimeout(() => setShowAlert(false), 2400);
+  //     return () => window.clearTimeout(hide);
+  //   }, 5200) as unknown as number;
+  //   return () => {
+  //     if (alertTimer.current) {
+  //       window.clearInterval(alertTimer.current);
+  //     }
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    dialogTimer.current = window.setInterval(() => {
-      setDialogOpen(true);
-      const close = window.setTimeout(() => setDialogOpen(false), 2200);
-      return () => window.clearTimeout(close);
-    }, 9000) as unknown as number;
-    return () => {
-      if (dialogTimer.current) {
-        window.clearInterval(dialogTimer.current);
-      }
-    };
-  }, []);
+  // useEffect(() => {
+  //   dialogTimer.current = window.setInterval(() => {
+  //     setDialogOpen(true);
+  //     const close = window.setTimeout(() => setDialogOpen(false), 2200);
+  //     return () => window.clearTimeout(close);
+  //   }, 9000) as unknown as number;
+  //   return () => {
+  //     if (dialogTimer.current) {
+  //       window.clearInterval(dialogTimer.current);
+  //     }
+  //   };
+  // }, []);
 
   const chartConfig = useMemo(() => ({ value: { label: "Requests" } }), []);
 
@@ -211,6 +211,10 @@ export default function ShowcasePage() {
 
   const Shell = ({ children }: { children: React.ReactNode }) => (
     <div className="container mx-auto px-4 py-6 sm:py-8">
+      <div>
+        <h2>Logo</h2>
+        <Image className="object-contain" height={100} src={"/logo/logo.png"} width={100} />
+      </div>
       {/* Top bar */}
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <Breadcrumb>

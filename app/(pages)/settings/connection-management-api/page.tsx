@@ -1,9 +1,5 @@
-
-
 const Page = () => {
-  return (
-    <div>connection-management-api</div>
-  )
-}
+  return <div>connection-management-api</div>;
+};
 
-export default Page
+export default Page;

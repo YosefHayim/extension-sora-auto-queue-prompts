@@ -1,9 +1,7 @@
-'use client'
+"use client";
 
 const Page = () => {
-  return (
-    <div>recovery-password</div>
-  )
-}
+  return <div>recovery-password</div>;
+};
 
-export default Page
+export default Page;

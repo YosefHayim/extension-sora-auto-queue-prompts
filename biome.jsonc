@@ -29,6 +29,9 @@
       },
       "nursery": {
         "noUnnecessaryConditions": "off"
+      },
+      "correctness": {
+        "noNestedComponentDefinitions": "warn"
       }
     }
   },

@@ -1,0 +1,897 @@
+extend type Integration {
+  """
+  Implicit metadata field that cannot be written. It provides extra information about query results.
+  """
+  _metadata: _Metadata @fdc_generated(from: "Integration", purpose: METADATA_FIELD)
+  """
+  ✨ Count the number of rows in the `Integration` table.
+  """
+  _count: Int! @fdc_generated(from: "Integration.", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Integration` table where the `accessToken` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  accessToken_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Integration.accessToken", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Integration` table where the `createdAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Integration.createdAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Integration` table where the `expiresAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  expiresAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Integration.expiresAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Integration` table where the `id` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  id_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Integration.id", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Integration` table where the `platform` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  platform_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Integration.platform", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Integration` table where the `refreshToken` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  refreshToken_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Integration.refreshToken", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Integration` table where the `userId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  userId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Integration.userId", purpose: QUERY_COUNT)
+  """
+  ✨ Minimum of the `createdAt` field in the `Integration` table.
+  """
+  createdAt_min: Timestamp @fdc_generated(from: "Integration.createdAt", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `expiresAt` field in the `Integration` table.
+  """
+  expiresAt_min: Timestamp @fdc_generated(from: "Integration.expiresAt", purpose: QUERY_MIN)
+  """
+  ✨ Maximum of the `createdAt` field in the `Integration` table.
+  """
+  createdAt_max: Timestamp @fdc_generated(from: "Integration.createdAt", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `expiresAt` field in the `Integration` table.
+  """
+  expiresAt_max: Timestamp @fdc_generated(from: "Integration.expiresAt", purpose: QUERY_MAX)
+}
+extend type Order {
+  """
+  Implicit metadata field that cannot be written. It provides extra information about query results.
+  """
+  _metadata: _Metadata @fdc_generated(from: "Order", purpose: METADATA_FIELD)
+  """
+  ✨ Count the number of rows in the `Order` table.
+  """
+  _count: Int! @fdc_generated(from: "Order.", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `amazonOrderRef` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  amazonOrderRef_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.amazonOrderRef", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `buyerUsername` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  buyerUsername_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.buyerUsername", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `createdAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.createdAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `eBayListingId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  eBayListingId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.eBayListingId", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `ebayOrderId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  ebayOrderId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.ebayOrderId", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `id` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  id_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.id", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `orderDate` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  orderDate_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.orderDate", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `quantity` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  quantity_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.quantity", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `shippingAddress` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  shippingAddress_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.shippingAddress", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `status` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  status_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.status", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `totalAmount` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  totalAmount_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.totalAmount", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `Order` table where the `userId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  userId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "Order.userId", purpose: QUERY_COUNT)
+  """
+  ✨ Sum the `quantity` field in the `Order` table.
+  """
+  quantity_sum(
+    """
+    Set to true to sum the distinct values.
+    """
+    distinct: Boolean = false
+  ): Int @fdc_generated(from: "Order.quantity", purpose: QUERY_SUM)
+  """
+  ✨ Sum the `totalAmount` field in the `Order` table.
+  """
+  totalAmount_sum(
+    """
+    Set to true to sum the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "Order.totalAmount", purpose: QUERY_SUM)
+  """
+  ✨ Average the `quantity` field in the `Order` table.
+  """
+  quantity_avg(
+    """
+    Set to true to average the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "Order.quantity", purpose: QUERY_AVG)
+  """
+  ✨ Average the `totalAmount` field in the `Order` table.
+  """
+  totalAmount_avg(
+    """
+    Set to true to average the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "Order.totalAmount", purpose: QUERY_AVG)
+  """
+  ✨ Minimum of the `createdAt` field in the `Order` table.
+  """
+  createdAt_min: Timestamp @fdc_generated(from: "Order.createdAt", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `orderDate` field in the `Order` table.
+  """
+  orderDate_min: Timestamp @fdc_generated(from: "Order.orderDate", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `quantity` field in the `Order` table.
+  """
+  quantity_min: Int @fdc_generated(from: "Order.quantity", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `totalAmount` field in the `Order` table.
+  """
+  totalAmount_min: Float @fdc_generated(from: "Order.totalAmount", purpose: QUERY_MIN)
+  """
+  ✨ Maximum of the `createdAt` field in the `Order` table.
+  """
+  createdAt_max: Timestamp @fdc_generated(from: "Order.createdAt", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `orderDate` field in the `Order` table.
+  """
+  orderDate_max: Timestamp @fdc_generated(from: "Order.orderDate", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `quantity` field in the `Order` table.
+  """
+  quantity_max: Int @fdc_generated(from: "Order.quantity", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `totalAmount` field in the `Order` table.
+  """
+  totalAmount_max: Float @fdc_generated(from: "Order.totalAmount", purpose: QUERY_MAX)
+}
+extend type ProductTemplate {
+  """
+  ✨ List `eBayListing` objects in a one-to-many relationship (where `eBayListing`.`productTemplate` is this object).
+  """
+  eBayListings_on_productTemplate(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: eBayListing_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [eBayListing_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: eBayListing_Having
+  ): [eBayListing!]! @fdc_generated(from: "eBayListing.productTemplate", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  Implicit metadata field that cannot be written. It provides extra information about query results.
+  """
+  _metadata: _Metadata @fdc_generated(from: "ProductTemplate", purpose: METADATA_FIELD)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table.
+  """
+  _count: Int! @fdc_generated(from: "ProductTemplate.", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `amazonUrl` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  amazonUrl_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.amazonUrl", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `asin` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  asin_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.asin", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `brand` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  brand_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.brand", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `createdAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.createdAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `currentAmazonPrice` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  currentAmazonPrice_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.currentAmazonPrice", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `description` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  description_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.description", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `id` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  id_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.id", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `imageUrl` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  imageUrl_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.imageUrl", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `title` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  title_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.title", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `ProductTemplate` table where the `userId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  userId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate.userId", purpose: QUERY_COUNT)
+  """
+  ✨ Sum the `currentAmazonPrice` field in the `ProductTemplate` table.
+  """
+  currentAmazonPrice_sum(
+    """
+    Set to true to sum the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "ProductTemplate.currentAmazonPrice", purpose: QUERY_SUM)
+  """
+  ✨ Average the `currentAmazonPrice` field in the `ProductTemplate` table.
+  """
+  currentAmazonPrice_avg(
+    """
+    Set to true to average the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "ProductTemplate.currentAmazonPrice", purpose: QUERY_AVG)
+  """
+  ✨ Minimum of the `createdAt` field in the `ProductTemplate` table.
+  """
+  createdAt_min: Timestamp @fdc_generated(from: "ProductTemplate.createdAt", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `currentAmazonPrice` field in the `ProductTemplate` table.
+  """
+  currentAmazonPrice_min: Float @fdc_generated(from: "ProductTemplate.currentAmazonPrice", purpose: QUERY_MIN)
+  """
+  ✨ Maximum of the `createdAt` field in the `ProductTemplate` table.
+  """
+  createdAt_max: Timestamp @fdc_generated(from: "ProductTemplate.createdAt", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `currentAmazonPrice` field in the `ProductTemplate` table.
+  """
+  currentAmazonPrice_max: Float @fdc_generated(from: "ProductTemplate.currentAmazonPrice", purpose: QUERY_MAX)
+}
+extend type User {
+  """
+  ✨ List `Integration` objects in a one-to-many relationship (where `Integration`.`user` is this object).
+  """
+  integrations_on_user(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Integration_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Integration_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Integration_Having
+  ): [Integration!]! @fdc_generated(from: "Integration.user", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  ✨ List `Order` objects in a one-to-many relationship (where `Order`.`user` is this object).
+  """
+  orders_on_user(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Order_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Order_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Order_Having
+  ): [Order!]! @fdc_generated(from: "Order.user", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  ✨ List `ProductTemplate` objects in a one-to-many relationship (where `ProductTemplate`.`user` is this object).
+  """
+  productTemplates_on_user(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: ProductTemplate_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [ProductTemplate_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: ProductTemplate_Having
+  ): [ProductTemplate!]! @fdc_generated(from: "ProductTemplate.user", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  ✨ List `eBayListing` objects in a one-to-many relationship (where `eBayListing`.`user` is this object).
+  """
+  eBayListings_on_user(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: eBayListing_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [eBayListing_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: eBayListing_Having
+  ): [eBayListing!]! @fdc_generated(from: "eBayListing.user", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  Implicit metadata field that cannot be written. It provides extra information about query results.
+  """
+  _metadata: _Metadata @fdc_generated(from: "User", purpose: METADATA_FIELD)
+  """
+  ✨ Count the number of rows in the `User` table.
+  """
+  _count: Int! @fdc_generated(from: "User.", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `amazonConnected` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  amazonConnected_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.amazonConnected", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `createdAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.createdAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `displayName` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  displayName_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.displayName", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `eBayConnected` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  eBayConnected_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.eBayConnected", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `email` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  email_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.email", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `id` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  id_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.id", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `User` table where the `passwordHash` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  passwordHash_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "User.passwordHash", purpose: QUERY_COUNT)
+  """
+  ✨ Minimum of the `createdAt` field in the `User` table.
+  """
+  createdAt_min: Timestamp @fdc_generated(from: "User.createdAt", purpose: QUERY_MIN)
+  """
+  ✨ Maximum of the `createdAt` field in the `User` table.
+  """
+  createdAt_max: Timestamp @fdc_generated(from: "User.createdAt", purpose: QUERY_MAX)
+}
+extend type eBayListing {
+  """
+  ✨ List `Order` objects in a one-to-many relationship (where `Order`.`eBayListing` is this object).
+  """
+  orders_on_eBayListing(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Order_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Order_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Order_Having
+  ): [Order!]! @fdc_generated(from: "Order.eBayListing", purpose: QUERY_MULTIPLE_ONE_TO_MANY)
+  """
+  Implicit metadata field that cannot be written. It provides extra information about query results.
+  """
+  _metadata: _Metadata @fdc_generated(from: "eBayListing", purpose: METADATA_FIELD)
+  """
+  ✨ Count the number of rows in the `eBayListing` table.
+  """
+  _count: Int! @fdc_generated(from: "eBayListing.", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `createdAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  createdAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.createdAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `currenteBayPrice` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  currenteBayPrice_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.currenteBayPrice", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `ebayItemId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  ebayItemId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.ebayItemId", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `ebayStatus` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  ebayStatus_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.ebayStatus", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `id` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  id_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.id", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `lastSyncedAt` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  lastSyncedAt_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.lastSyncedAt", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `listingErrors` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  listingErrors_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.listingErrors", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `productTemplateId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  productTemplateId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.productTemplateId", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `profitMargin` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  profitMargin_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.profitMargin", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `quantity` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  quantity_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.quantity", purpose: QUERY_COUNT)
+  """
+  ✨ Count the number of rows in the `eBayListing` table where the `userId` field is non-null. Pass the `distinct` argument to instead count the number of distinct values.
+  """
+  userId_count(
+    """
+    Set to true to count the number of distinct values.
+    """
+    distinct: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing.userId", purpose: QUERY_COUNT)
+  """
+  ✨ Sum the `currenteBayPrice` field in the `eBayListing` table.
+  """
+  currenteBayPrice_sum(
+    """
+    Set to true to sum the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "eBayListing.currenteBayPrice", purpose: QUERY_SUM)
+  """
+  ✨ Sum the `profitMargin` field in the `eBayListing` table.
+  """
+  profitMargin_sum(
+    """
+    Set to true to sum the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "eBayListing.profitMargin", purpose: QUERY_SUM)
+  """
+  ✨ Sum the `quantity` field in the `eBayListing` table.
+  """
+  quantity_sum(
+    """
+    Set to true to sum the distinct values.
+    """
+    distinct: Boolean = false
+  ): Int @fdc_generated(from: "eBayListing.quantity", purpose: QUERY_SUM)
+  """
+  ✨ Average the `currenteBayPrice` field in the `eBayListing` table.
+  """
+  currenteBayPrice_avg(
+    """
+    Set to true to average the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "eBayListing.currenteBayPrice", purpose: QUERY_AVG)
+  """
+  ✨ Average the `profitMargin` field in the `eBayListing` table.
+  """
+  profitMargin_avg(
+    """
+    Set to true to average the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "eBayListing.profitMargin", purpose: QUERY_AVG)
+  """
+  ✨ Average the `quantity` field in the `eBayListing` table.
+  """
+  quantity_avg(
+    """
+    Set to true to average the distinct values.
+    """
+    distinct: Boolean = false
+  ): Float @fdc_generated(from: "eBayListing.quantity", purpose: QUERY_AVG)
+  """
+  ✨ Minimum of the `createdAt` field in the `eBayListing` table.
+  """
+  createdAt_min: Timestamp @fdc_generated(from: "eBayListing.createdAt", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `currenteBayPrice` field in the `eBayListing` table.
+  """
+  currenteBayPrice_min: Float @fdc_generated(from: "eBayListing.currenteBayPrice", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `lastSyncedAt` field in the `eBayListing` table.
+  """
+  lastSyncedAt_min: Timestamp @fdc_generated(from: "eBayListing.lastSyncedAt", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `profitMargin` field in the `eBayListing` table.
+  """
+  profitMargin_min: Float @fdc_generated(from: "eBayListing.profitMargin", purpose: QUERY_MIN)
+  """
+  ✨ Minimum of the `quantity` field in the `eBayListing` table.
+  """
+  quantity_min: Int @fdc_generated(from: "eBayListing.quantity", purpose: QUERY_MIN)
+  """
+  ✨ Maximum of the `createdAt` field in the `eBayListing` table.
+  """
+  createdAt_max: Timestamp @fdc_generated(from: "eBayListing.createdAt", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `currenteBayPrice` field in the `eBayListing` table.
+  """
+  currenteBayPrice_max: Float @fdc_generated(from: "eBayListing.currenteBayPrice", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `lastSyncedAt` field in the `eBayListing` table.
+  """
+  lastSyncedAt_max: Timestamp @fdc_generated(from: "eBayListing.lastSyncedAt", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `profitMargin` field in the `eBayListing` table.
+  """
+  profitMargin_max: Float @fdc_generated(from: "eBayListing.profitMargin", purpose: QUERY_MAX)
+  """
+  ✨ Maximum of the `quantity` field in the `eBayListing` table.
+  """
+  quantity_max: Int @fdc_generated(from: "eBayListing.quantity", purpose: QUERY_MAX)
+}

@@ -1,0 +1,2149 @@
+"""
+✨ `Integration_KeyOutput` returns the primary key fields of table type `Integration`.
+
+It has the same format as `Integration_Key`, but is only used as mutation return value.
+"""
+scalar Integration_KeyOutput
+"""
+✨ `Order_KeyOutput` returns the primary key fields of table type `Order`.
+
+It has the same format as `Order_Key`, but is only used as mutation return value.
+"""
+scalar Order_KeyOutput
+"""
+✨ `ProductTemplate_KeyOutput` returns the primary key fields of table type `ProductTemplate`.
+
+It has the same format as `ProductTemplate_Key`, but is only used as mutation return value.
+"""
+scalar ProductTemplate_KeyOutput
+"""
+✨ `User_KeyOutput` returns the primary key fields of table type `User`.
+
+It has the same format as `User_Key`, but is only used as mutation return value.
+"""
+scalar User_KeyOutput
+"""
+✨ `eBayListing_KeyOutput` returns the primary key fields of table type `eBayListing`.
+
+It has the same format as `eBayListing_Key`, but is only used as mutation return value.
+"""
+scalar eBayListing_KeyOutput
+"""
+✨ Generated data input type for table 'Integration'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Integration_Data {
+  """
+  ✨ Generated from Field `Integration`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Integration`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Integration`.`userId` of type `UUID!`
+  """
+  userId: UUID
+  """
+  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `Integration`.`userId` of type `UUID!`)
+  """
+  userId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Integration`.`user` of type `User!`
+  """
+  user: User_Key
+  """
+  ✨ Generated from Field `Integration`.`accessToken` of type `String!`
+  """
+  accessToken: String
+  """
+  ✨ `_expr` server value variant of `accessToken` (✨ Generated from Field `Integration`.`accessToken` of type `String!`)
+  """
+  accessToken_expr: String_Expr
+  """
+  ✨ Generated from Field `Integration`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Integration`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `Integration`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `Integration`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `Integration`.`expiresAt` of type `Timestamp!`
+  """
+  expiresAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `expiresAt` (✨ Generated from Field `Integration`.`expiresAt` of type `Timestamp!`)
+  """
+  expiresAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `expiresAt` (✨ Generated from Field `Integration`.`expiresAt` of type `Timestamp!`)
+  """
+  expiresAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `expiresAt` (✨ Generated from Field `Integration`.`expiresAt` of type `Timestamp!`)
+  """
+  expiresAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `Integration`.`platform` of type `String!`
+  """
+  platform: String
+  """
+  ✨ `_expr` server value variant of `platform` (✨ Generated from Field `Integration`.`platform` of type `String!`)
+  """
+  platform_expr: String_Expr
+  """
+  ✨ Generated from Field `Integration`.`refreshToken` of type `String!`
+  """
+  refreshToken: String
+  """
+  ✨ `_expr` server value variant of `refreshToken` (✨ Generated from Field `Integration`.`refreshToken` of type `String!`)
+  """
+  refreshToken_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'Integration'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Integration_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Integration_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Integration_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Integration_Filter!]
+  """
+  ✨ Generated from Field `Integration`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `Integration`.`userId` of type `UUID!`
+  """
+  userId: UUID_Filter
+  """
+  ✨ Generated from Field `Integration`.`user` of type `User!`
+  """
+  user: User_Filter
+  """
+  ✨ Generated from Field `Integration`.`accessToken` of type `String!`
+  """
+  accessToken: String_Filter
+  """
+  ✨ Generated from Field `Integration`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `Integration`.`expiresAt` of type `Timestamp!`
+  """
+  expiresAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `Integration`.`platform` of type `String!`
+  """
+  platform: String_Filter
+  """
+  ✨ Generated from Field `Integration`.`refreshToken` of type `String!`
+  """
+  refreshToken: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Integration'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Integration_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Integration_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Integration_Filter
+}
+"""
+✨ Generated having input type for table 'Integration'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Integration_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Integration_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Integration_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Integration_Having!]
+  """
+  ✨ Generated from Field `Integration`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Integration`.`accessToken_count` of type `Int!`
+  """
+  accessToken_count: Int_Filter
+  """
+  ✨ Generated from Field `Integration`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Integration`.`expiresAt_count` of type `Int!`
+  """
+  expiresAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Integration`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Integration`.`platform_count` of type `Int!`
+  """
+  platform_count: Int_Filter
+  """
+  ✨ Generated from Field `Integration`.`refreshToken_count` of type `Int!`
+  """
+  refreshToken_count: Int_Filter
+  """
+  ✨ Generated from Field `Integration`.`userId_count` of type `Int!`
+  """
+  userId_count: Int_Filter
+  """
+  ✨ Generated from Field `Integration`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Integration`.`expiresAt_min` of type `Timestamp`
+  """
+  expiresAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Integration`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `Integration`.`expiresAt_max` of type `Timestamp`
+  """
+  expiresAt_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'Integration'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Integration_Key {
+  """
+  ✨ Generated from Field `Integration`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Integration`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'Integration'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Integration_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Integration_Filter
+}
+"""
+✨ Generated order input type for table 'Integration'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Integration_Order {
+  """
+  ✨ Generated from Field `Integration`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`userId` of type `UUID!`
+  """
+  userId: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`user` of type `User!`
+  """
+  user: User_Order
+  """
+  ✨ Generated from Field `Integration`.`accessToken` of type `String!`
+  """
+  accessToken: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`expiresAt` of type `Timestamp!`
+  """
+  expiresAt: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`platform` of type `String!`
+  """
+  platform: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`refreshToken` of type `String!`
+  """
+  refreshToken: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`accessToken_count` of type `Int!`
+  """
+  accessToken_count: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`expiresAt_count` of type `Int!`
+  """
+  expiresAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`platform_count` of type `Int!`
+  """
+  platform_count: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`refreshToken_count` of type `Int!`
+  """
+  refreshToken_count: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`userId_count` of type `Int!`
+  """
+  userId_count: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`expiresAt_min` of type `Timestamp`
+  """
+  expiresAt_min: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+  """
+  ✨ Generated from Field `Integration`.`expiresAt_max` of type `Timestamp`
+  """
+  expiresAt_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Order'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Order_Data {
+  """
+  ✨ Generated from Field `Order`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Order`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Order`.`eBayListingId` of type `UUID!`
+  """
+  eBayListingId: UUID
+  """
+  ✨ `_expr` server value variant of `eBayListingId` (✨ Generated from Field `Order`.`eBayListingId` of type `UUID!`)
+  """
+  eBayListingId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Order`.`userId` of type `UUID!`
+  """
+  userId: UUID
+  """
+  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `Order`.`userId` of type `UUID!`)
+  """
+  userId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `Order`.`eBayListing` of type `eBayListing!`
+  """
+  eBayListing: eBayListing_Key
+  """
+  ✨ Generated from Field `Order`.`user` of type `User!`
+  """
+  user: User_Key
+  """
+  ✨ Generated from Field `Order`.`amazonOrderRef` of type `String`
+  """
+  amazonOrderRef: String
+  """
+  ✨ `_expr` server value variant of `amazonOrderRef` (✨ Generated from Field `Order`.`amazonOrderRef` of type `String`)
+  """
+  amazonOrderRef_expr: String_Expr
+  """
+  ✨ Generated from Field `Order`.`buyerUsername` of type `String!`
+  """
+  buyerUsername: String
+  """
+  ✨ `_expr` server value variant of `buyerUsername` (✨ Generated from Field `Order`.`buyerUsername` of type `String!`)
+  """
+  buyerUsername_expr: String_Expr
+  """
+  ✨ Generated from Field `Order`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `Order`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `Order`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `Order`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `Order`.`ebayOrderId` of type `String!`
+  """
+  ebayOrderId: String
+  """
+  ✨ `_expr` server value variant of `ebayOrderId` (✨ Generated from Field `Order`.`ebayOrderId` of type `String!`)
+  """
+  ebayOrderId_expr: String_Expr
+  """
+  ✨ Generated from Field `Order`.`orderDate` of type `Timestamp!`
+  """
+  orderDate: Timestamp
+  """
+  ✨ `_expr` server value variant of `orderDate` (✨ Generated from Field `Order`.`orderDate` of type `Timestamp!`)
+  """
+  orderDate_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `orderDate` (✨ Generated from Field `Order`.`orderDate` of type `Timestamp!`)
+  """
+  orderDate_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `orderDate` (✨ Generated from Field `Order`.`orderDate` of type `Timestamp!`)
+  """
+  orderDate_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `Order`.`quantity` of type `Int!`
+  """
+  quantity: Int
+  """
+  ✨ `_expr` server value variant of `quantity` (✨ Generated from Field `Order`.`quantity` of type `Int!`)
+  """
+  quantity_expr: Int_Expr
+  """
+  ✨ `_update` server value variant of `quantity` (✨ Generated from Field `Order`.`quantity` of type `Int!`)
+  """
+  quantity_update: [Int_Update!]
+  """
+  ✨ Generated from Field `Order`.`shippingAddress` of type `String`
+  """
+  shippingAddress: String
+  """
+  ✨ `_expr` server value variant of `shippingAddress` (✨ Generated from Field `Order`.`shippingAddress` of type `String`)
+  """
+  shippingAddress_expr: String_Expr
+  """
+  ✨ Generated from Field `Order`.`status` of type `String!`
+  """
+  status: String
+  """
+  ✨ `_expr` server value variant of `status` (✨ Generated from Field `Order`.`status` of type `String!`)
+  """
+  status_expr: String_Expr
+  """
+  ✨ Generated from Field `Order`.`totalAmount` of type `Float!`
+  """
+  totalAmount: Float
+  """
+  ✨ `_expr` server value variant of `totalAmount` (✨ Generated from Field `Order`.`totalAmount` of type `Float!`)
+  """
+  totalAmount_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `totalAmount` (✨ Generated from Field `Order`.`totalAmount` of type `Float!`)
+  """
+  totalAmount_update: [Float_Update!]
+}
+"""
+✨ Generated filter input type for table 'Order'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Order_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Order_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Order_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Order_Filter!]
+  """
+  ✨ Generated from Field `Order`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `Order`.`eBayListingId` of type `UUID!`
+  """
+  eBayListingId: UUID_Filter
+  """
+  ✨ Generated from Field `Order`.`userId` of type `UUID!`
+  """
+  userId: UUID_Filter
+  """
+  ✨ Generated from Field `Order`.`eBayListing` of type `eBayListing!`
+  """
+  eBayListing: eBayListing_Filter
+  """
+  ✨ Generated from Field `Order`.`user` of type `User!`
+  """
+  user: User_Filter
+  """
+  ✨ Generated from Field `Order`.`amazonOrderRef` of type `String`
+  """
+  amazonOrderRef: String_Filter
+  """
+  ✨ Generated from Field `Order`.`buyerUsername` of type `String!`
+  """
+  buyerUsername: String_Filter
+  """
+  ✨ Generated from Field `Order`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `Order`.`ebayOrderId` of type `String!`
+  """
+  ebayOrderId: String_Filter
+  """
+  ✨ Generated from Field `Order`.`orderDate` of type `Timestamp!`
+  """
+  orderDate: Timestamp_Filter
+  """
+  ✨ Generated from Field `Order`.`quantity` of type `Int!`
+  """
+  quantity: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`shippingAddress` of type `String`
+  """
+  shippingAddress: String_Filter
+  """
+  ✨ Generated from Field `Order`.`status` of type `String!`
+  """
+  status: String_Filter
+  """
+  ✨ Generated from Field `Order`.`totalAmount` of type `Float!`
+  """
+  totalAmount: Float_Filter
+}
+"""
+✨ Generated first-row input type for table 'Order'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Order_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Order_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Order_Filter
+}
+"""
+✨ Generated having input type for table 'Order'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Order_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Order_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Order_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Order_Having!]
+  """
+  ✨ Generated from Field `Order`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`amazonOrderRef_count` of type `Int!`
+  """
+  amazonOrderRef_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`buyerUsername_count` of type `Int!`
+  """
+  buyerUsername_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`eBayListingId_count` of type `Int!`
+  """
+  eBayListingId_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`ebayOrderId_count` of type `Int!`
+  """
+  ebayOrderId_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`orderDate_count` of type `Int!`
+  """
+  orderDate_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`quantity_count` of type `Int!`
+  """
+  quantity_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`shippingAddress_count` of type `Int!`
+  """
+  shippingAddress_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`status_count` of type `Int!`
+  """
+  status_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`totalAmount_count` of type `Int!`
+  """
+  totalAmount_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`userId_count` of type `Int!`
+  """
+  userId_count: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`quantity_sum` of type `Int`
+  """
+  quantity_sum: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`totalAmount_sum` of type `Float`
+  """
+  totalAmount_sum: Float_Filter
+  """
+  ✨ Generated from Field `Order`.`quantity_avg` of type `Float`
+  """
+  quantity_avg: Float_Filter
+  """
+  ✨ Generated from Field `Order`.`totalAmount_avg` of type `Float`
+  """
+  totalAmount_avg: Float_Filter
+  """
+  ✨ Generated from Field `Order`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Order`.`orderDate_min` of type `Timestamp`
+  """
+  orderDate_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Order`.`quantity_min` of type `Int`
+  """
+  quantity_min: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`totalAmount_min` of type `Float`
+  """
+  totalAmount_min: Float_Filter
+  """
+  ✨ Generated from Field `Order`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `Order`.`orderDate_max` of type `Timestamp`
+  """
+  orderDate_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `Order`.`quantity_max` of type `Int`
+  """
+  quantity_max: Int_Filter
+  """
+  ✨ Generated from Field `Order`.`totalAmount_max` of type `Float`
+  """
+  totalAmount_max: Float_Filter
+}
+"""
+✨ Generated key input type for table 'Order'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Order_Key {
+  """
+  ✨ Generated from Field `Order`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Order`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'Order'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Order_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Order_Filter
+}
+"""
+✨ Generated order input type for table 'Order'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Order_Order {
+  """
+  ✨ Generated from Field `Order`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`eBayListingId` of type `UUID!`
+  """
+  eBayListingId: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`userId` of type `UUID!`
+  """
+  userId: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`eBayListing` of type `eBayListing!`
+  """
+  eBayListing: eBayListing_Order
+  """
+  ✨ Generated from Field `Order`.`user` of type `User!`
+  """
+  user: User_Order
+  """
+  ✨ Generated from Field `Order`.`amazonOrderRef` of type `String`
+  """
+  amazonOrderRef: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`buyerUsername` of type `String!`
+  """
+  buyerUsername: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`ebayOrderId` of type `String!`
+  """
+  ebayOrderId: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`orderDate` of type `Timestamp!`
+  """
+  orderDate: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`quantity` of type `Int!`
+  """
+  quantity: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`shippingAddress` of type `String`
+  """
+  shippingAddress: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`status` of type `String!`
+  """
+  status: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`totalAmount` of type `Float!`
+  """
+  totalAmount: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`amazonOrderRef_count` of type `Int!`
+  """
+  amazonOrderRef_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`buyerUsername_count` of type `Int!`
+  """
+  buyerUsername_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`eBayListingId_count` of type `Int!`
+  """
+  eBayListingId_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`ebayOrderId_count` of type `Int!`
+  """
+  ebayOrderId_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`orderDate_count` of type `Int!`
+  """
+  orderDate_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`quantity_count` of type `Int!`
+  """
+  quantity_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`shippingAddress_count` of type `Int!`
+  """
+  shippingAddress_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`status_count` of type `Int!`
+  """
+  status_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`totalAmount_count` of type `Int!`
+  """
+  totalAmount_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`userId_count` of type `Int!`
+  """
+  userId_count: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`quantity_sum` of type `Int`
+  """
+  quantity_sum: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`totalAmount_sum` of type `Float`
+  """
+  totalAmount_sum: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`quantity_avg` of type `Float`
+  """
+  quantity_avg: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`totalAmount_avg` of type `Float`
+  """
+  totalAmount_avg: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`orderDate_min` of type `Timestamp`
+  """
+  orderDate_min: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`quantity_min` of type `Int`
+  """
+  quantity_min: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`totalAmount_min` of type `Float`
+  """
+  totalAmount_min: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`orderDate_max` of type `Timestamp`
+  """
+  orderDate_max: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`quantity_max` of type `Int`
+  """
+  quantity_max: OrderDirection
+  """
+  ✨ Generated from Field `Order`.`totalAmount_max` of type `Float`
+  """
+  totalAmount_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'ProductTemplate'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input ProductTemplate_Data {
+  """
+  ✨ Generated from Field `ProductTemplate`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ProductTemplate`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `ProductTemplate`.`userId` of type `UUID!`
+  """
+  userId: UUID
+  """
+  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `ProductTemplate`.`userId` of type `UUID!`)
+  """
+  userId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `ProductTemplate`.`user` of type `User!`
+  """
+  user: User_Key
+  """
+  ✨ Generated from Field `ProductTemplate`.`amazonUrl` of type `String!`
+  """
+  amazonUrl: String
+  """
+  ✨ `_expr` server value variant of `amazonUrl` (✨ Generated from Field `ProductTemplate`.`amazonUrl` of type `String!`)
+  """
+  amazonUrl_expr: String_Expr
+  """
+  ✨ Generated from Field `ProductTemplate`.`asin` of type `String!`
+  """
+  asin: String
+  """
+  ✨ `_expr` server value variant of `asin` (✨ Generated from Field `ProductTemplate`.`asin` of type `String!`)
+  """
+  asin_expr: String_Expr
+  """
+  ✨ Generated from Field `ProductTemplate`.`brand` of type `String`
+  """
+  brand: String
+  """
+  ✨ `_expr` server value variant of `brand` (✨ Generated from Field `ProductTemplate`.`brand` of type `String`)
+  """
+  brand_expr: String_Expr
+  """
+  ✨ Generated from Field `ProductTemplate`.`categories` of type `[String]`
+  """
+  categories: [String!]
+  """
+  ✨ `_update` server value variant of `categories` (✨ Generated from Field `ProductTemplate`.`categories` of type `[String]`)
+  """
+  categories_update: [String_ListUpdate!]
+  """
+  ✨ Generated from Field `ProductTemplate`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `ProductTemplate`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `ProductTemplate`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `ProductTemplate`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice` of type `Float!`
+  """
+  currentAmazonPrice: Float
+  """
+  ✨ `_expr` server value variant of `currentAmazonPrice` (✨ Generated from Field `ProductTemplate`.`currentAmazonPrice` of type `Float!`)
+  """
+  currentAmazonPrice_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `currentAmazonPrice` (✨ Generated from Field `ProductTemplate`.`currentAmazonPrice` of type `Float!`)
+  """
+  currentAmazonPrice_update: [Float_Update!]
+  """
+  ✨ Generated from Field `ProductTemplate`.`description` of type `String`
+  """
+  description: String
+  """
+  ✨ `_expr` server value variant of `description` (✨ Generated from Field `ProductTemplate`.`description` of type `String`)
+  """
+  description_expr: String_Expr
+  """
+  ✨ Generated from Field `ProductTemplate`.`imageUrl` of type `String!`
+  """
+  imageUrl: String
+  """
+  ✨ `_expr` server value variant of `imageUrl` (✨ Generated from Field `ProductTemplate`.`imageUrl` of type `String!`)
+  """
+  imageUrl_expr: String_Expr
+  """
+  ✨ Generated from Field `ProductTemplate`.`title` of type `String!`
+  """
+  title: String
+  """
+  ✨ `_expr` server value variant of `title` (✨ Generated from Field `ProductTemplate`.`title` of type `String!`)
+  """
+  title_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'ProductTemplate'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ProductTemplate_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [ProductTemplate_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: ProductTemplate_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [ProductTemplate_Filter!]
+  """
+  ✨ Generated from Field `ProductTemplate`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`userId` of type `UUID!`
+  """
+  userId: UUID_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`user` of type `User!`
+  """
+  user: User_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`amazonUrl` of type `String!`
+  """
+  amazonUrl: String_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`asin` of type `String!`
+  """
+  asin: String_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`brand` of type `String`
+  """
+  brand: String_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`categories` of type `[String]`
+  """
+  categories: String_ListFilter
+  """
+  ✨ Generated from Field `ProductTemplate`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice` of type `Float!`
+  """
+  currentAmazonPrice: Float_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`description` of type `String`
+  """
+  description: String_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`imageUrl` of type `String!`
+  """
+  imageUrl: String_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`title` of type `String!`
+  """
+  title: String_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`eBayListings_on_productTemplate` of type `[eBayListing!]!`
+  """
+  eBayListings_on_productTemplate: eBayListing_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'ProductTemplate'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input ProductTemplate_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [ProductTemplate_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: ProductTemplate_Filter
+}
+"""
+✨ Generated having input type for table 'ProductTemplate'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input ProductTemplate_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [ProductTemplate_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: ProductTemplate_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [ProductTemplate_Having!]
+  """
+  ✨ Generated from Field `ProductTemplate`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`amazonUrl_count` of type `Int!`
+  """
+  amazonUrl_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`asin_count` of type `Int!`
+  """
+  asin_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`brand_count` of type `Int!`
+  """
+  brand_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_count` of type `Int!`
+  """
+  currentAmazonPrice_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`description_count` of type `Int!`
+  """
+  description_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`imageUrl_count` of type `Int!`
+  """
+  imageUrl_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`title_count` of type `Int!`
+  """
+  title_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`userId_count` of type `Int!`
+  """
+  userId_count: Int_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_sum` of type `Float`
+  """
+  currentAmazonPrice_sum: Float_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_avg` of type `Float`
+  """
+  currentAmazonPrice_avg: Float_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_min` of type `Float`
+  """
+  currentAmazonPrice_min: Float_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_max` of type `Float`
+  """
+  currentAmazonPrice_max: Float_Filter
+}
+"""
+✨ Generated key input type for table 'ProductTemplate'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input ProductTemplate_Key {
+  """
+  ✨ Generated from Field `ProductTemplate`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `ProductTemplate`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'ProductTemplate'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input ProductTemplate_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: ProductTemplate_Filter
+}
+"""
+✨ Generated order input type for table 'ProductTemplate'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input ProductTemplate_Order {
+  """
+  ✨ Generated from Field `ProductTemplate`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`userId` of type `UUID!`
+  """
+  userId: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`user` of type `User!`
+  """
+  user: User_Order
+  """
+  ✨ Generated from Field `ProductTemplate`.`amazonUrl` of type `String!`
+  """
+  amazonUrl: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`asin` of type `String!`
+  """
+  asin: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`brand` of type `String`
+  """
+  brand: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice` of type `Float!`
+  """
+  currentAmazonPrice: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`description` of type `String`
+  """
+  description: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`imageUrl` of type `String!`
+  """
+  imageUrl: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`title` of type `String!`
+  """
+  title: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`amazonUrl_count` of type `Int!`
+  """
+  amazonUrl_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`asin_count` of type `Int!`
+  """
+  asin_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`brand_count` of type `Int!`
+  """
+  brand_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_count` of type `Int!`
+  """
+  currentAmazonPrice_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`description_count` of type `Int!`
+  """
+  description_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`imageUrl_count` of type `Int!`
+  """
+  imageUrl_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`title_count` of type `Int!`
+  """
+  title_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`userId_count` of type `Int!`
+  """
+  userId_count: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_sum` of type `Float`
+  """
+  currentAmazonPrice_sum: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_avg` of type `Float`
+  """
+  currentAmazonPrice_avg: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_min` of type `Float`
+  """
+  currentAmazonPrice_min: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+  """
+  ✨ Generated from Field `ProductTemplate`.`currentAmazonPrice_max` of type `Float`
+  """
+  currentAmazonPrice_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'User'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input User_Data {
+  """
+  ✨ Generated from Field `User`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `User`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `User`.`amazonConnected` of type `Boolean`
+  """
+  amazonConnected: Boolean
+  """
+  ✨ `_expr` server value variant of `amazonConnected` (✨ Generated from Field `User`.`amazonConnected` of type `Boolean`)
+  """
+  amazonConnected_expr: Boolean_Expr
+  """
+  ✨ Generated from Field `User`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `User`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `User`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `User`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `User`.`displayName` of type `String`
+  """
+  displayName: String
+  """
+  ✨ `_expr` server value variant of `displayName` (✨ Generated from Field `User`.`displayName` of type `String`)
+  """
+  displayName_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`eBayConnected` of type `Boolean`
+  """
+  eBayConnected: Boolean
+  """
+  ✨ `_expr` server value variant of `eBayConnected` (✨ Generated from Field `User`.`eBayConnected` of type `Boolean`)
+  """
+  eBayConnected_expr: Boolean_Expr
+  """
+  ✨ Generated from Field `User`.`email` of type `String!`
+  """
+  email: String
+  """
+  ✨ `_expr` server value variant of `email` (✨ Generated from Field `User`.`email` of type `String!`)
+  """
+  email_expr: String_Expr
+  """
+  ✨ Generated from Field `User`.`passwordHash` of type `String!`
+  """
+  passwordHash: String
+  """
+  ✨ `_expr` server value variant of `passwordHash` (✨ Generated from Field `User`.`passwordHash` of type `String!`)
+  """
+  passwordHash_expr: String_Expr
+}
+"""
+✨ Generated filter input type for table 'User'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input User_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [User_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: User_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [User_Filter!]
+  """
+  ✨ Generated from Field `User`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `User`.`amazonConnected` of type `Boolean`
+  """
+  amazonConnected: Boolean_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `User`.`displayName` of type `String`
+  """
+  displayName: String_Filter
+  """
+  ✨ Generated from Field `User`.`eBayConnected` of type `Boolean`
+  """
+  eBayConnected: Boolean_Filter
+  """
+  ✨ Generated from Field `User`.`email` of type `String!`
+  """
+  email: String_Filter
+  """
+  ✨ Generated from Field `User`.`passwordHash` of type `String!`
+  """
+  passwordHash: String_Filter
+  """
+  ✨ Generated from Field `User`.`integrations_on_user` of type `[Integration!]!`
+  """
+  integrations_on_user: Integration_ListFilter
+  """
+  ✨ Generated from Field `User`.`orders_on_user` of type `[Order!]!`
+  """
+  orders_on_user: Order_ListFilter
+  """
+  ✨ Generated from Field `User`.`productTemplates_on_user` of type `[ProductTemplate!]!`
+  """
+  productTemplates_on_user: ProductTemplate_ListFilter
+  """
+  ✨ Generated from Field `User`.`eBayListings_on_user` of type `[eBayListing!]!`
+  """
+  eBayListings_on_user: eBayListing_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'User'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input User_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [User_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: User_Filter
+}
+"""
+✨ Generated having input type for table 'User'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input User_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [User_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: User_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [User_Having!]
+  """
+  ✨ Generated from Field `User`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`amazonConnected_count` of type `Int!`
+  """
+  amazonConnected_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`displayName_count` of type `Int!`
+  """
+  displayName_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`eBayConnected_count` of type `Int!`
+  """
+  eBayConnected_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`email_count` of type `Int!`
+  """
+  email_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`passwordHash_count` of type `Int!`
+  """
+  passwordHash_count: Int_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `User`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'User'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input User_Key {
+  """
+  ✨ Generated from Field `User`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `User`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'User'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input User_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: User_Filter
+}
+"""
+✨ Generated order input type for table 'User'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input User_Order {
+  """
+  ✨ Generated from Field `User`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `User`.`amazonConnected` of type `Boolean`
+  """
+  amazonConnected: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `User`.`displayName` of type `String`
+  """
+  displayName: OrderDirection
+  """
+  ✨ Generated from Field `User`.`eBayConnected` of type `Boolean`
+  """
+  eBayConnected: OrderDirection
+  """
+  ✨ Generated from Field `User`.`email` of type `String!`
+  """
+  email: OrderDirection
+  """
+  ✨ Generated from Field `User`.`passwordHash` of type `String!`
+  """
+  passwordHash: OrderDirection
+  """
+  ✨ Generated from Field `User`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`amazonConnected_count` of type `Int!`
+  """
+  amazonConnected_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`displayName_count` of type `Int!`
+  """
+  displayName_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`eBayConnected_count` of type `Int!`
+  """
+  eBayConnected_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`email_count` of type `Int!`
+  """
+  email_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`passwordHash_count` of type `Int!`
+  """
+  passwordHash_count: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `User`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'eBayListing'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input eBayListing_Data {
+  """
+  ✨ Generated from Field `eBayListing`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `eBayListing`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+  """
+  ✨ Generated from Field `eBayListing`.`productTemplateId` of type `UUID!`
+  """
+  productTemplateId: UUID
+  """
+  ✨ `_expr` server value variant of `productTemplateId` (✨ Generated from Field `eBayListing`.`productTemplateId` of type `UUID!`)
+  """
+  productTemplateId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `eBayListing`.`userId` of type `UUID!`
+  """
+  userId: UUID
+  """
+  ✨ `_expr` server value variant of `userId` (✨ Generated from Field `eBayListing`.`userId` of type `UUID!`)
+  """
+  userId_expr: UUID_Expr
+  """
+  ✨ Generated from Field `eBayListing`.`productTemplate` of type `ProductTemplate!`
+  """
+  productTemplate: ProductTemplate_Key
+  """
+  ✨ Generated from Field `eBayListing`.`user` of type `User!`
+  """
+  user: User_Key
+  """
+  ✨ Generated from Field `eBayListing`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `createdAt` (✨ Generated from Field `eBayListing`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `createdAt` (✨ Generated from Field `eBayListing`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `createdAt` (✨ Generated from Field `eBayListing`.`createdAt` of type `Timestamp!`)
+  """
+  createdAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice` of type `Float!`
+  """
+  currenteBayPrice: Float
+  """
+  ✨ `_expr` server value variant of `currenteBayPrice` (✨ Generated from Field `eBayListing`.`currenteBayPrice` of type `Float!`)
+  """
+  currenteBayPrice_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `currenteBayPrice` (✨ Generated from Field `eBayListing`.`currenteBayPrice` of type `Float!`)
+  """
+  currenteBayPrice_update: [Float_Update!]
+  """
+  ✨ Generated from Field `eBayListing`.`ebayItemId` of type `String!`
+  """
+  ebayItemId: String
+  """
+  ✨ `_expr` server value variant of `ebayItemId` (✨ Generated from Field `eBayListing`.`ebayItemId` of type `String!`)
+  """
+  ebayItemId_expr: String_Expr
+  """
+  ✨ Generated from Field `eBayListing`.`ebayStatus` of type `String!`
+  """
+  ebayStatus: String
+  """
+  ✨ `_expr` server value variant of `ebayStatus` (✨ Generated from Field `eBayListing`.`ebayStatus` of type `String!`)
+  """
+  ebayStatus_expr: String_Expr
+  """
+  ✨ Generated from Field `eBayListing`.`lastSyncedAt` of type `Timestamp`
+  """
+  lastSyncedAt: Timestamp
+  """
+  ✨ `_expr` server value variant of `lastSyncedAt` (✨ Generated from Field `eBayListing`.`lastSyncedAt` of type `Timestamp`)
+  """
+  lastSyncedAt_expr: Timestamp_Expr
+  """
+  ✨ `_time` server value variant of `lastSyncedAt` (✨ Generated from Field `eBayListing`.`lastSyncedAt` of type `Timestamp`)
+  """
+  lastSyncedAt_time: Timestamp_Relative
+  """
+  ✨ `_update` server value variant of `lastSyncedAt` (✨ Generated from Field `eBayListing`.`lastSyncedAt` of type `Timestamp`)
+  """
+  lastSyncedAt_update: [Timestamp_Update!]
+  """
+  ✨ Generated from Field `eBayListing`.`listingErrors` of type `String`
+  """
+  listingErrors: String
+  """
+  ✨ `_expr` server value variant of `listingErrors` (✨ Generated from Field `eBayListing`.`listingErrors` of type `String`)
+  """
+  listingErrors_expr: String_Expr
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin` of type `Float`
+  """
+  profitMargin: Float
+  """
+  ✨ `_expr` server value variant of `profitMargin` (✨ Generated from Field `eBayListing`.`profitMargin` of type `Float`)
+  """
+  profitMargin_expr: Float_Expr
+  """
+  ✨ `_update` server value variant of `profitMargin` (✨ Generated from Field `eBayListing`.`profitMargin` of type `Float`)
+  """
+  profitMargin_update: [Float_Update!]
+  """
+  ✨ Generated from Field `eBayListing`.`quantity` of type `Int`
+  """
+  quantity: Int
+  """
+  ✨ `_expr` server value variant of `quantity` (✨ Generated from Field `eBayListing`.`quantity` of type `Int`)
+  """
+  quantity_expr: Int_Expr
+  """
+  ✨ `_update` server value variant of `quantity` (✨ Generated from Field `eBayListing`.`quantity` of type `Int`)
+  """
+  quantity_update: [Int_Update!]
+}
+"""
+✨ Generated filter input type for table 'eBayListing'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input eBayListing_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [eBayListing_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: eBayListing_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [eBayListing_Filter!]
+  """
+  ✨ Generated from Field `eBayListing`.`id` of type `UUID!`
+  """
+  id: UUID_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`productTemplateId` of type `UUID!`
+  """
+  productTemplateId: UUID_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`userId` of type `UUID!`
+  """
+  userId: UUID_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`productTemplate` of type `ProductTemplate!`
+  """
+  productTemplate: ProductTemplate_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`user` of type `User!`
+  """
+  user: User_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice` of type `Float!`
+  """
+  currenteBayPrice: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`ebayItemId` of type `String!`
+  """
+  ebayItemId: String_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`ebayStatus` of type `String!`
+  """
+  ebayStatus: String_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`lastSyncedAt` of type `Timestamp`
+  """
+  lastSyncedAt: Timestamp_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`listingErrors` of type `String`
+  """
+  listingErrors: String_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin` of type `Float`
+  """
+  profitMargin: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`quantity` of type `Int`
+  """
+  quantity: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`orders_on_eBayListing` of type `[Order!]!`
+  """
+  orders_on_eBayListing: Order_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'eBayListing'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input eBayListing_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [eBayListing_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: eBayListing_Filter
+}
+"""
+✨ Generated having input type for table 'eBayListing'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input eBayListing_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [eBayListing_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: eBayListing_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [eBayListing_Having!]
+  """
+  ✨ Generated from Field `eBayListing`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_count` of type `Int!`
+  """
+  currenteBayPrice_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`ebayItemId_count` of type `Int!`
+  """
+  ebayItemId_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`ebayStatus_count` of type `Int!`
+  """
+  ebayStatus_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`lastSyncedAt_count` of type `Int!`
+  """
+  lastSyncedAt_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`listingErrors_count` of type `Int!`
+  """
+  listingErrors_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`productTemplateId_count` of type `Int!`
+  """
+  productTemplateId_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_count` of type `Int!`
+  """
+  profitMargin_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_count` of type `Int!`
+  """
+  quantity_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`userId_count` of type `Int!`
+  """
+  userId_count: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_sum` of type `Float`
+  """
+  currenteBayPrice_sum: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_sum` of type `Float`
+  """
+  profitMargin_sum: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_sum` of type `Int`
+  """
+  quantity_sum: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_avg` of type `Float`
+  """
+  currenteBayPrice_avg: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_avg` of type `Float`
+  """
+  profitMargin_avg: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_avg` of type `Float`
+  """
+  quantity_avg: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_min` of type `Float`
+  """
+  currenteBayPrice_min: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`lastSyncedAt_min` of type `Timestamp`
+  """
+  lastSyncedAt_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_min` of type `Float`
+  """
+  profitMargin_min: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_min` of type `Int`
+  """
+  quantity_min: Int_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_max` of type `Float`
+  """
+  currenteBayPrice_max: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`lastSyncedAt_max` of type `Timestamp`
+  """
+  lastSyncedAt_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_max` of type `Float`
+  """
+  profitMargin_max: Float_Filter
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_max` of type `Int`
+  """
+  quantity_max: Int_Filter
+}
+"""
+✨ Generated key input type for table 'eBayListing'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input eBayListing_Key {
+  """
+  ✨ Generated from Field `eBayListing`.`id` of type `UUID!`
+  """
+  id: UUID
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `eBayListing`.`id` of type `UUID!`)
+  """
+  id_expr: UUID_Expr
+}
+"""
+✨ Generated list filter input type for table 'eBayListing'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input eBayListing_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: eBayListing_Filter
+}
+"""
+✨ Generated order input type for table 'eBayListing'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input eBayListing_Order {
+  """
+  ✨ Generated from Field `eBayListing`.`id` of type `UUID!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`productTemplateId` of type `UUID!`
+  """
+  productTemplateId: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`userId` of type `UUID!`
+  """
+  userId: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`productTemplate` of type `ProductTemplate!`
+  """
+  productTemplate: ProductTemplate_Order
+  """
+  ✨ Generated from Field `eBayListing`.`user` of type `User!`
+  """
+  user: User_Order
+  """
+  ✨ Generated from Field `eBayListing`.`createdAt` of type `Timestamp!`
+  """
+  createdAt: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice` of type `Float!`
+  """
+  currenteBayPrice: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`ebayItemId` of type `String!`
+  """
+  ebayItemId: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`ebayStatus` of type `String!`
+  """
+  ebayStatus: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`lastSyncedAt` of type `Timestamp`
+  """
+  lastSyncedAt: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`listingErrors` of type `String`
+  """
+  listingErrors: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin` of type `Float`
+  """
+  profitMargin: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`quantity` of type `Int`
+  """
+  quantity: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`createdAt_count` of type `Int!`
+  """
+  createdAt_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_count` of type `Int!`
+  """
+  currenteBayPrice_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`ebayItemId_count` of type `Int!`
+  """
+  ebayItemId_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`ebayStatus_count` of type `Int!`
+  """
+  ebayStatus_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`lastSyncedAt_count` of type `Int!`
+  """
+  lastSyncedAt_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`listingErrors_count` of type `Int!`
+  """
+  listingErrors_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`productTemplateId_count` of type `Int!`
+  """
+  productTemplateId_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_count` of type `Int!`
+  """
+  profitMargin_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_count` of type `Int!`
+  """
+  quantity_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`userId_count` of type `Int!`
+  """
+  userId_count: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_sum` of type `Float`
+  """
+  currenteBayPrice_sum: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_sum` of type `Float`
+  """
+  profitMargin_sum: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_sum` of type `Int`
+  """
+  quantity_sum: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_avg` of type `Float`
+  """
+  currenteBayPrice_avg: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_avg` of type `Float`
+  """
+  profitMargin_avg: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_avg` of type `Float`
+  """
+  quantity_avg: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`createdAt_min` of type `Timestamp`
+  """
+  createdAt_min: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_min` of type `Float`
+  """
+  currenteBayPrice_min: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`lastSyncedAt_min` of type `Timestamp`
+  """
+  lastSyncedAt_min: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_min` of type `Float`
+  """
+  profitMargin_min: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_min` of type `Int`
+  """
+  quantity_min: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`createdAt_max` of type `Timestamp`
+  """
+  createdAt_max: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`currenteBayPrice_max` of type `Float`
+  """
+  currenteBayPrice_max: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`lastSyncedAt_max` of type `Timestamp`
+  """
+  lastSyncedAt_max: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`profitMargin_max` of type `Float`
+  """
+  profitMargin_max: OrderDirection
+  """
+  ✨ Generated from Field `eBayListing`.`quantity_max` of type `Int`
+  """
+  quantity_max: OrderDirection
+}

@@ -1,0 +1,562 @@
+extend type Mutation {
+  """
+  ✨ Insert a single `Integration` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  integration_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Integration_Data!
+  ): Integration_KeyOutput! @fdc_generated(from: "Integration", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Order` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  order_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Order_Data!
+  ): Order_KeyOutput! @fdc_generated(from: "Order", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `ProductTemplate` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  productTemplate_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: ProductTemplate_Data!
+  ): ProductTemplate_KeyOutput! @fdc_generated(from: "ProductTemplate", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `User` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  user_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: User_Data!
+  ): User_KeyOutput! @fdc_generated(from: "User", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `eBayListing` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  eBayListing_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: eBayListing_Data!
+  ): eBayListing_KeyOutput! @fdc_generated(from: "eBayListing", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert `Integration` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  integration_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Integration_Data!]!
+  ): [Integration_KeyOutput!]! @fdc_generated(from: "Integration", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Order` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  order_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Order_Data!]!
+  ): [Order_KeyOutput!]! @fdc_generated(from: "Order", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `ProductTemplate` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  productTemplate_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [ProductTemplate_Data!]!
+  ): [ProductTemplate_KeyOutput!]! @fdc_generated(from: "ProductTemplate", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `User` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  user_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [User_Data!]!
+  ): [User_KeyOutput!]! @fdc_generated(from: "User", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `eBayListing` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  eBayListing_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [eBayListing_Data!]!
+  ): [eBayListing_KeyOutput!]! @fdc_generated(from: "eBayListing", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert or update a single `Integration` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Integration`.
+  """
+  integration_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Integration_Data!
+  ): Integration_KeyOutput! @fdc_generated(from: "Integration", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Order` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Order`.
+  """
+  order_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Order_Data!
+  ): Order_KeyOutput! @fdc_generated(from: "Order", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `ProductTemplate` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ProductTemplate`.
+  """
+  productTemplate_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: ProductTemplate_Data!
+  ): ProductTemplate_KeyOutput! @fdc_generated(from: "ProductTemplate", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `User` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `User`.
+  """
+  user_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: User_Data!
+  ): User_KeyOutput! @fdc_generated(from: "User", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `eBayListing` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `eBayListing`.
+  """
+  eBayListing_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: eBayListing_Data!
+  ): eBayListing_KeyOutput! @fdc_generated(from: "eBayListing", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update `Integration` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Integration`.
+  """
+  integration_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Integration_Data!]!
+  ): [Integration_KeyOutput!]! @fdc_generated(from: "Integration", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Order` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Order`.
+  """
+  order_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Order_Data!]!
+  ): [Order_KeyOutput!]! @fdc_generated(from: "Order", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `ProductTemplate` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `ProductTemplate`.
+  """
+  productTemplate_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [ProductTemplate_Data!]!
+  ): [ProductTemplate_KeyOutput!]! @fdc_generated(from: "ProductTemplate", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `User` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `User`.
+  """
+  user_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [User_Data!]!
+  ): [User_KeyOutput!]! @fdc_generated(from: "User", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `eBayListing` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `eBayListing`.
+  """
+  eBayListing_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [eBayListing_Data!]!
+  ): [eBayListing_KeyOutput!]! @fdc_generated(from: "eBayListing", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Update a single `Integration` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Integration` or `null` if not found.
+  """
+  integration_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Integration_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Integration_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Integration_Data!
+  ): Integration_KeyOutput @fdc_generated(from: "Integration", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Order` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Order` or `null` if not found.
+  """
+  order_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Order_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Order_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Order_Data!
+  ): Order_KeyOutput @fdc_generated(from: "Order", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `ProductTemplate` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `ProductTemplate` or `null` if not found.
+  """
+  productTemplate_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: ProductTemplate_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ProductTemplate_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: ProductTemplate_Data!
+  ): ProductTemplate_KeyOutput @fdc_generated(from: "ProductTemplate", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `User` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `User` or `null` if not found.
+  """
+  user_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: User_Data!
+  ): User_KeyOutput @fdc_generated(from: "User", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `eBayListing` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `eBayListing` or `null` if not found.
+  """
+  eBayListing_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: eBayListing_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: eBayListing_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: eBayListing_Data!
+  ): eBayListing_KeyOutput @fdc_generated(from: "eBayListing", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update `Integration` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  integration_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Integration_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Integration_Data!
+  ): Int! @fdc_generated(from: "Integration", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Order` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  order_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Order_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Order_Data!
+  ): Int! @fdc_generated(from: "Order", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `ProductTemplate` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  productTemplate_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: ProductTemplate_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: ProductTemplate_Data!
+  ): Int! @fdc_generated(from: "ProductTemplate", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `User` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  user_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: User_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: User_Data!
+  ): Int! @fdc_generated(from: "User", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `eBayListing` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  eBayListing_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: eBayListing_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: eBayListing_Data!
+  ): Int! @fdc_generated(from: "eBayListing", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Delete a single `Integration` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  integration_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Integration_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Integration_FirstRow
+  ): Integration_KeyOutput @fdc_generated(from: "Integration", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Order` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  order_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Order_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Order_FirstRow
+  ): Order_KeyOutput @fdc_generated(from: "Order", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `ProductTemplate` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  productTemplate_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: ProductTemplate_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: ProductTemplate_FirstRow
+  ): ProductTemplate_KeyOutput @fdc_generated(from: "ProductTemplate", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `User` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  user_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+  ): User_KeyOutput @fdc_generated(from: "User", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `eBayListing` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  eBayListing_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: eBayListing_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: eBayListing_FirstRow
+  ): eBayListing_KeyOutput @fdc_generated(from: "eBayListing", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete `Integration` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  integration_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Integration_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Integration", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Order` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  order_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Order_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Order", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `ProductTemplate` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  productTemplate_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: ProductTemplate_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "ProductTemplate", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `User` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  user_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: User_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "User", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `eBayListing` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  eBayListing_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: eBayListing_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "eBayListing", purpose: DELETE_MULTIPLE)
+}

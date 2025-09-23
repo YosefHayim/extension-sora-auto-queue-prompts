@@ -1,43 +1,62 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Node / package managers
+node_modules/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Next.js
+.next/
+out/
+.vercel/
+.next/static/
+.next/cache/
+# If using Turbopack
+.turbo/
 
-# vercel
-.vercel
-
-# typescript
+# TypeScript build artifacts
 *.tsbuildinfo
-next-env.d.ts
 
-/generated/prisma
+# SWC
+.swc/
+
+# Env & secrets (Doppler generates .env.development)
+.env
+.env.*
+!.env.example
+!.env*.example
+
+# Firebase (emulators, local state, debug logs)
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+storage-debug.log*
+# Emulator exports (if you use them locally)
+firestore_export/
+emulator-data/
+
+# Amplify (keep repo sources; ignore local-only state)
+amplify/.config/local-*
+amplify/#current-cloud-backend/
+amplify/mock-data/
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Misc caches
+.tmp/
+temp/
+.cache/

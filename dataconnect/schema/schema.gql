@@ -1,0 +1,57 @@
+type User @table {
+  email: String!
+  passwordHash: String!
+  createdAt: Timestamp!
+  displayName: String
+  amazonConnected: Boolean
+  eBayConnected: Boolean
+}
+
+type Integration @table {
+  user: User!
+  platform: String!
+  accessToken: String!
+  refreshToken: String!
+  expiresAt: Timestamp!
+  createdAt: Timestamp!
+}
+
+type ProductTemplate @table {
+  user: User!
+  asin: String!
+  title: String!
+  amazonUrl: String!
+  imageUrl: String!
+  currentAmazonPrice: Float!
+  createdAt: Timestamp!
+  description: String
+  categories: [String]
+  brand: String
+}
+
+type eBayListing @table {
+  user: User!
+  productTemplate: ProductTemplate!
+  ebayItemId: String!
+  ebayStatus: String!
+  currenteBayPrice: Float!
+  createdAt: Timestamp!
+  quantity: Int
+  lastSyncedAt: Timestamp
+  profitMargin: Float
+  listingErrors: String
+}
+
+type Order @table {
+  user: User!
+  eBayListing: eBayListing!
+  ebayOrderId: String!
+  orderDate: Timestamp!
+  buyerUsername: String!
+  quantity: Int!
+  totalAmount: Float!
+  status: String!
+  createdAt: Timestamp!
+  shippingAddress: String
+  amazonOrderRef: String
+}

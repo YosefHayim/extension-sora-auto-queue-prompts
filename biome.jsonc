@@ -8,7 +8,8 @@
   "linter": {
     "rules": {
       "complexity": {
-        "noUselessLoneBlockStatements": "off"
+        "noUselessLoneBlockStatements": "off",
+        "noUselessSwitchCase": "off"
       },
       "style": {
         "noMagicNumbers": "off",
@@ -17,10 +18,14 @@
       },
       "suspicious": {
         "useAwait": "off",
-        "noConsole": "off"
+        "noConsole": "off",
+        "noUnknownAtRules": "off"
       },
       "performance": {
         "noNamespaceImport": "off"
+      },
+      "nursery": {
+        "noUnnecessaryConditions": "off"
       }
     }
   }

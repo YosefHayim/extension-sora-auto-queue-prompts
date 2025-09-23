@@ -1,9 +1,15 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
-/** biome-ignore-all lint/nursery/useMaxParams: <explanation> */
-import { NextResponse } from "next/server";
 import { type EbayTokenResponse, SCOPES } from "../definitions";
 
 type BaseUrlName = "default" | "finance" | "commerce" | "analytics" | "oauth";
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+
+type RequestOptions<TBody = unknown> = {
+  baseUrlName: BaseUrlName;
+  path?: string;
+  method?: HttpMethod;
+  headers?: Record<string, string>;
+  body?: TBody | string | null;
+};
 
 export class EbayService {
   readonly env = "PRODUCTION";
@@ -14,9 +20,7 @@ export class EbayService {
 
   readonly baseUrl = "https://api.ebay.com";
   readonly financeBaseUrl = "https://apiz.ebay.com";
-  readonly analyticsBaseUrl = "https://api.ebay.com/sell/analytics";
   readonly identityBaseUrl = `${this.baseUrl}/identity/v1/oauth2/token`;
-  readonly commerceBaseUrl = "https://api.ebay.com/commerce";
 
   readonly apiVersionV1 = "v1";
   readonly apiVersionV2 = "v2";
@@ -29,34 +33,33 @@ export class EbayService {
   accessToken: string | null = null;
   refreshToken: string | null = null;
 
-  private getBaseUrl = (name: BaseUrlName) => {
+  private getBaseUrl(name: BaseUrlName): string {
     switch (name) {
       case "finance":
         return this.financeBaseUrl;
-      case "commerce":
-        return this.commerceBaseUrl;
-      case "analytics":
-        return this.analyticsBaseUrl;
       case "oauth":
         return this.identityBaseUrl;
+      case "commerce":
+      case "analytics":
+      case "default":
       default:
         return this.baseUrl;
     }
-  };
+  }
 
-  async request<T>(
-    baseUrlName: BaseUrlName,
-    path = "",
+  async request<T = unknown, TBody = unknown>({
+    baseUrlName,
+    path,
     method = "GET",
-    headers: Record<string, any> = {},
-    body?: Record<string, any> | string | null
-  ): Promise<T> {
-    const baseUrl = this.getBaseUrl(baseUrlName);
-    const url = path ? `${baseUrl}${path}` : baseUrl;
+    headers,
+    body,
+  }: RequestOptions<TBody>): Promise<T> {
+    const base = this.getBaseUrl(baseUrlName);
+    const url = path ? `${base}${path}` : base;
 
     const mergedHeaders: Record<string, string> = {
       ...this.headers,
-      ...(headers as Record<string, string>),
+      ...(headers || {}),
     };
 
     if (
@@ -69,22 +72,16 @@ export class EbayService {
 
     const res = await fetch(url, {
       method,
-      body: body
-        ? typeof body === "string"
-          ? body
-          : JSON.stringify(body)
-        : null,
       headers: mergedHeaders,
+      body: body || null,
       cache: "no-store",
     });
 
-    // Let the caller decide how to handle non-2xx
     const text = await res.text();
     try {
       return JSON.parse(text) as T;
     } catch {
-      // @ts-expect-error: return text if not JSON
-      return text as T;
+      return text as string as T;
     }
   }
 
@@ -95,24 +92,21 @@ export class EbayService {
         scope: this.scope,
       });
 
-      const userAccessToken = await this.request<{
+      return this.request<{
         access_token: string;
         expires_in: number;
         token_type: string;
-        refresh_token: string;
-        refresh_token_expires_in: string;
-      }>(
-        "oauth",
-        "",
-        "POST",
-        {
+      }>({
+        baseUrlName: "oauth",
+        method: "POST",
+        headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64")}`,
+          Authorization: `Basic ${Buffer.from(
+            `${this.clientId}:${this.clientSecret}`
+          ).toString("base64")}`,
         },
-        form.toString()
-      );
-
-      return userAccessToken;
+        body: form.toString(),
+      });
     },
 
     generateUserAuthUrl: () => {
@@ -128,30 +122,23 @@ export class EbayService {
     },
 
     getUserAccessToken: async (code: string) => {
-      let data: EbayTokenResponse;
-
       const form = new URLSearchParams({
         grant_type: "authorization_code",
         code,
         redirect_uri: this.redirectUri,
       });
 
-      try {
-        const response = await this.request<EbayTokenResponse>(
-          "oauth",
-          "",
-          "POST",
-          {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization: `Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64")}`,
-          },
-          form.toString()
-        );
-
-        data = response;
-      } catch (error) {
-        throw new Error(`Failed to get user access token: ${error}`);
-      }
+      const data = await this.request<EbayTokenResponse>({
+        baseUrlName: "oauth",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from(
+            `${this.clientId}:${this.clientSecret}`
+          ).toString("base64")}`,
+        },
+        body: form.toString(),
+      });
 
       this.accessToken = data.access_token || null;
       this.refreshToken = data.refresh_token || null;
@@ -163,81 +150,86 @@ export class EbayService {
       const form = new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: refreshToken,
-        scope: this.scope
+        scope: this.scope,
       });
 
-      const updatedUserAccessPayload = await this.request<EbayTokenResponse>(
-        "oauth",
-        "",
-        "POST",
-        {
+      return this.request<EbayTokenResponse>({
+        baseUrlName: "oauth",
+        method: "POST",
+        headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64")}`,
+          Authorization: `Basic ${Buffer.from(
+            `${this.clientId}:${this.clientSecret}`
+          ).toString("base64")}`,
         },
-        form.toString()
-      );
-
-      return updatedUserAccessPayload;
+        body: form.toString(),
+      });
     },
   };
 
   endpoints = {
     translation: {
-      translate: async () => {
-        return this.request(
-          "default",
-          "/commerce/translation/v1_beta/translate"
-        );
-      },
+      translate: async () =>
+        this.request({
+          baseUrlName: "default",
+          path: "/commerce/translation/v1_beta/translate",
+        }),
     },
 
     identity: {
-      getUser: async () => {
-        return this.request("commerce", "/commerce/identity/v1/user/");
-      },
+      getUser: async () =>
+        this.request({
+          baseUrlName: "commerce",
+          path: "/commerce/identity/v1/user/",
+        }),
     },
 
     taxonomy: {
-      getCategoryTree: async () => {
-        return this.request("commerce", "/commerce/taxonomy/v1/category_tree/");
-      },
-      getCategorySuggestion: async (q: string) => {
-        return this.request(
-          "commerce",
-          `/commerce/taxonomy/v1/category_tree/0/get_category_suggestions?q=${encodeURIComponent(q)}`
-        );
-      },
-      getCategorySubTree: async (categoryId: string) => {
-        return this.request(
-          "commerce",
-          `/commerce/taxonomy/v1/category_tree/15/get_category_subtree?category_id=${encodeURIComponent(
+      getCategoryTree: async () =>
+        this.request({
+          baseUrlName: "commerce",
+          path: "/commerce/taxonomy/v1/category_tree/",
+        }),
+
+      getCategorySuggestion: async (q: string) =>
+        this.request({
+          baseUrlName: "commerce",
+          path: `/commerce/taxonomy/v1/category_tree/0/get_category_suggestions?q=${encodeURIComponent(
+            q
+          )}`,
+        }),
+
+      getCategorySubTree: async (categoryId: string) =>
+        this.request({
+          baseUrlName: "commerce",
+          path: `/commerce/taxonomy/v1/category_tree/15/get_category_subtree?category_id=${encodeURIComponent(
             categoryId
-          )}`
-        );
-      },
+          )}`,
+        }),
     },
 
     fulfillment: {
-      getOrders: async () => {
-        return this.request(
-          "default",
-          `/sell/fulfillment/${this.apiVersionV1}/order`
-        );
-      },
-      getOrder: async (orderId: string) => {
-        return this.request(
-          "default",
-          `/sell/fulfillment/${this.apiVersionV1}/order/${orderId}`
-        );
-      },
+      getOrders: async () =>
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/fulfillment/${this.apiVersionV1}/order`,
+        }),
+
+      getOrder: async (orderId: string) =>
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/fulfillment/${this.apiVersionV1}/order/${orderId}`,
+        }),
     },
 
     buy: {
       searchItems: async (query: string, limit: number) =>
-        this.request(
-          "default",
-          `/buy/browse/${this.apiVersionV1}/item_summary/search?q=${encodeURIComponent(query)}&limit=${limit}`
-        ),
+        this.request({
+          baseUrlName: "default",
+          path: `/buy/browse/${this.apiVersionV1}/item_summary/search?q=${encodeURIComponent(
+            query
+          )}&limit=${limit}`,
+        }),
     },
 
     sell: {
@@ -254,158 +246,160 @@ export class EbayService {
               },
             ];
           }[];
-        }) => {
-          return this.request(
-            "default",
-            `/sell/inventory/${this.apiVersionV1}/bulk_update_price_quantity`,
-            "POST",
-            {},
-            bodyRequest
-          );
-        },
+        }) =>
+          this.request({
+            baseUrlName: "default",
+            path: `/sell/inventory/${this.apiVersionV1}/bulk_update_price_quantity`,
+            method: "POST",
+            body: bodyRequest,
+          }),
 
         bulkGetInventoryItems: async (bodyRequest: {
           requests: { sku: string }[];
-        }) => {
-          return this.request(
-            "default",
-            `/sell/inventory/${this.apiVersionV1}/bulk_get_inventory_item`,
-            "POST",
-            {},
-            bodyRequest
-          );
-        },
+        }) =>
+          this.request({
+            baseUrlName: "default",
+            path: `/sell/inventory/${this.apiVersionV1}/bulk_get_inventory_item`,
+            method: "POST",
+            body: bodyRequest,
+          }),
 
-        getListingsFee: async () => {
-          return this.request(
-            "default",
-            `/sell/inventory/${this.apiVersionV1}/offer/get_listing_fees`
-          );
-        },
+        getListingsFee: async () =>
+          this.request({
+            baseUrlName: "default",
+            path: `/sell/inventory/${this.apiVersionV1}/offer/get_listing_fees`,
+          }),
 
-        getInventoryItems: async (limit: number, offset: number) => {
-          return this.request(
-            "default",
-            `/sell/inventory/${this.apiVersionV1}/inventory_item?limit=${limit}&offset=${offset}`
-          );
-        },
+        getInventoryItems: async (limit: number, offset: number) =>
+          this.request({
+            baseUrlName: "default",
+            path: `/sell/inventory/${this.apiVersionV1}/inventory_item?limit=${limit}&offset=${offset}`,
+          }),
 
-        deleteInventoryItems: async (sku: string) => {
-          return this.request(
-            "default",
-            `/sell/inventory/${this.apiVersionV1}/inventory_item/${encodeURIComponent(sku)}`,
-            "DELETE"
-          );
-        },
+        deleteInventoryItems: async (sku: string) =>
+          this.request({
+            baseUrlName: "default",
+            path: `/sell/inventory/${this.apiVersionV1}/inventory_item/${encodeURIComponent(
+              sku
+            )}`,
+            method: "DELETE",
+          }),
       },
     },
 
     metaData: {
       getSalesTax: async (countryCode: string, taxJurisdictionId: string) =>
-        this.request(
-          "default",
-          `/sell/account/${this.apiVersionV1}/sales_tax/${encodeURIComponent(
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/account/${this.apiVersionV1}/sales_tax/${encodeURIComponent(
             countryCode
-          )}/${encodeURIComponent(taxJurisdictionId)}`
-        ),
+          )}/${encodeURIComponent(taxJurisdictionId)}`,
+        }),
     },
 
     analytics: {
-      getCustomerServiceMetric: async (ebayMarketPlaceId: string) => {
-        return this.request(
-          "analytics",
-          `/sell/analytics/${this.apiVersionV1}/customer_service_metric/CURRENT?evaluation_marketplace_id=${encodeURIComponent(
+      getCustomerServiceMetric: async (ebayMarketPlaceId: string) =>
+        this.request({
+          baseUrlName: "analytics",
+          path: `/sell/analytics/${this.apiVersionV1}/customer_service_metric/CURRENT?evaluation_marketplace_id=${encodeURIComponent(
             ebayMarketPlaceId
-          )}`
-        );
-      },
+          )}`,
+        }),
 
       getTrafficReport: async (
         marketplaceIds: string,
         dateRange: string,
         dimension: string,
         metrics: string
-      ) => {
-        return this.request(
-          "analytics",
-          `/sell/analytics/${this.apiVersionV1}/traffic_report?filter=marketplace_ids:${encodeURIComponent(
+      ) =>
+        this.request({
+          baseUrlName: "analytics",
+          path: `/sell/analytics/${this.apiVersionV1}/traffic_report?filter=marketplace_ids:${encodeURIComponent(
             marketplaceIds
-          )},date_range:${encodeURIComponent(dateRange)}&dimension=${encodeURIComponent(
+          )},date_range:${encodeURIComponent(
+            dateRange
+          )}&dimension=${encodeURIComponent(
             dimension
-          )}&metric=${encodeURIComponent(metrics)}`
-        );
-      },
+          )}&metric=${encodeURIComponent(metrics)}`,
+        }),
     },
 
     finance: {
-      getPayoutsSummary: async () => {
-        return this.request(
-          "finance",
-          `/sell/finances/${this.apiVersionV1}/payout_summary`
-        );
-      },
-      getSellerFundsSummary: async () => {
-        return this.request(
-          "finance",
-          `/sell/finances/${this.apiVersionV1}/seller_funds_summary`
-        );
-      },
-      getPayouts: async () => {
-        return this.request(
-          "finance",
-          `/sell/finances/${this.apiVersionV1}/payouts`
-        );
-      },
-      getTransactions: async () => {
-        return this.request(
-          "finance",
-          `/sell/finances/${this.apiVersionV1}/transaction`
-        );
-      },
+      getPayoutsSummary: async () =>
+        this.request({
+          baseUrlName: "finance",
+          path: `/sell/finances/${this.apiVersionV1}/payout_summary`,
+        }),
+
+      getSellerFundsSummary: async () =>
+        this.request({
+          baseUrlName: "finance",
+          path: `/sell/finances/${this.apiVersionV1}/seller_funds_summary`,
+        }),
+
+      getPayouts: async () =>
+        this.request({
+          baseUrlName: "finance",
+          path: `/sell/finances/${this.apiVersionV1}/payouts`,
+        }),
+
+      getTransactions: async () =>
+        this.request({
+          baseUrlName: "finance",
+          path: `/sell/finances/${this.apiVersionV1}/transaction`,
+        }),
     },
 
     accountV2: {
-      getPayoutSettings: async () => {
-        return this.request(
-          "default",
-          `/sell/account/${this.apiVersionV2}/payout_settings`
-        );
-      },
+      getPayoutSettings: async () =>
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/account/${this.apiVersionV2}/payout_settings`,
+        }),
     },
 
     accountV1: {
       getFulfillmentPolicies: async (marketplaceId = "EBAY_US") =>
-        this.request(
-          "default",
-          `/sell/account/${this.apiVersionV1}/fulfillment_policy?marketplace_id=${encodeURIComponent(marketplaceId)}`
-        ),
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/account/${this.apiVersionV1}/fulfillment_policy?marketplace_id=${encodeURIComponent(
+            marketplaceId
+          )}`,
+        }),
 
       getSubscription: async () =>
-        this.request(
-          "default",
-          `/sell/account/${this.apiVersionV1}/subscription`
-        ),
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/account/${this.apiVersionV1}/subscription`,
+        }),
 
       getPaymentPolicies: async (marketplaceId = "EBAY_US") =>
-        this.request(
-          "default",
-          `/sell/account/${this.apiVersionV1}/payment_policy?marketplace_id=${encodeURIComponent(marketplaceId)}`
-        ),
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/account/${this.apiVersionV1}/payment_policy?marketplace_id=${encodeURIComponent(
+            marketplaceId
+          )}`,
+        }),
 
       getReturnPolicies: async (marketplaceId = "EBAY_US") =>
-        this.request(
-          "default",
-          `/sell/account/${this.apiVersionV1}/return_policy?marketplace_id=${encodeURIComponent(marketplaceId)}`
-        ),
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/account/${this.apiVersionV1}/return_policy?marketplace_id=${encodeURIComponent(
+            marketplaceId
+          )}`,
+        }),
 
       getStore: async () =>
-        this.request("default", `/sell/account/${this.apiVersionV1}/store`),
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/account/${this.apiVersionV1}/store`,
+        }),
 
       getStoreCategories: async () =>
-        this.request(
-          "default",
-          `/sell/account/${this.apiVersionV1}/store/categories`
-        ),
+        this.request({
+          baseUrlName: "default",
+          path: `/sell/account/${this.apiVersionV1}/store/categories`,
+        }),
     },
   };
 }

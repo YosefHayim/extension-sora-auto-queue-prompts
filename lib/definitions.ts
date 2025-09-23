@@ -26,7 +26,7 @@ export enum EbayMarketplaceId {
   US = "EBAY_US",
 }
 
-export type EbayMarketplace = (typeof EbayMarketplaceId)
+export type EbayMarketplace = typeof EbayMarketplaceId;
 
 export type EbayTokenResponse = {
   access_token: string;

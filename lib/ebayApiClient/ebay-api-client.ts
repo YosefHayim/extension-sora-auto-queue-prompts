@@ -8,15 +8,11 @@ type RequestOptions = {
   path?: string;
   method?: HttpMethod;
   headers?: Record<string, string>;
-  body?: BodyInit | null
+  body?: BodyInit | null;
 };
 
 export class EbayService {
-  readonly env = "PRODUCTION";
-  readonly clientId = process?.env?.CLIENT_ID_PROD || "";
-  readonly clientSecret = process?.env?.CLIENT_SECRET_ID_PROD || "";
-  readonly redirectUri = process?.env?.REDIRECT_URI_PROD || "";
-  readonly scope = SCOPES.join(" ");
+
 
   readonly baseUrl = "https://api.ebay.com";
   readonly financeBaseUrl = "https://apiz.ebay.com";
@@ -24,8 +20,6 @@ export class EbayService {
 
   readonly apiVersionV1 = "v1";
   readonly apiVersionV2 = "v2";
-
-
 
   private getBaseUrl(name: BaseUrlName): string {
     switch (name) {
@@ -47,7 +41,7 @@ export class EbayService {
         grant_type: "authorization_code",
         code: this.code,
         scope: this.scope,
-        redirect_uri: this.redirectUri
+        redirect_uri: this.redirectUri,
       });
     }
     if (grantType === "refreshToken" && this.refreshToken) {
@@ -55,7 +49,7 @@ export class EbayService {
         grant_type: "refresh_token",
         refresh_token: this.refreshToken,
         scope: this.scope,
-        redirect_uri: this.redirectUri
+        redirect_uri: this.redirectUri,
       });
     }
     return new URLSearchParams();
@@ -76,6 +70,11 @@ export class EbayService {
     };
   }
 
+  env = "PRODUCTION";
+  clientId = process?.env?.CLIENT_ID_PROD || "";
+  clientSecret = process?.env?.CLIENT_SECRET_ID_PROD || "";
+  redirectUri = process?.env?.REDIRECT_URI_PROD || "";
+  scope = SCOPES.join(" ");
 
   accessToken: string | null = null;
   refreshToken: string | null = null;
@@ -91,7 +90,7 @@ export class EbayService {
     baseUrlName,
     path,
     method = "GET",
-    headers = this.authorizeHeaders('json'),
+    headers = this.authorizeHeaders("json"),
     body,
   }: RequestOptions): Promise<T> {
     const base = this.getBaseUrl(baseUrlName);
@@ -124,7 +123,7 @@ export class EbayService {
       const data = await this.request<EbayTokenResponse>({
         baseUrlName: "oauth",
         method: "POST",
-        headers: this.authorizeHeaders('form'),
+        headers: this.authorizeHeaders("form"),
         body: this.form("authorizationCode"),
       });
 
@@ -145,7 +144,7 @@ export class EbayService {
       return this.request<EbayTokenResponse>({
         baseUrlName: "oauth",
         method: "POST",
-        headers: this.authorizeHeaders('form'),
+        headers: this.authorizeHeaders("form"),
         body: this.form("refreshToken"),
       });
     },

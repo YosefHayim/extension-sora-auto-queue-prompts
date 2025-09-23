@@ -32,19 +32,19 @@ export class EbayService {
 
   accessToken: string | null = null;
   refreshToken: string | null = null;
-  code: string | null = null
+  code: string | null = null;
 
-  form(formType: 'code' | 'refreshToken') {
-    if (formType === 'code') {
+  form(formType: "code" | "refreshToken") {
+    if (formType === "code") {
       return new URLSearchParams({
-        grant_type: 'authorization_code',
+        grant_type: "authorization_code",
         code: this.code || "",
         scope: this.scope,
       });
     }
 
     return new URLSearchParams({
-      grant_type: 'refresh_token',
+      grant_type: "refresh_token",
       refresh_token: this.refreshToken || "",
       scope: this.scope,
     });
@@ -120,7 +120,7 @@ export class EbayService {
             `${this.clientId}:${this.clientSecret}`
           ).toString("base64")}`,
         },
-        body: this.form('code'),
+        body: this.form("code"),
       });
 
       this.accessToken = data.access_token || null;
@@ -139,7 +139,7 @@ export class EbayService {
             `${this.clientId}:${this.clientSecret}`
           ).toString("base64")}`,
         },
-        body: this.form('refreshToken'),
+        body: this.form("refreshToken"),
       });
     },
   };

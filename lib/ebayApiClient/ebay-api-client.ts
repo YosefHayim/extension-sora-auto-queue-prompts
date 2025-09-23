@@ -12,8 +12,6 @@ type RequestOptions = {
 };
 
 export class EbayService {
-
-
   readonly baseUrl = "https://api.ebay.com";
   readonly financeBaseUrl = "https://apiz.ebay.com";
   readonly identityBaseUrl = `${this.baseUrl}/identity/v1/oauth2/token`;

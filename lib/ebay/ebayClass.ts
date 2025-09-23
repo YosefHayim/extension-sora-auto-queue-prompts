@@ -8,7 +8,7 @@ export class Ebay {
   readonly clientId = process?.env?.CLIENT_ID_PROD || "";
   readonly clientSecret = process?.env?.CLIENT_SECRET_ID_PROD || "";
   readonly redirectUri = process?.env?.REDIRECT_URI_PROD || "";
-  readonly scope = SCOPES.join(' ');
+  readonly scope = SCOPES.join(" ");
 
   readonly baseUrl = "https://api.ebay.com";
   readonly financeBaseUrl = "https://apiz.ebay.com";

@@ -5,10 +5,10 @@ import { randomBytes } from "node:crypto";
 import { SCOPES } from "../definitions";
 export class Ebay {
   readonly env = "PRODUCTION";
-  readonly clientId = process?.env?.APP_ID_PROD || "";
-  readonly clientSecret = process?.env?.CERT_ID_PROD || "";
+  readonly clientId = process?.env?.CLIENT_ID_PROD || "";
+  readonly clientSecret = process?.env?.CLIENT_SECRET_ID_PROD || "";
   readonly redirectUri = process?.env?.REDIRECT_URI_PROD || "";
-  readonly scope = SCOPES;
+  readonly scope = SCOPES.join(' ');
 
   readonly baseUrl = "https://api.ebay.com";
   readonly financeBaseUrl = "https://apiz.ebay.com";
@@ -59,18 +59,9 @@ export class Ebay {
       cache: "no-store",
     });
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`eBay API error ${res.status}: ${text}`);
-    }
-    // Some endpoints legitimately return 204
-    if (res.status === 204) {
-      return {} as T;
-    }
     return (await res.json()) as T;
   }
 
-  // ---- Auth ----
   auth = {
     generateClientCredentialToken: async () => {
       console.log("to implement");
@@ -78,12 +69,12 @@ export class Ebay {
 
     generateUserAuthUrl: async () => {
       const query = new URLSearchParams({
-        client_id: process.env.APP_ID_PROD || "",
+        client_id: this.clientId || "",
         locale: "EBAY_US",
         prompt: "login",
-        redirect_uri: process.env.REDIRECT_URI_PROD || "",
+        redirect_uri: this.redirectUri || "",
         response_type: "code",
-        scope: SCOPES.join(" "),
+        scope: this.scope,
         state: randomBytes(16).toString("hex"),
       });
 
@@ -100,7 +91,6 @@ export class Ebay {
     },
   };
 
-  // ---- Endpoints ----
   endpoints = {
     translation: {
       translate: async () => {

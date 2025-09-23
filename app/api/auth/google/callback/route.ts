@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ status: "error", reason: "missing code" }, { status: ResponseStatus.BAD_REQUEST });
   }
 
-  let r: GetTokenResponse | null = null
+  let r: GetTokenResponse | null = null;
 
   try {
     r = await oAuth2Client.getToken(code);

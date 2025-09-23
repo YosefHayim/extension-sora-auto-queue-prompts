@@ -21,7 +21,7 @@ export const config = {
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID,
-  }
+  },
 };
 
 export const oAuth2Client = new OAuth2Client({
@@ -37,7 +37,6 @@ const fireBaseConfig = {
   storageBucket: config.firebase.storageBucket,
   messagingSenderId: config.firebase.messagingSenderId,
   appId: config.firebase.appId,
-
 };
 
 export const firebaseDb = initializeApp(fireBaseConfig);

@@ -47,7 +47,7 @@ const navigationMenuTriggerStyle = cva(
 function NavigationMenuTrigger({ className, children, ...props }: React.ComponentProps<typeof NavigationMenuPrimitive.Trigger>) {
   return (
     <NavigationMenuPrimitive.Trigger className={cn(navigationMenuTriggerStyle(), "group", className)} data-slot="navigation-menu-trigger" {...props}>
-      {children} <ChevronDownIcon aria-hidden="true" className="relative top-[1px] ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180" />
+      {children} <ChevronDownIcon aria-hidden="true" className="relative top-px ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180" />
     </NavigationMenuPrimitive.Trigger>
   );
 }
@@ -71,7 +71,7 @@ function NavigationMenuViewport({ className, ...props }: React.ComponentProps<ty
     <div className={cn("absolute top-full left-0 isolate z-50 flex justify-center")}>
       <NavigationMenuPrimitive.Viewport
         className={cn(
-          "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full origin-top-center overflow-hidden rounded-md border bg-popover text-popover-foreground shadow data-[state=closed]:animate-out data-[state=open]:animate-in md:w-[var(--radix-navigation-menu-viewport-width)]",
+          "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 relative mt-1.5 h-(--radix-navigation-menu-viewport-height) w-full origin-top-center overflow-hidden rounded-md border bg-popover text-popover-foreground shadow data-[state=closed]:animate-out data-[state=open]:animate-in md:w-(--radix-navigation-menu-viewport-width)",
           className
         )}
         data-slot="navigation-menu-viewport"
@@ -98,7 +98,7 @@ function NavigationMenuIndicator({ className, ...props }: React.ComponentProps<t
   return (
     <NavigationMenuPrimitive.Indicator
       className={cn(
-        "data-[state=hidden]:fade-out data-[state=visible]:fade-in top-full z-[1] flex h-1.5 items-end justify-center overflow-hidden data-[state=hidden]:animate-out data-[state=visible]:animate-in",
+        "data-[state=hidden]:fade-out data-[state=visible]:fade-in top-full z-1 flex h-1.5 items-end justify-center overflow-hidden data-[state=hidden]:animate-out data-[state=visible]:animate-in",
         className
       )}
       data-slot="navigation-menu-indicator"

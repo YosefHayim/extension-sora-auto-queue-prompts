@@ -1,13 +1,7 @@
 "use client";
 
 import { Controller, useFormContext } from "react-hook-form";
-import {
-  FormControl,
-  FormDescription,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormControl, FormDescription, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
 type Props = {
@@ -33,24 +27,13 @@ export default function LabelAndInput(props: Props) {
         name={props.labelName}
         render={({ field }) => (
           <FormItem>
-            <FormLabel
-              className={props.labelClassName}
-              htmlFor={props.labelName}
-            >
+            <FormLabel className={props.labelClassName} htmlFor={props.labelName}>
               {props.labelName}
             </FormLabel>
             <FormControl>
-              <Input
-                className={props.classNameInput}
-                id={props.labelName}
-                placeholder={props.placeholderText}
-                type={props.type}
-                {...field}
-              />
+              <Input className={props.classNameInput} id={props.labelName} placeholder={props.placeholderText} type={props.type} {...field} />
             </FormControl>
-            {props.formFieldDescription && (
-              <FormDescription>{props.formFieldDescription}</FormDescription>
-            )}
+            {props.formFieldDescription && <FormDescription>{props.formFieldDescription}</FormDescription>}
             <FormMessage />
           </FormItem>
         )}

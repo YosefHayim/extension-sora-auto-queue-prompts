@@ -8,15 +8,11 @@ export async function GET(req: NextRequest) {
   const code = url.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.json(
-      { status: "error", reason: "missing code" },
-      { status: ResponseStatus.BAD_REQUEST }
-    );
+    return NextResponse.json({ status: "error", reason: "missing code" }, { status: ResponseStatus.BAD_REQUEST });
   }
 
   ebay.code = code;
-  const { data, accessTokenExpiresWithin, refreshTokenExpiresWithin } =
-    await ebay.auth.getUserAccessTokenPayload();
+  const { data, accessTokenExpiresWithin, refreshTokenExpiresWithin } = await ebay.auth.getUserAccessTokenPayload();
 
   return NextResponse.json({
     status: "success",

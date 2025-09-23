@@ -54,17 +54,12 @@ export class EbayService {
   }
 
   authorizeHeaders(type: "json" | "form") {
-    const contentType =
-      type === "json"
-        ? "application/json"
-        : "application/x-www-form-urlencoded";
+    const contentType = type === "json" ? "application/json" : "application/x-www-form-urlencoded";
 
     return {
       "Content-Type": contentType,
       Accept: "application/json",
-      Authorization: `Basic ${Buffer.from(
-        `${this.clientId}:${this.clientSecret}`
-      ).toString("base64")}`,
+      Authorization: `Basic ${Buffer.from(`${this.clientId}:${this.clientSecret}`).toString("base64")}`,
     };
   }
 
@@ -79,15 +74,15 @@ export class EbayService {
   code: string | null = null;
   expiresIn: number | null = null;
   refreshTokenExpiresIn: number | null = null;
-  tokenType: string | null = null
+  tokenType: string | null = null;
 
   formatExpiredDate(seconds: number) {
     const expireTime = Date.now() + seconds * 1000;
     let diff = expireTime - Date.now();
 
     if (diff <= 0) {
-      return { days: 0, hours: 0, minutes: 0, seconds: 0 }
-    };
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     diff %= 1000 * 60 * 60 * 24;
@@ -103,14 +98,7 @@ export class EbayService {
     return { days, hours, minutes, seconds: secs };
   }
 
-
-  async request<T>({
-    baseUrlName,
-    path,
-    method = "GET",
-    headers = this.authorizeHeaders("json"),
-    body,
-  }: RequestOptions): Promise<T> {
+  async request<T>({ baseUrlName, path, method = "GET", headers = this.authorizeHeaders("json"), body }: RequestOptions): Promise<T> {
     const base = this.getBaseUrl(baseUrlName);
     const url = path ? `${base}${path}` : base;
 
@@ -152,9 +140,7 @@ export class EbayService {
       this.tokenType = data.token_type;
 
       const accessTokenExpiresWithin = this.formatExpiredDate(data.expires_in);
-      const refreshTokenExpiresWithin = this.formatExpiredDate(
-        data.refresh_token_expires_in
-      );
+      const refreshTokenExpiresWithin = this.formatExpiredDate(data.refresh_token_expires_in);
 
       return { data, refreshTokenExpiresWithin, accessTokenExpiresWithin };
     },
@@ -196,17 +182,13 @@ export class EbayService {
       getCategorySuggestion: async (q: string) =>
         this.request({
           baseUrlName: "commerce",
-          path: `/commerce/taxonomy/v1/category_tree/0/get_category_suggestions?q=${encodeURIComponent(
-            q
-          )}`,
+          path: `/commerce/taxonomy/v1/category_tree/0/get_category_suggestions?q=${encodeURIComponent(q)}`,
         }),
 
       getCategorySubTree: async (categoryId: string) =>
         this.request({
           baseUrlName: "commerce",
-          path: `/commerce/taxonomy/v1/category_tree/15/get_category_subtree?category_id=${encodeURIComponent(
-            categoryId
-          )}`,
+          path: `/commerce/taxonomy/v1/category_tree/15/get_category_subtree?category_id=${encodeURIComponent(categoryId)}`,
         }),
     },
 
@@ -228,9 +210,7 @@ export class EbayService {
       searchItems: async (query: string, limit: number) =>
         this.request({
           baseUrlName: "default",
-          path: `/buy/browse/${this.apiVersionV1}/item_summary/search?q=${encodeURIComponent(
-            query
-          )}&limit=${limit}`,
+          path: `/buy/browse/${this.apiVersionV1}/item_summary/search?q=${encodeURIComponent(query)}&limit=${limit}`,
         }),
     },
 
@@ -256,9 +236,7 @@ export class EbayService {
             body: bodyRequest,
           }),
 
-        bulkGetInventoryItems: async (bodyRequest: {
-          requests: { sku: string }[];
-        }) =>
+        bulkGetInventoryItems: async (bodyRequest: { requests: { sku: string }[] }) =>
           this.request({
             baseUrlName: "default",
             path: `/sell/inventory/${this.apiVersionV1}/bulk_get_inventory_item`,
@@ -281,9 +259,7 @@ export class EbayService {
         deleteInventoryItems: async (sku: string) =>
           this.request({
             baseUrlName: "default",
-            path: `/sell/inventory/${this.apiVersionV1}/inventory_item/${encodeURIComponent(
-              sku
-            )}`,
+            path: `/sell/inventory/${this.apiVersionV1}/inventory_item/${encodeURIComponent(sku)}`,
             method: "DELETE",
           }),
       },
@@ -293,9 +269,7 @@ export class EbayService {
       getSalesTax: async (countryCode: string, taxJurisdictionId: string) =>
         this.request({
           baseUrlName: "default",
-          path: `/sell/account/${this.apiVersionV1}/sales_tax/${encodeURIComponent(
-            countryCode
-          )}/${encodeURIComponent(taxJurisdictionId)}`,
+          path: `/sell/account/${this.apiVersionV1}/sales_tax/${encodeURIComponent(countryCode)}/${encodeURIComponent(taxJurisdictionId)}`,
         }),
     },
 
@@ -303,26 +277,15 @@ export class EbayService {
       getCustomerServiceMetric: async (ebayMarketPlaceId: string) =>
         this.request({
           baseUrlName: "analytics",
-          path: `/sell/analytics/${this.apiVersionV1}/customer_service_metric/CURRENT?evaluation_marketplace_id=${encodeURIComponent(
-            ebayMarketPlaceId
-          )}`,
+          path: `/sell/analytics/${this.apiVersionV1}/customer_service_metric/CURRENT?evaluation_marketplace_id=${encodeURIComponent(ebayMarketPlaceId)}`,
         }),
 
-      getTrafficReport: async (
-        marketplaceIds: string,
-        dateRange: string,
-        dimension: string,
-        metrics: string
-      ) =>
+      getTrafficReport: async (marketplaceIds: string, dateRange: string, dimension: string, metrics: string) =>
         this.request({
           baseUrlName: "analytics",
           path: `/sell/analytics/${this.apiVersionV1}/traffic_report?filter=marketplace_ids:${encodeURIComponent(
             marketplaceIds
-          )},date_range:${encodeURIComponent(
-            dateRange
-          )}&dimension=${encodeURIComponent(
-            dimension
-          )}&metric=${encodeURIComponent(metrics)}`,
+          )},date_range:${encodeURIComponent(dateRange)}&dimension=${encodeURIComponent(dimension)}&metric=${encodeURIComponent(metrics)}`,
         }),
     },
 
@@ -364,9 +327,7 @@ export class EbayService {
       getFulfillmentPolicies: async (marketplaceId = "EBAY_US") =>
         this.request({
           baseUrlName: "default",
-          path: `/sell/account/${this.apiVersionV1}/fulfillment_policy?marketplace_id=${encodeURIComponent(
-            marketplaceId
-          )}`,
+          path: `/sell/account/${this.apiVersionV1}/fulfillment_policy?marketplace_id=${encodeURIComponent(marketplaceId)}`,
         }),
 
       getSubscription: async () =>
@@ -378,17 +339,13 @@ export class EbayService {
       getPaymentPolicies: async (marketplaceId = "EBAY_US") =>
         this.request({
           baseUrlName: "default",
-          path: `/sell/account/${this.apiVersionV1}/payment_policy?marketplace_id=${encodeURIComponent(
-            marketplaceId
-          )}`,
+          path: `/sell/account/${this.apiVersionV1}/payment_policy?marketplace_id=${encodeURIComponent(marketplaceId)}`,
         }),
 
       getReturnPolicies: async (marketplaceId = "EBAY_US") =>
         this.request({
           baseUrlName: "default",
-          path: `/sell/account/${this.apiVersionV1}/return_policy?marketplace_id=${encodeURIComponent(
-            marketplaceId
-          )}`,
+          path: `/sell/account/${this.apiVersionV1}/return_policy?marketplace_id=${encodeURIComponent(marketplaceId)}`,
         }),
 
       getStore: async () =>

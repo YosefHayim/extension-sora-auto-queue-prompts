@@ -2,35 +2,19 @@
 
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
-import {
-  Controller,
-  type ControllerProps,
-  type FieldPath,
-  type FieldValues,
-  FormProvider,
-  useFormContext,
-  useFormState,
-} from "react-hook-form";
+import { Controller, type ControllerProps, type FieldPath, type FieldValues, FormProvider, useFormContext, useFormState } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 const Form = FormProvider;
 
-type FormFieldContextValue<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> = {
+type FormFieldContextValue<TFieldValues extends FieldValues = FieldValues, TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>> = {
   name: TName;
 };
 
-const FormFieldContext = React.createContext<FormFieldContextValue>(
-  {} as FormFieldContextValue
-);
+const FormFieldContext = React.createContext<FormFieldContextValue>({} as FormFieldContextValue);
 
-const FormField = <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({
+const FormField = <TFieldValues extends FieldValues = FieldValues, TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>>({
   ...props
 }: ControllerProps<TFieldValues, TName>) => {
   return (
@@ -67,50 +51,30 @@ type FormItemContextValue = {
   id: string;
 };
 
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue
-);
+const FormItemContext = React.createContext<FormItemContextValue>({} as FormItemContextValue);
 
 function FormItem({ className, ...props }: React.ComponentProps<"div">) {
   const id = React.useId();
 
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div
-        className={cn("grid gap-2", className)}
-        data-slot="form-item"
-        {...props}
-      />
+      <div className={cn("grid gap-2", className)} data-slot="form-item" {...props} />
     </FormItemContext.Provider>
   );
 }
 
-function FormLabel({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof Label>) {
+function FormLabel({ className, ...props }: React.ComponentPropsWithoutRef<typeof Label>) {
   const { error, formItemId } = useFormField();
 
-  return (
-    <Label
-      className={cn("data-[error=true]:text-destructive", className)}
-      data-error={!!error}
-      data-slot="form-label"
-      htmlFor={formItemId}
-      {...props}
-    />
-  );
+  return <Label className={cn("data-[error=true]:text-destructive", className)} data-error={!!error} data-slot="form-label" htmlFor={formItemId} {...props} />;
 }
 
 function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
-  const { error, formItemId, formDescriptionId, formMessageId } =
-    useFormField();
+  const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
 
   return (
     <Slot
-      aria-describedby={
-        error ? `${formDescriptionId} ${formMessageId}` : `${formDescriptionId}`
-      }
+      aria-describedby={error ? `${formDescriptionId} ${formMessageId}` : `${formDescriptionId}`}
       aria-invalid={!!error}
       data-slot="form-control"
       id={formItemId}
@@ -122,14 +86,7 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
 function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
   const { formDescriptionId } = useFormField();
 
-  return (
-    <p
-      className={cn("text-muted-foreground text-sm", className)}
-      data-slot="form-description"
-      id={formDescriptionId}
-      {...props}
-    />
-  );
+  return <p className={cn("text-muted-foreground text-sm", className)} data-slot="form-description" id={formDescriptionId} {...props} />;
 }
 
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
@@ -141,24 +98,10 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   }
 
   return (
-    <p
-      className={cn("text-destructive text-sm", className)}
-      data-slot="form-message"
-      id={formMessageId}
-      {...props}
-    >
+    <p className={cn("text-destructive text-sm", className)} data-slot="form-message" id={formMessageId} {...props}>
       {body}
     </p>
   );
 }
 
-export {
-  useFormField,
-  Form,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-  FormField,
-};
+export { useFormField, Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField };

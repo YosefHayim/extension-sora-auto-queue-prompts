@@ -5,6 +5,9 @@
     "includes": ["**/*.ts", "**/*.js", "**/*.tsx", "**/*.jsx"],
     "ignoreUnknown": true
   },
+  "formatter": {
+    "lineWidth": 160
+  },
   "linter": {
     "rules": {
       "complexity": {
@@ -28,5 +31,29 @@
         "noUnnecessaryConditions": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["components/ui/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useFocusableInteractive": "off",
+            "useSemanticElements": "off",
+            "useAriaPropsForRole": "off"
+          },
+          "security": {
+            "noDangerouslySetInnerHtml": "off"
+          },
+          "nursery": {
+            "noShadow": "off",
+            "useAnchorHref": "off"
+          },
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off"
+          }
+        }
+      }
+    }
+  ]
 }

@@ -3,12 +3,12 @@ import { type EbayTokenResponse, SCOPES } from "../definitions";
 type BaseUrlName = "default" | "finance" | "commerce" | "analytics" | "oauth";
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
-type RequestOptions<TBody = unknown> = {
+type RequestOptions = {
   baseUrlName: BaseUrlName;
   path?: string;
   method?: HttpMethod;
   headers?: Record<string, string>;
-  body?: TBody | string | null;
+  body?: BodyInit | null
 };
 
 export class EbayService {
@@ -28,27 +28,10 @@ export class EbayService {
   readonly headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json",
+    Authorization: `Basic ${Buffer.from(
+      `${this.clientId}:${this.clientSecret}`
+    ).toString("base64")}`
   };
-
-  accessToken: string | null = null;
-  refreshToken: string | null = null;
-  code: string | null = null;
-
-  form(formType: "code" | "refreshToken") {
-    if (formType === "code") {
-      return new URLSearchParams({
-        grant_type: "authorization_code",
-        code: this.code || "",
-        scope: this.scope,
-      });
-    }
-
-    return new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: this.refreshToken || "",
-      scope: this.scope,
-    });
-  }
 
   private getBaseUrl(name: BaseUrlName): string {
     switch (name) {
@@ -64,19 +47,47 @@ export class EbayService {
     }
   }
 
-  async request<T = unknown, TBody = unknown>({
+  private form(formType: "code" | "refreshToken") {
+    if (formType === "code" && this.code) {
+      return new URLSearchParams({
+        grant_type: "authorization_code",
+        code: this.code,
+        scope: this.scope,
+      });
+    }
+    if (formType === "refreshToken" && this.refreshToken) {
+      return new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: this.refreshToken,
+        scope: this.scope,
+      });
+    }
+    return new URLSearchParams();
+  }
+
+  accessToken: string | null = null;
+  refreshToken: string | null = null;
+  code: string | null = null;
+  expiresIn: number | null = null;
+  refreshTokenExpiresIn: number | null = null;
+
+  formatExpiredDate(date: number) {
+    return new Date(Date.now() + date * 1000).toString();
+  }
+
+  async request<T>({
     baseUrlName,
     path,
     method = "GET",
     headers,
     body,
-  }: RequestOptions<TBody>): Promise<T> {
+  }: RequestOptions): Promise<T> {
     const base = this.getBaseUrl(baseUrlName);
     const url = path ? `${base}${path}` : base;
 
     const mergedHeaders: Record<string, string> = {
       ...this.headers,
-      ...(headers || {}),
+      ...headers,
     };
 
     if (
@@ -123,10 +134,17 @@ export class EbayService {
         body: this.form("code"),
       });
 
-      this.accessToken = data.access_token || null;
-      this.refreshToken = data.refresh_token || null;
+      this.accessToken = data.access_token;
+      this.refreshToken = data.refresh_token;
+      this.expiresIn = data.expires_in;
+      this.refreshTokenExpiresIn = data.refresh_token_expires_in;
 
-      return data;
+      const accessTokenExpiresIn = this.formatExpiredDate(data.expires_in);
+      const refreshTokenExpiresIn = this.formatExpiredDate(
+        data.refresh_token_expires_in
+      );
+
+      return { data, refreshTokenExpiresIn, accessTokenExpiresIn };
     },
 
     updateUserAccessToken: async () => {
@@ -135,9 +153,7 @@ export class EbayService {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${Buffer.from(
-            `${this.clientId}:${this.clientSecret}`
-          ).toString("base64")}`,
+          ...this.headers
         },
         body: this.form("refreshToken"),
       });

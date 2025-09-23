@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { ResponseStatus } from "@/lib/definitions";
 import { EbayService } from "@/lib/ebayApiClient/ebay-api-client";
 
 export async function GET(req: NextRequest) {
@@ -7,16 +8,15 @@ export async function GET(req: NextRequest) {
   const code = url.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.json({ error: "missing code" }, { status: 400 });
+    return NextResponse.json(
+      { status: "error", reason: "missing code" },
+      { status: ResponseStatus.BAD_REQUEST }
+    );
   }
 
-  const data = await ebay.auth.getUserAccessToken(code);
-  const accessTokenExpiresIn = new Date(
-    Date.now() + data.expires_in * 1000
-  ).toString();
-  const refreshTokenExpiresIn = new Date(
-    Date.now() + data.refresh_token_expires_in * 1000
-  ).toString();
+  ebay.code = code;
+  const { data, accessTokenExpiresIn, refreshTokenExpiresIn } =
+    await ebay.auth.getUserAccessTokenPayload();
 
   return NextResponse.json({
     status: "success",

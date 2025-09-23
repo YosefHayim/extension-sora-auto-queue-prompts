@@ -16,6 +16,7 @@ jobs:
       AWS_ACCOUNT_ID: "051758750426"
       AWS_REGION: "eu-central-1"
       ECR_REPO: "autobay-next-js"
+      tag: "latest"
 
     steps:
       - uses: actions/checkout@v4

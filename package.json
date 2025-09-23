@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "fix": "npx ultracite fix --unsafe",
+    "get-secrets": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./get-secrets.ps1",
     "doctor": "npx ultracite doctor",
-    "download-dev-env": "doppler secrets download --format=env --no-file > .env.development",
     "prepare": "husky"
   },
   "dependencies": {

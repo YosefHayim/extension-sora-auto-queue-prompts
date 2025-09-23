@@ -26,7 +26,7 @@ export enum EbayMarketplaceId {
   US = "EBAY_US",
 }
 
-export type BaseUrlName = "default" | "finance" | "commerce" | "analytics" | "oauth" | 'development'
+export type BaseUrlName = "default" | "finance" | "commerce" | "analytics" | "oauth" | "development";
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 export type RequestOptions = {
@@ -36,7 +36,6 @@ export type RequestOptions = {
   headers?: Record<string, string>;
   body?: BodyInit | null;
 };
-
 
 export enum ResponseStatus {
   SUCCESS = 200,
@@ -58,10 +57,7 @@ export type EbayTokenResponse = {
   token_type: string;
 };
 
-export const GOOGLE_SCOPES = [
-  'https://www.googleapis.com/auth/userinfo.email',
-  'https://www.googleapis.com/auth/userinfo.profile'
-]
+export const GOOGLE_SCOPES = ["https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"];
 
 export const EBAY_SCOPES = [
   "https://api.ebay.com/oauth/api_scope",

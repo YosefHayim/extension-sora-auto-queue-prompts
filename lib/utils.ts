@@ -25,4 +25,4 @@ export const formatExpiredDate = (seconds: number) => {
   const secs = Math.floor(diff / 1000);
 
   return { days, hours, minutes, seconds: secs };
-}
+};

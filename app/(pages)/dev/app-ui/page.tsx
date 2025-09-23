@@ -93,7 +93,7 @@ function useRootTheme(mode: Mode) {
   useEffect(() => {
     const root = document.documentElement;
     if (mode === "mixed") {
-      return root.classList.add('light')
+      return root.classList.add("light");
     }
     if (mode === "dark") {
       root.classList.add("dark");
@@ -148,19 +148,19 @@ export default function ShowcasePage() {
   // demo state
   const [checked, setChecked] = useState(true);
   const [switchOn, setSwitchOn] = useState(true);
-  const [progress, setProgress] = useState(42);
+  const [progress, _setProgress] = useState(42);
   const [otp, setOtp] = useState("123456");
   const [selectedRole, setSelectedRole] = useState("editor");
 
   // rotating alerts/dialogs
-  const [showAlert, setShowAlert] = useState(true);
-  const [alertVariantDestructive, setAlertVariantDestructive] = useState(false);
+  const [showAlert, _setShowAlert] = useState(true);
+  const [alertVariantDestructive, _setAlertVariantDestructive] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // interval refs to ensure cleanup
-  const progressTimer = useRef<number | null>(null);
-  const alertTimer = useRef<number | null>(null);
-  const dialogTimer = useRef<number | null>(null);
+  const _progressTimer = useRef<number | null>(null);
+  const _alertTimer = useRef<number | null>(null);
+  const _dialogTimer = useRef<number | null>(null);
 
   // useEffect(() => {
   //   progressTimer.current = window.setInterval(() => setProgress((p) => (p >= 100 ? 0 : p + 5)), 900);

@@ -32,6 +32,23 @@ export class EbayService {
 
   accessToken: string | null = null;
   refreshToken: string | null = null;
+  code: string | null = null
+
+  form(formType: 'code' | 'refreshToken') {
+    if (formType === 'code') {
+      return new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: this.code || "",
+        scope: this.scope,
+      });
+    }
+
+    return new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: this.refreshToken || "",
+      scope: this.scope,
+    });
+  }
 
   private getBaseUrl(name: BaseUrlName): string {
     switch (name) {
@@ -73,42 +90,14 @@ export class EbayService {
     const res = await fetch(url, {
       method,
       headers: mergedHeaders,
-      body: body || null,
+      body,
       cache: "no-store",
     });
 
-    const text = await res.text();
-    try {
-      return JSON.parse(text) as T;
-    } catch {
-      return text as string as T;
-    }
+    return res.json();
   }
 
   auth = {
-    generateClientCredentialToken: async () => {
-      const form = new URLSearchParams({
-        grant_type: "client_credentials",
-        scope: this.scope,
-      });
-
-      return this.request<{
-        access_token: string;
-        expires_in: number;
-        token_type: string;
-      }>({
-        baseUrlName: "oauth",
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Basic ${Buffer.from(
-            `${this.clientId}:${this.clientSecret}`
-          ).toString("base64")}`,
-        },
-        body: form.toString(),
-      });
-    },
-
     generateUserAuthUrl: () => {
       const query = new URLSearchParams({
         client_id: this.clientId,
@@ -121,13 +110,7 @@ export class EbayService {
       return `https://auth.ebay.com/oauth2/authorize?${query.toString()}`;
     },
 
-    getUserAccessToken: async (code: string) => {
-      const form = new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: this.redirectUri,
-      });
-
+    getUserAccessTokenPayload: async () => {
       const data = await this.request<EbayTokenResponse>({
         baseUrlName: "oauth",
         method: "POST",
@@ -137,7 +120,7 @@ export class EbayService {
             `${this.clientId}:${this.clientSecret}`
           ).toString("base64")}`,
         },
-        body: form.toString(),
+        body: this.form('code'),
       });
 
       this.accessToken = data.access_token || null;
@@ -146,13 +129,7 @@ export class EbayService {
       return data;
     },
 
-    updateUserAccessToken: async (refreshToken: string) => {
-      const form = new URLSearchParams({
-        grant_type: "refresh_token",
-        refresh_token: refreshToken,
-        scope: this.scope,
-      });
-
+    updateUserAccessToken: async () => {
       return this.request<EbayTokenResponse>({
         baseUrlName: "oauth",
         method: "POST",
@@ -162,7 +139,7 @@ export class EbayService {
             `${this.clientId}:${this.clientSecret}`
           ).toString("base64")}`,
         },
-        body: form.toString(),
+        body: this.form('refreshToken'),
       });
     },
   };

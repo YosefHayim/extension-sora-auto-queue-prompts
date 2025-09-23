@@ -1,4 +1,4 @@
-name: Delete workflows history
+name: Delete workflows Actions History
 
 on:
   workflow_dispatch:

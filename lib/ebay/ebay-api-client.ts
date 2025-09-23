@@ -68,12 +68,12 @@ export class EbayService {
 
     generateUserAuthUrl: () => {
       const query = new URLSearchParams({
-        client_id: this.clientId || "",
-        locale: "EBAY_US",
-        prompt: "login",
-        redirect_uri: this.redirectUri || "",
+        client_id: this.clientId,
         response_type: "code",
+        redirect_uri: this.redirectUri,
         scope: this.scope,
+        prompt: "login",
+        locale: "EBAY_US",
       });
 
       const url = `https://auth.ebay.com/oauth2/authorize?${query.toString()}`;

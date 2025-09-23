@@ -8,6 +8,8 @@ function basicAuth() {
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
+
+  // Flow A: Standard eBay OAuth (code/state)
   const code = url.searchParams.get("code");
 
   if (!code) {
@@ -61,4 +63,5 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
+
 }

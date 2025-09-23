@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import type { NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 function sha256Hex(s: string) {
   const h = crypto.createHash("sha256");
@@ -10,7 +10,7 @@ function sha256Hex(s: string) {
 export async function GET(req: NextRequest) {
   const challengeCode = req.nextUrl.searchParams.get("challenge_code");
   if (!challengeCode) {
-    return new Response(JSON.stringify({ error: "missing challenge_code" }), {
+    return new NextResponse(JSON.stringify({ error: "missing challenge_code" }), {
       status: 400,
       headers: { "content-type": "application/json" },
     });
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   const toHash = `${challengeCode}${endpoint}`;
   const challengeResponse = sha256Hex(toHash);
 
-  return new Response(JSON.stringify({ challengeResponse }), {
+  return new NextResponse(JSON.stringify({ challengeResponse }), {
     status: 200,
     headers: { "content-type": "application/json" },
   });

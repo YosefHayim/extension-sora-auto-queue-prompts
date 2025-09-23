@@ -1,11 +1,10 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
 /** biome-ignore-all lint/nursery/useMaxParams: <explanation> */
 
-import { randomBytes } from "node:crypto";
 import { SCOPES } from "../definitions";
-export class Ebay {
+export class EbayService {
   readonly env = "PRODUCTION";
-  readonly clientId = process?.env?.CLIENT_ID_PROD || "";
+  readonly clientId = process?.env?.CLIENT_ID_PROD;
   readonly clientSecret = process?.env?.CLIENT_SECRET_ID_PROD || "";
   readonly redirectUri = process?.env?.REDIRECT_URI_PROD || "";
   readonly scope = SCOPES.join(" ");
@@ -67,7 +66,7 @@ export class Ebay {
       console.log("to implement");
     },
 
-    generateUserAuthUrl: async () => {
+    generateUserAuthUrl: () => {
       const query = new URLSearchParams({
         client_id: this.clientId || "",
         locale: "EBAY_US",
@@ -75,7 +74,6 @@ export class Ebay {
         redirect_uri: this.redirectUri || "",
         response_type: "code",
         scope: this.scope,
-        state: randomBytes(16).toString("hex"),
       });
 
       const url = `https://auth.ebay.com/oauth2/authorize?${query.toString()}`;

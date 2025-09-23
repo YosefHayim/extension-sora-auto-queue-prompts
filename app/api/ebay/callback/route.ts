@@ -1,35 +1,31 @@
 import { type NextRequest, NextResponse } from "next/server";
-
-function basicAuth() {
-  const id = process.env.APP_ID_PROD || "";
-  const secret = process.env.CERT_ID_PROD || "";
-  return `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`;
-}
+import { EbayService } from "@/lib/ebay/ebay-api-client";
 
 export async function GET(req: NextRequest) {
+  const ebay = new EbayService();
+
   const url = new URL(req.url);
 
-  // Flow A: Standard eBay OAuth (code/state)
   const code = url.searchParams.get("code");
 
   if (!code) {
     return NextResponse.json({ error: "missing code" }, { status: 400 });
   }
 
-  const body = new URLSearchParams({
+  const body = {
     grant_type: "authorization_code",
     code,
-    redirect_uri: process.env.REDIRECT_URI_PROD || "",
-  });
+    redirect_uri: ebay.redirectUri,
+  };
 
   try {
     const res = await fetch(
-      `${process.env.APP_ID_PROD}/identity/v1/oauth2/token`,
+      `${process.env.CLIENT_ID_PROD}/identity/v1/oauth2/token`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: basicAuth(),
+          Authorization: `Basic ${Buffer.from(`${ebay.clientId}:${ebay.clientSecret}`).toString("base64")}`,
         },
         body,
         cache: "no-store",

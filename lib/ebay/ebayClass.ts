@@ -27,8 +27,8 @@ export class Ebay {
     baseUrlName: string,
     path?: string | null,
     method = "GET",
-    headers: Record<string, any> = {},
-    body?: Record<string, any>
+    headers: Record<string, any | null> = {},
+    body?: Record<string, any | null>
   ): Promise<T> {
     let baseUrl: string;
     switch (baseUrlName) {

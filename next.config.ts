@@ -4,7 +4,6 @@ const nextConfig: NextConfig = {
   /* config options here */
   output: "standalone",
   typescript: {
-    ignoreBuildErrors: true,
     tsconfigPath: "./tsconfig.json",
   },
 };

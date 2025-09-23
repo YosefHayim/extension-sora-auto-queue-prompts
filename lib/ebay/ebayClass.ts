@@ -1,23 +1,34 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
+/** biome-ignore-all lint/nursery/useMaxParams: <explanation> */
+
 import { randomBytes } from "node:crypto";
-import EbayAuthToken from "ebay-oauth-nodejs-client";
 import { SCOPES } from "../definitions";
 export class Ebay {
-  private readonly baseUrl = "https://api.ebay.com";
-  private readonly financeBaseUrl = "https://apiz.ebay.com";
-  private readonly analyticsBaseUrl = "https://api.ebay.com/sell/analytics";
-  private readonly commerceBaseUrl = "https://api.ebay.com/commerce";
-  private readonly apiVersionV1 = "v1";
-  private readonly apiVersionV2 = "v2";
-  private readonly headers: Record<string, string> = {
+
+  readonly env = "PRODUCTION"
+  readonly clientId = process?.env?.APP_ID_PROD || ""
+  readonly clientSecret = process?.env?.CERT_ID_PROD || ""
+  readonly redirectUri = process?.env?.REDIRECT_URI_PROD || ""
+  readonly scope = SCOPES
+
+  readonly baseUrl = "https://api.ebay.com";
+  readonly financeBaseUrl = "https://apiz.ebay.com";
+  readonly analyticsBaseUrl = "https://api.ebay.com/sell/analytics";
+  readonly identityBaseUrl = `${this.baseUrl}/identity/v1/oauth2/token`;
+  readonly commerceBaseUrl = "https://api.ebay.com/commerce";
+
+  readonly apiVersionV1 = "v1";
+  readonly apiVersionV2 = "v2";
+
+  readonly headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  private async request<T>(
+  async request<T>(
     baseUrlName: string,
-    path: string,
+    path?: string | null,
     method = "GET",
-
+    headers: Record<string, any> = {},
     body?: Record<string, any>
   ): Promise<T> {
     let baseUrl: string;
@@ -25,11 +36,17 @@ export class Ebay {
       case "finance":
         baseUrl = this.financeBaseUrl;
         break;
+
       case "commerce":
         baseUrl = this.commerceBaseUrl;
         break;
+
       case "analytics":
         baseUrl = this.analyticsBaseUrl;
+        break;
+
+      case "oauth":
+        baseUrl = this.identityBaseUrl;
         break;
       default:
         baseUrl = this.baseUrl;
@@ -38,8 +55,8 @@ export class Ebay {
 
     const res = await fetch(`${baseUrl}${path}`, {
       method,
-      body: body ? JSON.stringify(body) : undefined,
-      headers: this.headers,
+      body: body ? JSON.stringify(body) : null,
+      headers: headers ?? this.headers,
       cache: "no-store",
     });
 
@@ -56,37 +73,31 @@ export class Ebay {
 
   // ---- Auth ----
   auth = {
-    instance: async (): Promise<EbayAuthToken> =>
-      new EbayAuthToken({
-        clientId: process?.env?.APP_ID_PROD || "",
-        clientSecret: process?.env?.CERT_ID_PROD || "",
-        redirectUri: process?.env?.REDIRECT_URI_PROD || "",
-        scope: SCOPES,
-        baseUrl: this.baseUrl,
-      }),
-
     generateClientCredentialToken: async () => {
-      const ebay = await this.auth.instance();
-      return ebay.getApplicationToken("PRODUCTION");
+      console.log('to implement')
     },
 
     generateUserAuthUrl: async () => {
-      const state = randomBytes(16).toString("hex");
-      const ebay = await this.auth.instance();
-      return ebay.generateUserAuthorizationUrl("PRODUCTION", SCOPES.join(" "), {
-        state,
-        prompt: "consent",
+      const query = new URLSearchParams({
+        client_id: process.env.APP_ID_PROD || "",
+        locale: "EBAY_US",
+        prompt: "login",
+        redirect_uri: process.env.REDIRECT_URI_PROD || "",
+        response_type: "code",
+        scope: SCOPES.join(" "),
+        state: randomBytes(16).toString("hex"),
       });
+
+      const url = `https://auth.ebay.com/oauth2/authorize?${query.toString()}`;
+      return url;
     },
 
     getUserAccessToken: async (code: string) => {
-      const ebay = await this.auth.instance();
-      return ebay.exchangeCodeForAccessToken("PRODUCTION", code);
+      console.log('to implement', code)
     },
 
     updateUserAccessToken: async (refreshToken: string) => {
-      const ebay = await this.auth.instance();
-      return ebay.getAccessToken("PRODUCTION", refreshToken, SCOPES);
+      console.log('to implement', refreshToken)
     },
   };
 
@@ -160,7 +171,7 @@ export class Ebay {
           return this.request(
             "default",
             `/sell/inventory/${this.apiVersionV1}/bulk_update_price_quantity`,
-            "POST",
+            "POST", null,
             bodyRequest
           );
         },
@@ -172,6 +183,7 @@ export class Ebay {
           "default",
           `/ sell / inventory / ${this.apiVersionV1} /bulk_get_inventory_item`,
           "POST",
+          null,
           bodyRequest.requests
         );
       },

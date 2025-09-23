@@ -29,9 +29,6 @@ importers:
       digital-signature-nodejs-sdk:
         specifier: ^3.0.1
         version: 3.0.1
-      ebay-oauth-nodejs-client:
-        specifier: ^1.2.2
-        version: 1.2.2
       event-notification-nodejs-sdk:
         specifier: ^1.0.3
         version: 1.0.3
@@ -69,9 +66,6 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.13
-      '@types/ebay-oauth-nodejs-client':
-        specifier: ^1.2.4
-        version: 1.2.4
       '@types/node':
         specifier: ^20
         version: 20.19.17
@@ -85,8 +79,8 @@ importers:
         specifier: ^10.0.0
         version: 10.0.0
       husky:
-        specifier: ^8.0.0
-        version: 8.0.3
+        specifier: ^9.1.7
+        version: 9.1.7
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -2332,9 +2326,6 @@ packages:
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
 
-  '@types/ebay-oauth-nodejs-client@1.2.4':
-    resolution: {integrity: sha512-v2ABjemtKhFpe6x4+8rxqoo6N4cg/vrBXeXWh6Ru+jRU0UqqygxzZdqxuvF6zy3A9l8L5qRQC09X+3vcu9KTSA==}
-
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
@@ -3381,9 +3372,9 @@ packages:
     resolution: {integrity: sha512-eKCa6bwnJhvxj14kZk5NCPc6Hb6BdsU9DZcOnmQKSnO1VKrfV0zCvtttPZUsBvjmNDn8rpcJfpwSYnHBjc95MQ==}
     engines: {node: '>=18.18.0'}
 
-  husky@8.0.3:
-    resolution: {integrity: sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==}
-    engines: {node: '>=14'}
+  husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
     hasBin: true
 
   iconv-lite@0.4.24:
@@ -8387,8 +8378,6 @@ snapshots:
 
   '@types/deep-eql@4.0.2': {}
 
-  '@types/ebay-oauth-nodejs-client@1.2.4': {}
-
   '@types/estree@1.0.8': {}
 
   '@types/http-cache-semantics@4.0.4': {}
@@ -9746,7 +9735,7 @@ snapshots:
 
   human-signals@8.0.1: {}
 
-  husky@8.0.3: {}
+  husky@9.1.7: {}
 
   iconv-lite@0.4.24:
     dependencies:

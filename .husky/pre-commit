@@ -1,0 +1,13 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running pnpm run fix before push..."
+pnpm run fix
+
+status=$?
+if [ $status -ne 0 ]; then
+  echo " Fix failed. Push aborted."
+  exit 1
+fi
+
+echo " Fix passed. Proceeding with push."

@@ -21,15 +21,18 @@ export async function GET(req: NextRequest) {
   });
 
   try {
-    const res = await fetch(`${process.env.APP_ID_PROD}/identity/v1/oauth2/token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: basicAuth(),
-      },
-      body,
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${process.env.APP_ID_PROD}/identity/v1/oauth2/token`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: basicAuth(),
+        },
+        body,
+        cache: "no-store",
+      }
+    );
 
     const text = await res.text();
     if (!res.ok) {

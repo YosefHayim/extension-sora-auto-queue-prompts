@@ -4,12 +4,11 @@
 import { randomBytes } from "node:crypto";
 import { SCOPES } from "../definitions";
 export class Ebay {
-
-  readonly env = "PRODUCTION"
-  readonly clientId = process?.env?.APP_ID_PROD || ""
-  readonly clientSecret = process?.env?.CERT_ID_PROD || ""
-  readonly redirectUri = process?.env?.REDIRECT_URI_PROD || ""
-  readonly scope = SCOPES
+  readonly env = "PRODUCTION";
+  readonly clientId = process?.env?.APP_ID_PROD || "";
+  readonly clientSecret = process?.env?.CERT_ID_PROD || "";
+  readonly redirectUri = process?.env?.REDIRECT_URI_PROD || "";
+  readonly scope = SCOPES;
 
   readonly baseUrl = "https://api.ebay.com";
   readonly financeBaseUrl = "https://apiz.ebay.com";
@@ -74,7 +73,7 @@ export class Ebay {
   // ---- Auth ----
   auth = {
     generateClientCredentialToken: async () => {
-      console.log('to implement')
+      console.log("to implement");
     },
 
     generateUserAuthUrl: async () => {
@@ -93,11 +92,11 @@ export class Ebay {
     },
 
     getUserAccessToken: async (code: string) => {
-      console.log('to implement', code)
+      console.log("to implement", code);
     },
 
     updateUserAccessToken: async (refreshToken: string) => {
-      console.log('to implement', refreshToken)
+      console.log("to implement", refreshToken);
     },
   };
 
@@ -171,7 +170,8 @@ export class Ebay {
           return this.request(
             "default",
             `/sell/inventory/${this.apiVersionV1}/bulk_update_price_quantity`,
-            "POST", null,
+            "POST",
+            null,
             bodyRequest
           );
         },

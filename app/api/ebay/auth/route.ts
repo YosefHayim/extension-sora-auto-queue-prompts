@@ -8,5 +8,4 @@ export function GET() {
   return NextResponse.json({
     userAuthUrl,
   });
-
 }

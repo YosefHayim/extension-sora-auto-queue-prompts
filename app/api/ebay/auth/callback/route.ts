@@ -15,13 +15,13 @@ export async function GET(req: NextRequest) {
   }
 
   ebay.code = code;
-  const { data, accessTokenExpiresIn, refreshTokenExpiresIn } =
+  const { data, accessTokenExpiresWithin, refreshTokenExpiresWithin } =
     await ebay.auth.getUserAccessTokenPayload();
 
   return NextResponse.json({
     status: "success",
-    accessTokenExpiresIn,
-    refreshTokenExpiresIn,
+    accessTokenExpiresWithin,
+    refreshTokenExpiresWithin,
     data,
   });
 }

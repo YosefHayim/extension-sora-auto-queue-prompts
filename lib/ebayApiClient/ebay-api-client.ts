@@ -79,10 +79,30 @@ export class EbayService {
   code: string | null = null;
   expiresIn: number | null = null;
   refreshTokenExpiresIn: number | null = null;
+  tokenType: string | null = null
 
-  formatExpiredDate(date: number) {
-    return new Date(Date.now() + date * 1000).toString();
+  formatExpiredDate(seconds: number) {
+    const expireTime = Date.now() + seconds * 1000;
+    let diff = expireTime - Date.now();
+
+    if (diff <= 0) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+    };
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    diff %= 1000 * 60 * 60 * 24;
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    diff %= 1000 * 60 * 60;
+
+    const minutes = Math.floor(diff / (1000 * 60));
+    diff %= 1000 * 60;
+
+    const secs = Math.floor(diff / 1000);
+
+    return { days, hours, minutes, seconds: secs };
   }
+
 
   async request<T>({
     baseUrlName,
@@ -129,13 +149,14 @@ export class EbayService {
       this.refreshToken = data.refresh_token;
       this.expiresIn = data.expires_in;
       this.refreshTokenExpiresIn = data.refresh_token_expires_in;
+      this.tokenType = data.token_type;
 
-      const accessTokenExpiresIn = this.formatExpiredDate(data.expires_in);
-      const refreshTokenExpiresIn = this.formatExpiredDate(
+      const accessTokenExpiresWithin = this.formatExpiredDate(data.expires_in);
+      const refreshTokenExpiresWithin = this.formatExpiredDate(
         data.refresh_token_expires_in
       );
 
-      return { data, refreshTokenExpiresIn, accessTokenExpiresIn };
+      return { data, refreshTokenExpiresWithin, accessTokenExpiresWithin };
     },
 
     updateUserAccessToken: async () => {

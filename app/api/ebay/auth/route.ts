@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { EbayService } from "@/lib/ebay/ebay-api-client";
+import { EbayService } from "@/lib/ebayApiClient/ebay-api-client";
 
 export function GET() {
   const ebay = new EbayService();

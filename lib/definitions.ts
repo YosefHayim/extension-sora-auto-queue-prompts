@@ -1,105 +1,40 @@
-export const EbayMarketplaces = {
-  AT: {
-    id: "EBAY_AT",
-    description: "Austria",
-  },
-  AU: {
-    id: "EBAY_AU",
-    description: "Australia",
-  },
-  BE: {
-    id: "EBAY_BE",
-    description: "Belgium",
-  },
-  CA: {
-    id: "EBAY_CA",
-    description: "Canada",
-  },
-  CH: {
-    id: "EBAY_CH",
-    description: "Switzerland",
-  },
-  CN: {
-    id: "EBAY_CN",
-    description: "Reserved for future use",
-  },
-  CZ: {
-    id: "EBAY_CZ",
-    description: "Reserved for future use",
-  },
-  DE: {
-    id: "EBAY_DE",
-    description: "Germany",
-  },
-  DK: {
-    id: "EBAY_DK",
-    description: "Reserved for future use",
-  },
-  ES: {
-    id: "EBAY_ES",
-    description: "Spain",
-  },
-  FI: {
-    id: "EBAY_FI",
-    description: "Reserved for future use",
-  },
-  FR: {
-    id: "EBAY_FR",
-    description: "France",
-  },
-  GB: {
-    id: "EBAY_GB",
-    description: "United Kingdom",
-  },
-  GR: {
-    id: "EBAY_GR",
-    description: "Reserved for future use",
-  },
-  HK: {
-    id: "EBAY_HK",
-    description: "Hong Kong",
-  },
-  HU: {
-    id: "EBAY_HU",
-    description: "Reserved for future use",
-  },
-  ID: {
-    id: "EBAY_ID",
-    description: "Reserved for future use",
-  },
-  IE: {
-    id: "EBAY_IE",
-    description: "Ireland",
-  },
-  IL: {
-    id: "EBAY_IL",
-    description: "Reserved for future use",
-  },
-  IN: {
-    id: "EBAY_IN",
-    description: "Reserved for future use",
-  },
-  IT: {
-    id: "EBAY_IT",
-    description: "Italy",
-  },
-  JP: {
-    id: "EBAY_JP",
-    description: "Reserved for future use",
-  },
-  MY: {
-    id: "EBAY_MY",
-    description: "Malaysia",
-  },
-  NL: {
-    id: "EBAY_NL",
-    description: "Netherlands",
-  },
-  US: {
-    id: "EBAY_US",
-    description: "United States",
-  },
-} as const;
+export enum EbayMarketplaceId {
+  AT = "EBAY_AT",
+  AU = "EBAY_AU",
+  BE = "EBAY_BE",
+  CA = "EBAY_CA",
+  CH = "EBAY_CH",
+  CN = "EBAY_CN", // Reserved for future use
+  CZ = "EBAY_CZ", // Reserved for future use
+  DE = "EBAY_DE",
+  DK = "EBAY_DK", // Reserved for future use
+  ES = "EBAY_ES",
+  FI = "EBAY_FI", // Reserved for future use
+  FR = "EBAY_FR",
+  GB = "EBAY_GB",
+  GR = "EBAY_GR", // Reserved for future use
+  HK = "EBAY_HK",
+  HU = "EBAY_HU", // Reserved for future use
+  ID = "EBAY_ID", // Reserved for future use
+  IE = "EBAY_IE",
+  IL = "EBAY_IL", // Reserved for future use
+  IN = "EBAY_IN", // Reserved for future use
+  IT = "EBAY_IT",
+  JP = "EBAY_JP", // Reserved for future use
+  MY = "EBAY_MY",
+  NL = "EBAY_NL",
+  US = "EBAY_US",
+}
+
+export type EbayMarketplace = (typeof EbayMarketplaceId)
+
+export type EbayTokenResponse = {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  refresh_token_expires_in: number;
+  token_type: string;
+};
 
 export const SCOPES = [
   "https://api.ebay.com/oauth/api_scope",

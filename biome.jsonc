@@ -12,7 +12,8 @@
       },
       "style": {
         "noMagicNumbers": "off",
-        "useFilenamingConvention": "off"
+        "useFilenamingConvention": "off",
+        "noEnum": "off"
       },
       "suspicious": {
         "useAwait": "off",

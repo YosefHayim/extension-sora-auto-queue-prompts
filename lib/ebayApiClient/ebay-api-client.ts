@@ -1,7 +1,8 @@
 import { config } from "@/config";
+import { EBAY_SCOPES } from "@/definitions";
 import { featureFlags } from "@/lib/feature-flags";
 import { formatExpiredDate } from "@/lib/utils";
-import { EBAY_SCOPES, type EbayTokenResponse } from "@/types/ebay/listing-management/inventory-api/inventory-api-global-types";
+import type { EbayTokenResponse } from "@/types/ebay/oauth/ebay-response-token";
 import type { BaseUrlName, RequestOptions } from "@/types/request";
 export class EbayService {
   readonly productionBaseUrl = "https://api.ebay.com";

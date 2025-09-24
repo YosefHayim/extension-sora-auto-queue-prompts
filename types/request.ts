@@ -18,3 +18,10 @@ export enum ResponseStatus {
   FORBIDDEN = 403,
   NOT_FOUND = 404,
 }
+
+export type FeatureFlags = {
+  currentEnv: "production" | "development";
+  authWGoogle: boolean;
+  authWEbay: boolean;
+
+}

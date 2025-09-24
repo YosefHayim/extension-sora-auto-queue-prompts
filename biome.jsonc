@@ -54,6 +54,9 @@
           },
           "complexity": {
             "noExcessiveCognitiveComplexity": "off"
+          },
+          "suspicious": {
+            "noConfusingVoidType": "off"
           }
         }
       }

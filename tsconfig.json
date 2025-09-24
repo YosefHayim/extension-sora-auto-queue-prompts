@@ -22,10 +22,7 @@
     "paths": {
       "@/*": ["*"],
       "@/lib/*": ["./lib/*"],
-      "@/types/ebay/global/*": ["./types/ebay/global/*"],
-      "@/types/ebay/listing-management/inventory-api/*": [
-        "./types/ebay/listing-management/inventory-api/*"
-      ]
+      "@/types/ebay/global/types/*": ["./types/ebay/global/types/*"]
     },
     "strictNullChecks": true
   },

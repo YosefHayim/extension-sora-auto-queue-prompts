@@ -1,4 +1,4 @@
-import type { Amount, EbayError } from "@/types/ebay/global/enums";
+import type { Amount, EbayError } from "@/types/ebay/global/types";
 import type { ShipToLocationAvailability } from "../../inventory-api-global-types";
 
 /**
@@ -112,16 +112,3 @@ export type PriceQuantityResponse = {
    */
   warnings?: EbayError[];
 };
-
-/**
- * Notes on nested/global types referenced above:
- * - ShipToLocationAvailability.availabilityDistributions?: AvailabilityDistribution[]
- *   • fulfillmentTime?: AvailabilityDistribution["fulfillmentTime"] (TimeDuration)
- *   • merchantLocationKey?: string
- *   • quantity?: number
- * - Amount
- *   • currency: string (ISO currency code)
- *   • value: string (decimal)
- *
- * These are imported from global modules and not redeclared here.
- */

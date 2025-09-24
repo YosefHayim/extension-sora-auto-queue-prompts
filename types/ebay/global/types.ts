@@ -1,7 +1,5 @@
-import type { PackageWeightAndSize, Product } from "../listing-management/inventory-api/inventory-api-global-types";
-
 /** Package type values for shipping containers */
-export enum PackageTypeEnum {
+export enum PackageType {
   LETTER = "LETTER",
   BULKY_GOODS = "BULKY_GOODS",
   CARAVAN = "CARAVAN",
@@ -34,7 +32,7 @@ export enum PackageTypeEnum {
 }
 
 /** Weight units for shipping */
-export enum WeightUnitOfMeasureEnum {
+export enum WeightUnitOfMeasure {
   POUND = "POUND",
   KILOGRAM = "KILOGRAM",
   OUNCE = "OUNCE",
@@ -42,7 +40,7 @@ export enum WeightUnitOfMeasureEnum {
 }
 
 /** Time duration units (SLA granularity) */
-export enum TimeDurationUnitEnum {
+export enum TimeDurationUnit {
   YEAR = "YEAR",
   MONTH = "MONTH",
   DAY = "DAY",
@@ -55,7 +53,7 @@ export enum TimeDurationUnitEnum {
 }
 
 /** Inventory availability type for pickup locations */
-export enum AvailabilityTypeEnum {
+export enum Availability {
   /** On hand and available now */
   IN_STOCK = "IN_STOCK",
   /** None available at the moment */
@@ -65,7 +63,7 @@ export enum AvailabilityTypeEnum {
 }
 
 /** Item condition values supported by eBay */
-export enum ConditionEnum {
+export enum Condition {
   NEW = "NEW",
   LIKE_NEW = "LIKE_NEW",
   NEW_OTHER = "NEW_OTHER",
@@ -162,24 +160,17 @@ export type EbayError = {
 };
 
 /** Length units for physical dimensions */
-export enum LengthUnitOfMeasureEnum {
+export enum LengthUnitOfMeasure {
   INCH = "INCH",
   FEET = "FEET",
   CENTIMETER = "CENTIMETER",
   METER = "METER",
 }
 
-export type InventoryItemWithSkuLocaleGroupKeys = {
-  availability: AvailabilityTypeEnum;
-  condition: ConditionEnum;
-  locale: LocalEnum;
-  packageWeightAndSize: PackageWeightAndSize;
-  product: Product;
-  sku: string;
-};
+
 
 /** Listing locales (language/region) */
-export enum LocalEnum {
+export enum Local {
   en_US = "en_US",
   en_CA = "en_CA",
   fr_CA = "fr_CA",
@@ -588,4 +579,69 @@ export const InventoryErrorSummary: Record<number, string> = {
   25402: "System warning",
   25504: "Service warning",
   25753: "listingStartDate in past/live; not updated",
+};
+
+
+/**
+ * PackageWeightAndSize
+ * Indicates package type, weight, and dimensions for shipping.
+ * Required for calculated shipping (weight and dimensions). For flat-rate with weight surcharge, weight alone is required.
+ */
+export type PackageWeightAndSize = {
+  /**
+   * Dimensions of the shipping package. Required when dimensions are specified for calculated shipping.
+   */
+  dimensions?: Dimension;
+
+  /**
+   * Type of shipping package.
+   */
+  packageType?: PackageType;
+
+  /**
+   * True if the package is irregular and requires special handling (calculated shipping only).
+   */
+  shippingIrregular?: boolean;
+
+  /**
+   * Weight of the shipping package. Required for calculated shipping or flat-rate with surcharge.
+   */
+  weight?: Weight;
+};
+
+/**
+ * Dimension
+ * Physical dimensions of a shipping package.
+ */
+export type Dimension = {
+  /**
+   * Height of the package in the specified unit.
+   */
+  height: number;
+
+  /**
+   * Length of the package in the specified unit.
+   */
+  length: number;
+
+  /**
+   * Unit of measure for dimensions.
+   */
+  unit: LengthUnitOfMeasure;
+
+  /**
+   * Width of the package in the specified unit.
+   */
+  width: number;
+};
+
+
+
+/**
+ * Weight
+ * Numeric weight with unit.
+ */
+export type Weight = {
+  unit: WeightUnitOfMeasure;
+  value: number;
 };

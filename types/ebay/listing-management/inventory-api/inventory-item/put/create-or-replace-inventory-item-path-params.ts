@@ -1,13 +1,5 @@
-import type {
-  ConditionEnum,
-  EbayError,
-} from "@/types/ebay/global/enums";
-import type {
-  Availability,
-  ConditionDescriptor,
-  PackageWeightAndSize,
-  Product,
-} from "../../inventory-api-global-types";
+import type { Availability, Condition, EbayError, PackageWeightAndSize } from "@/types/ebay/global/types";
+import type { ConditionDescriptor, Product } from "../../inventory-api-global-types";
 
 /**
  * Path parameters for createOrReplaceInventoryItem.
@@ -35,7 +27,7 @@ export type CreateOrReplaceInventoryItemRequest = {
    * Required when publishing; optional before that.
    * Occurrence: Conditional
    */
-  condition?: ConditionEnum;
+  condition?: Condition;
 
   /**
    * Free-text detail for non-new items; ignored for new conditions.

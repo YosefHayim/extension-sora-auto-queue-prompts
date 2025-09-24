@@ -1,4 +1,4 @@
-import type { EbayError } from "@/types/ebay/global/enums";
+import type { EbayError } from "@/types/ebay/global/types";
 import type { InventoryItem } from "../../inventory-api-global-types";
 
 /**

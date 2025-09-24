@@ -26,4 +26,3 @@ export const formatExpiredDate = (target: Date | number) => {
 
   return { days, hours, minutes, seconds };
 };
-

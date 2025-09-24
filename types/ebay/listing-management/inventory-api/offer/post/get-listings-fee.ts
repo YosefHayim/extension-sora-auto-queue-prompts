@@ -1,4 +1,4 @@
-import type { Amount, EbayMarketplaceId } from "@/types/ebay/global/types";
+import type { Amount, EbayMarketplaceIdEnum } from "@/types/ebay/global/types";
 import type { ErrorDetailV3 } from "../../inventory-api-global-types";
 
 /**
@@ -26,7 +26,7 @@ export type GetListingFeesResponse = {
 
 export type FeeSummary = {
   fees: Fee[];
-  marketplaceId: EbayMarketplaceId;
+  marketplaceId: EbayMarketplaceIdEnum;
   warnings?: ErrorDetailV3[];
 };
 

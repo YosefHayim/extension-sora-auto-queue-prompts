@@ -1,4 +1,4 @@
-import type { Availability, Condition, EbayMarketplaceId, Local, PackageWeightAndSize, TimeDurationUnit } from "../../global/types";
+import type { Availability, Condition, EbayMarketplaceIdEnum, Local, PackageWeightAndSize, TimeDurationUnit } from "../../global/types";
 import type { Charity, ExtendedProducerResponsibility, ListingPolicies, PricingSummary, Regulatory, Tax } from "./offer/post/bulk-create-offer";
 
 /**
@@ -23,7 +23,7 @@ export type EbayOfferDetailsWithKeys = {
    * Listing format. Supported: "FIXED_PRICE" | "AUCTION".
    * Required by the method.
    */
-  format: FormatType;
+  format: FormatTypeEnum;
 
   /**
    * Merchant inventory location key where the item is stocked.
@@ -71,7 +71,7 @@ export type EbayOfferDetailsWithKeys = {
    * For auction: DAYS_1|3|5|7|10 (required for auction).
    * Required before publish for auction listings.
    */
-  listingDuration?: ListingDuration;
+  listingDuration?: ListingDurationEnum;
 
   /**
    * Listing description (HTML allowed; counts toward length).
@@ -216,7 +216,7 @@ export type InventoryItemGroup = {
 };
 
 /** Union of all marketplace values (e.g., "EBAY_US") */
-export type EbayMarketplace = (typeof EbayMarketplaceId)[keyof typeof EbayMarketplaceId];
+export type EbayMarketplace = (typeof EbayMarketplaceIdEnum)[keyof typeof EbayMarketplaceIdEnum];
 
 /** Inventory item definition aligned with eBay Sell Inventory API */
 export type InventoryItemWithSkuLocale = {
@@ -495,7 +495,7 @@ export type ErrorParameterV3 = {
  * - /location
  * - /location/{merchantLocationKey}/update_location_details
  */
-export enum CountryCode {
+export enum CountryCodeEnum {
   AD = "AD", // Andorra
   AE = "AE", // United Arab Emirates
   AF = "AF", // Afghanistan
@@ -747,12 +747,12 @@ export enum CountryCode {
   ZW = "ZW", // Zimbabwe
 }
 
-export type FormatType = "AUCTION" | "FIXED_PRICE";
+export type FormatTypeEnum = "AUCTION" | "FIXED_PRICE";
 
-export type ListingDuration = "GTC" | "DAYS_1" | "DAYS_3" | "DAYS_5" | "DAYS_7" | "DAYS_10" | "DAYS_21" | "DAY_30";
+export type ListingDurationEnum = "GTC" | "DAYS_1" | "DAYS_3" | "DAYS_5" | "DAYS_7" | "DAYS_10" | "DAYS_21" | "DAY_30";
 
-export type ShippingServiceType = "DOMESTIC" | "INTERNATIONAL";
+export type ShippingServiceTypeEnum = "DOMESTIC" | "INTERNATIONAL";
 
-export type MinimumAdvertisedPriceHandling = "NONE" | "PRE_CHECKOUT" | "DURING_CHECKOUT";
+export type MinimumAdvertisedPriceHandlingEnum = "NONE" | "PRE_CHECKOUT" | "DURING_CHECKOUT";
 
-export type SoldOn = "ON_EBAY" | "OFF_EBAY" | "ON_AND_OFF_EBAY";
+export type SoldOnEnum = "ON_EBAY" | "OFF_EBAY" | "ON_AND_OFF_EBAY";

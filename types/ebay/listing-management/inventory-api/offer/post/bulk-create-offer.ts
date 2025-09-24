@@ -1,13 +1,12 @@
-import type { Amount } from "@/types/ebay/global/types";
+import type { Amount, EbayMarketplaceIdEnum } from "@/types/ebay/global/types";
 import type {
-  CountryCode,
-  EbayMarketplace,
+  CountryCodeEnum,
   EbayOfferDetailsWithKeys,
   ErrorDetailV3,
-  FormatType,
-  MinimumAdvertisedPriceHandling,
-  ShippingServiceType,
-  SoldOn,
+  FormatTypeEnum,
+  MinimumAdvertisedPriceHandlingEnum,
+  ShippingServiceTypeEnum,
+  SoldOnEnum,
 } from "../../inventory-api-global-types";
 
 /**
@@ -42,7 +41,7 @@ export type PricingSummary = {
    * MAP visibility handling: PRE_CHECKOUT or DURING_CHECKOUT
    * (ignored if MAP not applicable).
    */
-  pricingVisibility?: MinimumAdvertisedPriceHandling;
+  pricingVisibility?: MinimumAdvertisedPriceHandlingEnum;
 
   /**
    * Original retail price used for Strikethrough Pricing (STP).
@@ -54,7 +53,7 @@ export type PricingSummary = {
    * Where the original retail price was charged (ON_EBAY/OFF_EBAY/ON_AND_OFF_EBAY).
    * Required only when using STP.
    */
-  originallySoldForRetailPriceOn?: SoldOn;
+  originallySoldForRetailPriceOn?: SoldOnEnum;
 
   /**
    * Auction minimum bid price. For auction offers only.
@@ -143,7 +142,7 @@ export type ShippingCostOverride = {
    * DOMESTIC or INTERNATIONAL; must match the policy’s optionType.
    * Required when overriding.
    */
-  shippingServiceType: ShippingServiceType;
+  shippingServiceType: ShippingServiceTypeEnum;
 
   /**
    * sortOrderId of the target shipping service in the fulfillment policy.
@@ -220,7 +219,7 @@ export type CountryPolicy = {
   /**
    * ISO 3166-1 alpha-2 country code.
    */
-  country: CountryCode;
+  country: CountryCodeEnum;
 
   /**
    * IDs of custom policies that apply to the country.
@@ -437,7 +436,7 @@ export type Manufacturer = {
   /** Postal code. Max 9. */
   postalCode?: string;
   /** Country (ISO 3166-1 alpha-2). */
-  country?: CountryCode;
+  country?: CountryCodeEnum;
   /** Business email. Max 180. */
   email?: string;
   /** Business phone. Max 64. */
@@ -466,7 +465,7 @@ export type ResponsiblePerson = {
   /** Postal code. Max 9. */
   postalCode?: string;
   /** Country (ISO 3166-1 alpha-2). */
-  country?: CountryCode;
+  country?: CountryCodeEnum;
   /** Email. Max 180. */
   email?: string;
   /** Phone. Max 64. */
@@ -506,12 +505,12 @@ export type OfferSkuResponse = {
   /**
    * Marketplace of the attempted offer.
    */
-  marketplaceId: EbayMarketplace;
+  marketplaceId: EbayMarketplaceIdEnum;
 
   /**
    * Echoed listing format.
    */
-  format: FormatType;
+  format: FormatTypeEnum;
 
   /**
    * New offer ID if created successfully (statusCode 200).

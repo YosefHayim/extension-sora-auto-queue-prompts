@@ -197,7 +197,7 @@ export enum Local {
 }
 
 /** eBay marketplace IDs (string enum of site codes) */
-export enum EbayMarketplaceId {
+export enum EbayMarketplaceIdEnum {
   AT = "EBAY_AT",
   AU = "EBAY_AU",
   BE = "EBAY_BE",

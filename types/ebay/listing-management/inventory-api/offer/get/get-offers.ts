@@ -28,7 +28,7 @@ export type GetOffersQueryParams = {
 };
 
 /** Response wrapper for getOffers */
-export interface GetOffersResponse {
+export type GetOffersResponse = {
   /** URL to the current page of results */
   href: string;
   /** Max records per page */
@@ -43,11 +43,4 @@ export interface GetOffersResponse {
   size: number;
   /** Total number of offers across all pages */
   total: number;
-}
-
-/** Error codes for getOffers */
-export enum GetOffersErrorCode {
-  SYSTEM_ERROR = 25_001,
-  INVALID_PAGINATION = 25_706,
-  INVALID_FIELD_VALUE = 25_709,
-}
+};

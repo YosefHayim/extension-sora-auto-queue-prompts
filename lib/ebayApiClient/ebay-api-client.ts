@@ -565,33 +565,23 @@ export class EbayService {
               method: "POST",
               body,
             }),
-          createOrReplaceSkuLocationMapping: async (
-            listingId: string,
-            sku: string,
-            body: Record<string, unknown>
-          ) =>
+          createOrReplaceSkuLocationMapping: async (listingId: string, sku: string, body: Record<string, unknown>) =>
             this.request({
               productionBaseUrlName: "default",
-              path: `/sell/inventory/v1/listing/${encodeURIComponent(
-                listingId
-              )}/sku/${encodeURIComponent(sku)}/locations`,
+              path: `/sell/inventory/v1/listing/${encodeURIComponent(listingId)}/sku/${encodeURIComponent(sku)}/locations`,
               method: "PUT",
               body,
             }),
           deleteSkuLocationMapping: async (listingId: string, sku: string) =>
             this.request({
               productionBaseUrlName: "default",
-              path: `/sell/inventory/v1/listing/${encodeURIComponent(
-                listingId
-              )}/sku/${encodeURIComponent(sku)}/locations`,
+              path: `/sell/inventory/v1/listing/${encodeURIComponent(listingId)}/sku/${encodeURIComponent(sku)}/locations`,
               method: "DELETE",
             }),
           getSkuLocationMapping: async (listingId: string, sku: string) =>
             this.request({
               productionBaseUrlName: "default",
-              path: `/sell/inventory/v1/listing/${encodeURIComponent(
-                listingId
-              )}/sku/${encodeURIComponent(sku)}/locations`,
+              path: `/sell/inventory/v1/listing/${encodeURIComponent(listingId)}/sku/${encodeURIComponent(sku)}/locations`,
               method: "GET",
             }),
         },

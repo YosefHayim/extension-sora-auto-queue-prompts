@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       "Upgrade-Insecure-Requests": "1",
       "Sec-Fetch-Site": "none",
       "Sec-Fetch-Mode": "navigate",
-      "Sec-Fetch-User": "1",
+      "Sec-Fetch-User": "?1",
       "Sec-Fetch-Dest": "document",
       "Pragma": "no-cache",
       "Cache-Control": "no-cache",
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     }
 
     const html = await r.text();
-    return NextResponse.json({ status: ResponseStatus.SUCCESS, data: html });
+    return new NextResponse(html);
   } catch (e) {
     return NextResponse.json({
       status: ResponseStatus.INTERNAL_ERROR,

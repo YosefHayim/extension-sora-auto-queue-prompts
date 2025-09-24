@@ -1,5 +1,3 @@
-// eslint.config.js (Flat Config) — unified, Next.js prioritized
-
 import { FlatCompat } from "@eslint/eslintrc";
 import js from "@eslint/js";
 import query from "@tanstack/eslint-plugin-query";

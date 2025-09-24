@@ -11,12 +11,6 @@ importers:
 
   .:
     dependencies:
-      '@aws-amplify/backend':
-        specifier: ^1.16.1
-        version: 1.16.1(@aws-cdk/cli-plugin-contract@2.181.1)(@aws-sdk/client-cloudformation@3.893.0)(@aws-sdk/client-s3@3.893.0)(@aws-sdk/types@3.893.0)(aws-cdk-lib@2.215.0(constructs@10.4.2))(constructs@10.4.2)(zod@4.1.9)
-      '@eslint/eslintrc':
-        specifier: ^3.3.1
-        version: 3.3.1
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.63.0(react@19.1.1))
@@ -74,9 +68,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      dataconnect-generated:
-        specifier: link:../../../AppData/Local/pnpm/global/5/node_modules/src/dataconnect-generated
-        version: link:../../../AppData/Local/pnpm/global/5/node_modules/src/dataconnect-generated
       digital-signature-nodejs-sdk:
         specifier: ^3.0.1
         version: 3.0.1
@@ -126,9 +117,15 @@ importers:
         specifier: ^4.1.9
         version: 4.1.9
     devDependencies:
+      '@aws-amplify/backend':
+        specifier: ^1.16.1
+        version: 1.16.1(@aws-cdk/cli-plugin-contract@2.181.1)(@aws-sdk/client-cloudformation@3.893.0)(@aws-sdk/client-s3@3.893.0)(@aws-sdk/types@3.893.0)(aws-cdk-lib@2.215.0(constructs@10.4.2))(constructs@10.4.2)(zod@4.1.9)
       '@biomejs/biome':
         specifier: 2.2.2
         version: 2.2.2
+      '@eslint/eslintrc':
+        specifier: ^3.3.1
+        version: 3.3.1
       '@eslint/js':
         specifier: ^9.36.0
         version: 9.36.0
@@ -159,6 +156,9 @@ importers:
       cross-env:
         specifier: ^10.0.0
         version: 10.0.0
+      dataconnect-generated:
+        specifier: link:../../../AppData/Local/pnpm/global/5/node_modules/src/dataconnect-generated
+        version: link:../../../AppData/Local/pnpm/global/5/node_modules/src/dataconnect-generated
       eslint:
         specifier: ^9.36.0
         version: 9.36.0(jiti@2.6.0)

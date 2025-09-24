@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { ResponseStatus } from "@/lib/definitions";
 import ebayService from "@/lib/ebayApiClient/ebay-api-client";
+import { ResponseStatus } from "@/types/api/request";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);

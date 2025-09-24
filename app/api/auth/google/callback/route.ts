@@ -1,6 +1,6 @@
 import type { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import { type NextRequest, NextResponse } from "next/server";
-import { oAuth2Client } from "@/lib/config";
+import { oAuth2Client } from "@/config";
 import { ResponseStatus } from "@/lib/definitions";
 import { formatExpiredDate } from "@/lib/utils";
 

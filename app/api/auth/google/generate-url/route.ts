@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { config, oAuth2Client } from "@/lib/config";
+import { config, oAuth2Client } from "@/config";
 import { GOOGLE_SCOPES } from "@/lib/definitions";
 
 export async function GET(_req: NextRequest) {

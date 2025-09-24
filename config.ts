@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
 import { OAuth2Client } from "google-auth-library";
-import { featureFlags } from "./feature-flags";
+import { featureFlags } from "./lib/feature-flags";
 
 export const config = {
   google: {

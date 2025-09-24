@@ -1,8 +1,8 @@
-import { config } from "../config";
-import { type BaseUrlName, EBAY_SCOPES, type EbayTokenResponse, type RequestOptions } from "../definitions";
-import { featureFlags } from "../feature-flags";
-import { formatExpiredDate } from "../utils";
-
+import { config } from "@/config";
+import { featureFlags } from "@/lib/feature-flags";
+import { formatExpiredDate } from "@/lib/utils";
+import { EBAY_SCOPES, type EbayTokenResponse } from "@/types/ebay/listing-management/inventory-api/inventory-api-global-types";
+import type { BaseUrlName, RequestOptions } from "@/types/request";
 export class EbayService {
   readonly productionBaseUrl = "https://api.ebay.com";
   readonly developmentBaseUrl = "https://api.sandbox.ebay.com";
@@ -58,7 +58,7 @@ export class EbayService {
     };
   }
 
-  env = "";
+  env: "production" | "development" = "development";
 
   clientId = "";
 

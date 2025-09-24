@@ -18,8 +18,14 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["*"],
+      "@/lib/*": ["./lib/*"],
+      "@/types/ebay/global/*": ["./types/ebay/global/*"],
+      "@/types/ebay/listing-management/inventory-api/*": [
+        "./types/ebay/listing-management/inventory-api/*"
+      ]
     },
     "strictNullChecks": true
   },

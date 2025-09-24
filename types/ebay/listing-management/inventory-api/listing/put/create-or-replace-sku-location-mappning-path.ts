@@ -21,7 +21,7 @@ export type LocationAvailabilityDetails = {
 /** Response
  * 204 No Content on success; errors return standard problem details.
  */
-export type CreateOrReplaceSkuLocationMappingResponse = void;
+export type CreateOrReplaceSkuLocationMappingResponse = undefined;
 
 /** Possible error payload (non-2xx) */
 export type CreateOrReplaceSkuLocationMappingError = {

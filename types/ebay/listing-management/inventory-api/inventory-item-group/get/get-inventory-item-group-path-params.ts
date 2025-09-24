@@ -11,7 +11,7 @@ export type GetInventoryItemGroupPathParams = {
  * Request body for getInventoryItemGroup.
  * This call has no payload.
  */
-export type GetInventoryItemGroupRequest = void;
+export type GetInventoryItemGroupRequest = undefined;
 
 /**
  * Response body for getInventoryItemGroup.

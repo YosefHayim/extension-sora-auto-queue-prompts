@@ -167,8 +167,6 @@ export enum LengthUnitOfMeasure {
   METER = "METER",
 }
 
-
-
 /** Listing locales (language/region) */
 export enum Local {
   en_US = "en_US",
@@ -197,8 +195,6 @@ export enum Local {
   en_IE = "en_IE",
   en_MY = "en_MY",
 }
-
-
 
 /** eBay marketplace IDs (string enum of site codes) */
 export enum EbayMarketplaceId {

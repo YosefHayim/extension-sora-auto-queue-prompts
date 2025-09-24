@@ -7,7 +7,7 @@ export type DeleteSkuLocationMappingPath = {
 };
 
 /** Request body: none */
-export type DeleteSkuLocationMappingRequest = void;
+export type DeleteSkuLocationMappingRequest = undefined;
 
 /** Response body: none */
-export type DeleteSkuLocationMappingResponse = void;
+export type DeleteSkuLocationMappingResponse = undefined;

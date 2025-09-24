@@ -11,10 +11,10 @@ export type DeleteInventoryItemGroupPathParams = {
  * Request body for deleteInventoryItemGroup.
  * This call has no payload.
  */
-export type DeleteInventoryItemGroupRequest = void;
+export type DeleteInventoryItemGroupRequest = undefined;
 
 /**
  * Response body for deleteInventoryItemGroup.
  * This call has no payload.
  */
-export type DeleteInventoryItemGroupResponse = void;
+export type DeleteInventoryItemGroupResponse = undefined;

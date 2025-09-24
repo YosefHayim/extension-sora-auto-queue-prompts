@@ -22,7 +22,6 @@ export type BulkCreateOfferRequest = {
   requests?: EbayOfferDetailsWithKeys[];
 };
 
-
 /**
  * Pricing configuration for the offer.
  */

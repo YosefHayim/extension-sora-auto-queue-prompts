@@ -23,5 +23,4 @@ export type FeatureFlags = {
   currentEnv: "production" | "development";
   authWGoogle: boolean;
   authWEbay: boolean;
-
-}
+};

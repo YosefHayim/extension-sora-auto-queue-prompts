@@ -7,7 +7,7 @@ export type GetSkuLocationMappingPath = {
 };
 
 /** Request body: none */
-export type GetSkuLocationMappingRequest = void;
+export type GetSkuLocationMappingRequest = undefined;
 
 /** Response body */
 export type GetSkuLocationMappingResponse = {

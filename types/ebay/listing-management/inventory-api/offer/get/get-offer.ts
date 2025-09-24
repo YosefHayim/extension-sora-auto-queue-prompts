@@ -13,7 +13,6 @@ import type { Charity, ExtendedProducerResponsibility, ListingPolicies, PricingS
  * - Success: HTTP 200 + EbayOfferDetailsWithAll
  */
 
-
 /** Path params for getOffer */
 export type GetOfferPathParams = {
   /**

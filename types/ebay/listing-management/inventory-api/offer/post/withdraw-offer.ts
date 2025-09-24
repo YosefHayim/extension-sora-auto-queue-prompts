@@ -36,10 +36,7 @@ export type WithdrawOfferOptions = {
  * Withdraw (end) the eBay listing associated with an offer.
  * The offer object is retained in unpublished state.
  */
-export declare function withdrawOffer(
-  offerId: string,
-  options: WithdrawOfferOptions
-): Promise<WithdrawOfferResponse>;
+export declare function withdrawOffer(offerId: string, options: WithdrawOfferOptions): Promise<WithdrawOfferResponse>;
 
 /** Convenience aliases for error shapes. */
 export type WithdrawOfferWarning = ErrorDetailV3;

@@ -34,10 +34,7 @@ export type PublishOfferOptions = {
  * Publish a single offer by offerId.
  * Returns listingId on success and any warnings encountered.
  */
-export declare function publishOffer(
-  offerId: string,
-  options: PublishOfferOptions
-): Promise<PublishResponse>;
+export declare function publishOffer(offerId: string, options: PublishOfferOptions): Promise<PublishResponse>;
 
 /** Convenience aliases for error shapes. */
 export type PublishOfferWarning = ErrorDetailV3;

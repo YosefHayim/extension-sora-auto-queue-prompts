@@ -14,6 +14,8 @@ build/ # Common build output directory
 *.swp
 *.bak
 
+*.ps1
+
 tests/
 test/
 spec/

@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { doc, getFirestore, setDoc } from "firebase/firestore/lite";
+import { getFirestore } from "firebase/firestore/lite";
 import { OAuth2Client } from "google-auth-library";
 import { featureFlags } from "./feature-flags";
 
@@ -43,11 +43,9 @@ const fireBaseConfig = {
 const firebaseApp = initializeApp(fireBaseConfig);
 export const fireBaseDb = getFirestore(firebaseApp);
 
-
 // Add a new document in collection "cities"
 // await setDoc(doc(fireBaseDb, "cities", "LA"), {
 //   name: "Los Angeles",
 //   state: "CA",
 //   country: "USA"
 // });
-

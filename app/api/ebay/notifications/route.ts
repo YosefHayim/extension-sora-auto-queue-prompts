@@ -41,3 +41,4 @@ export async function POST(req: NextRequest) {
 
   return new Response(null, { status: 204 });
 }
+

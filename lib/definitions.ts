@@ -34,7 +34,7 @@ export type RequestOptions = {
   path?: string;
   method?: HttpMethod;
   headers?: Record<string, string>;
-  body?: BodyInit | null;
+  body?: Record<string, unknown>;
 };
 
 export enum ResponseStatus {

@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   const code = url.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.json({ status: "error", reason: "missing code" }, { status: ResponseStatus.BAD_REQUEST });
+    return NextResponse.json({ status: ResponseStatus.BAD_REQUEST, reason: "missing code" });
   }
 
   let r: GetTokenResponse | null = null;
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       status: ResponseStatus.SUCCESS,
       accessTokenExpiresWithin: formatExpiredDate(r?.tokens?.expiry_date || 0),
-      data: r,
+      data: r.tokens,
     });
   } catch (error) {
     console.error("OAuth token exchange failed:", error);

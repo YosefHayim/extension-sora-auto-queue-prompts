@@ -5,9 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const formatExpiredDate = (seconds: number) => {
-  const expireTime = Date.now() + seconds * 1000;
-  let diff = expireTime - Date.now();
+export const formatExpiredDate = (target: Date | number) => {
+  const targetTime = target instanceof Date ? target.getTime() : target;
+  let diff = targetTime - Date.now();
 
   if (diff <= 0) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0 };
@@ -22,7 +22,8 @@ export const formatExpiredDate = (seconds: number) => {
   const minutes = Math.floor(diff / (1000 * 60));
   diff %= 1000 * 60;
 
-  const secs = Math.floor(diff / 1000);
+  const seconds = Math.floor(diff / 1000);
 
-  return { days, hours, minutes, seconds: secs };
+  return { days, hours, minutes, seconds };
 };
+

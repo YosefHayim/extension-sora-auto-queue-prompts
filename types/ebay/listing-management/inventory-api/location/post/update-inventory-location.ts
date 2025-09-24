@@ -15,8 +15,6 @@ import type { DayOfWeekEnum, StoreTypeEnum } from "./create-inventory-location";
  * - Successful update returns HTTP 204 No Content.
  */
 
-
-
 /** Path params */
 export type UpdateInventoryLocationPath = {
   /** Merchant-defined location key (max length 36). */

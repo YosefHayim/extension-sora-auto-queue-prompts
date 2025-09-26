@@ -22,6 +22,7 @@ export const config = {
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID,
+    dbUrl: process.env.FIREBASE_DB_URL,
   },
 };
 
@@ -33,19 +34,15 @@ export const oAuth2Client = new OAuth2Client({
 
 const fireBaseConfig = {
   apiKey: config.firebase.apiKey,
+  appId: config.firebase.appId,
+  databaseURL: config.firebase.dbUrl,
   authDomain: config.firebase.authDomain,
   projectId: config.firebase.projectId,
   storageBucket: config.firebase.storageBucket,
   messagingSenderId: config.firebase.messagingSenderId,
-  appId: config.firebase.appId,
 };
 
 const firebaseApp = initializeApp(fireBaseConfig);
 export const fireBaseDb = getFirestore(firebaseApp);
 
-// Add a new document in collection "cities"
-// await setDoc(doc(fireBaseDb, "cities", "LA"), {
-//   name: "Los Angeles",
-//   state: "CA",
-//   country: "USA"
-// });
+export const fireBaseAdminDb = getFirestore(firebaseApp, "admin");

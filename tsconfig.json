@@ -22,7 +22,8 @@
     "paths": {
       "@/*": ["*"],
       "@/lib/*": ["./lib/*"],
-      "@/types/ebay/global/types/*": ["./types/ebay/global/types/*"]
+      "@/types/ebay/global/types/*": ["./types/ebay/global/types/*"],
+      "@/config/*": ["./config/*"]
     },
     "strictNullChecks": true
   },

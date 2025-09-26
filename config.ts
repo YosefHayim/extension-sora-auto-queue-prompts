@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
+import { initializeApp as initializeAdminApp } from "firebase-admin/app";
 import { OAuth2Client } from "google-auth-library";
 import { featureFlags } from "./lib/feature-flags";
 
@@ -23,6 +24,7 @@ export const config = {
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID,
     dbUrl: process.env.FIREBASE_DB_URL,
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID,
   },
 };
 
@@ -40,9 +42,11 @@ const fireBaseConfig = {
   projectId: config.firebase.projectId,
   storageBucket: config.firebase.storageBucket,
   messagingSenderId: config.firebase.messagingSenderId,
+  measurementId: config.firebase.measurementId,
 };
 
 const firebaseApp = initializeApp(fireBaseConfig);
 export const fireBaseDb = getFirestore(firebaseApp);
 
-export const fireBaseAdminDb = getFirestore(firebaseApp, "admin");
+const firebaseAdminApp = initializeAdminApp({ projectId: config.firebase.projectId, storageBucket: config.firebase.storageBucket, databaseURL: config.firebase.dbUrl, })
+export const fireBaseAdminDb = getFirestore(firebaseAdminApp);

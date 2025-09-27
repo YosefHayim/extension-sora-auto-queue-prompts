@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { adminRole } from "@/lib/server/server-config";
 import { ResponseStatus } from "@/types/api/request";
 
-// If you're on Next.js App Router, ensure Node runtime for Admin SDK:
-// export const runtime = "nodejs";
-
 export async function POST(request: Request, _res: NextResponse) {
   try {
     const body = await request.json();
@@ -26,6 +23,6 @@ export async function POST(request: Request, _res: NextResponse) {
 
     return NextResponse.json({ data: user }, { status: ResponseStatus.SUCCESS });
   } catch (error) {
-    return NextResponse.json({ message: (error as Error).message }, { status: ResponseStatus.INTERNAL_ERROR });
+    return NextResponse.json(null, { status: (error as Error).status, statusText: (error as Error).message });
   }
 }

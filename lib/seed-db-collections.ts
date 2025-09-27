@@ -1,190 +1,188 @@
-import { doc, writeBatch } from "firebase/firestore";
-import { fireBaseDb } from "@/config";
+import * as admin from "firebase-admin";
+import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import serviceAccount from "../firebase-admin-credentials.json" with { type: "json" };
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://autobay-saas-ds-default-rtdb.asia-southeast1.firebasedatabase.app",
+});
+
+const db = getFirestore();
+const now = FieldValue.serverTimestamp();
 
 async function main() {
-  const orgId = "org_demo";
-  const userId = "user_demo";
-  const ebayAccountId = "ebayacct_demo";
-  const policyPaymentId = "policy_payment_demo";
-  const asin = "ASINDEMO123";
-  const listingId = "listing_demo";
-  const orderId = "order_demo";
-  const jobId = "job_demo";
-  const idemKey = "idem_demo";
-  const uniqueKey = `${orgId}_sku_DEMOSKU`;
-  const salesDailyId = `${orgId}_20250101`;
-  const priceSnapId = `${asin}_20250101`;
+  const batch = db.batch();
 
-  const b = writeBatch(fireBaseDb);
-
-  // organizations/{orgId}
-  b.set(doc(fireBaseDb, "organizations", orgId), {
-    name: null,
-    plan: null,
-    settings: null,
-    members: null,
-    createdAt: null,
-    updatedAt: null,
+  // Organizations
+  batch.set(db.collection("organizations").doc("orgId"), {
+    name: "Org Name",
+    plan: "free",
+    settings: {
+      baseCurrency: "USD",
+      repricer: { minMarginPct: 10 },
+    },
+    members: [{ userId: "userId", role: "owner", status: "active" }],
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // users/{userId}
-  b.set(doc(fireBaseDb, "users", userId), {
-    email: null,
-    displayName: null,
-    status: null,
-    createdAt: null,
-    updatedAt: null,
+  // Users
+  batch.set(db.collection("users").doc("userId"), {
+    email: "user@example.com",
+    displayName: "John Doe",
+    status: "active",
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // ebayPolicies/{policyId}
-  b.set(doc(fireBaseDb, "ebayPolicies", policyPaymentId), {
-    orgId: null,
-    ebayAccountId: null,
-    type: null,
-    name: null,
-    policyExternalId: null,
-    data: null,
-    lastSyncedAt: null,
-    createdAt: null,
-    updatedAt: null,
+  // EbayPolicies
+  batch.set(db.collection("ebayPolicies").doc("policyId"), {
+    orgId: "orgId",
+    ebayAccountId: "accountId",
+    type: "shipping",
+    name: "Default Shipping",
+    policyExternalId: "ext123",
+    data: {},
+    lastSyncedAt: now,
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // ebayAccounts/{ebayAccountId}
-  b.set(doc(fireBaseDb, "ebayAccounts", ebayAccountId), {
-    orgId: null,
-    siteId: null,
-    oauth: null,
-    policyRefs: null,
-    settings: null,
-    status: null,
-    lastPolicySyncAt: null,
-    createdAt: null,
-    updatedAt: null,
+  // EbayAccounts
+  batch.set(db.collection("ebayAccounts").doc("ebayAccountId"), {
+    orgId: "orgId",
+    siteId: "siteId",
+    oauth: {
+      accessToken: "token",
+      refreshToken: "rtoken",
+      expiresAt: now,
+    },
+    policyRefs: {},
+    settings: { currency: "USD", timeZone: "UTC", defaultHandlingDays: 2 },
+    status: "active",
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // sourceItems/{asin}
-  b.set(doc(fireBaseDb, "sourceItems", asin), {
-    orgId: null,
-    asin: null,
-    seller: null,
-    url: null,
-    baseCost: null,
-    shipping: null,
-    availability: null,
-    priceChecks: null,
-    images_url: null,
-    main_image_url: null,
-    createdAt: null,
-    updatedAt: null,
+  // SourceItems
+  batch.set(db.collection("sourceItems").doc("ASIN123"), {
+    orgId: "orgId",
+    asin: "ASIN123",
+    baseCost: 10,
+    shipping: { primeEligible: true, estDays: 2 },
+    availability: "in_stock",
+    priceChecks: [],
+    images_url: [],
+    main_image_url: "",
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // listings/{listingId}
-  b.set(doc(fireBaseDb, "listings", listingId), {
-    orgId: null,
-    ebayAccountId: null,
-    ebayListingId: null,
-    sku: null,
-    asin: null,
-    title: null,
-    price: null,
-    qtyPolicy: null,
-    qty: null,
-    priceRule: null,
-    status: null,
-    sourceSnapshot: null,
-    nextPrice: null,
-    nextPriceReason: null,
-    lastSyncAt: null,
-    createdAt: null,
-    updatedAt: null,
+  // Listings
+  batch.set(db.collection("listings").doc("listingId"), {
+    orgId: "orgId",
+    ebayAccountId: "accountId",
+    sku: "SKU123",
+    asin: "ASIN123",
+    title: "Product Title",
+    price: 20,
+    qtyPolicy: "fixed",
+    qty: 5,
+    status: "draft",
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // orders/{orderId}
-  b.set(doc(fireBaseDb, "orders", orderId), {
-    orgId: null,
-    ebayAccountId: null,
-    ebayOrderId: null,
-    buyer: null,
-    totals: null,
-    status: null,
-    line_items: null,
-    fulfillments: null,
-    refunds: null,
-    placedAt: null,
-    createdAt: null,
-    updatedAt: null,
+  // Orders
+  batch.set(db.collection("orders").doc("orderId"), {
+    orgId: "orgId",
+    ebayAccountId: "accountId",
+    ebayOrderId: "ebayOrder123",
+    buyer: {
+      name: "Buyer Name",
+      address: {
+        line1: "Street",
+        city: "City",
+        state: "ST",
+        postalCode: "12345",
+        country: "US",
+      },
+    },
+    totals: { items: 50, tax: 5, shipping: 0, fees: 5, grand: 60 },
+    status: "created",
+    line_items: [],
+    fulfillments: [],
+    placedAt: now,
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // jobs/{jobId}
-  b.set(doc(fireBaseDb, "jobs", jobId), {
-    orgId: null,
-    ebayAccountId: null,
-    kind: null,
-    state: null,
-    attempts: null,
-    payload: null,
-    error: null,
-    createdAt: null,
-    updatedAt: null,
+  // Jobs
+  batch.set(db.collection("jobs").doc("jobId"), {
+    orgId: "orgId",
+    kind: "repricer",
+    state: "queued",
+    attempts: 0,
+    payload: {},
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // idempotency_keys/{key}
-  b.set(doc(fireBaseDb, "idempotency_keys", idemKey), {
-    scope: null,
-    hash: null,
-    status: null,
-    resultRef: null,
-    createdAt: null,
-    updatedAt: null,
+  // IdempotencyKeys
+  batch.set(db.collection("idempotency_keys").doc("key"), {
+    scope: "webhook",
+    hash: "hash123",
+    status: "used",
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // uniques/{key}
-  b.set(doc(fireBaseDb, "uniques", uniqueKey), {
-    purpose: null,
-    createdAt: null,
-    updatedAt: null,
+  // Uniques
+  batch.set(db.collection("uniques").doc("key"), {
+    purpose: "sku",
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // sales_daily/{orgId_YYYYMMDD}
-  b.set(doc(fireBaseDb, "sales_daily", salesDailyId), {
-    orgId: null,
-    date: null,
-    orders: null,
-    units: null,
-    revenue: null,
-    fees: null,
-    profit: null,
-    createdAt: null,
-    updatedAt: null,
+  // sales_daily
+  batch.set(db.collection("sales_daily").doc("orgId_20250101"), {
+    orgId: "orgId",
+    date: "2025-01-01",
+    orders: 10,
+    units: 20,
+    revenue: 200,
+    fees: 20,
+    profit: 50,
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // listing_metrics/{listingId}
-  b.set(doc(fireBaseDb, "listing_metrics", listingId), {
-    orgId: null,
-    listingId: null,
-    lastSeenPrice: null,
-    lastSeenSourceCost: null,
-    sales7d: null,
-    sales30d: null,
-    profit30d: null,
-    createdAt: null,
-    updatedAt: null,
+  // listing_metrics
+  batch.set(db.collection("listing_metrics").doc("listingId"), {
+    orgId: "orgId",
+    listingId: "listingId",
+    createdAt: now,
+    updatedAt: now,
   });
 
-  // price_snapshots/{asin_YYYYMMDD}
-  b.set(doc(fireBaseDb, "price_snapshots", priceSnapId), {
-    orgId: null,
-    asin: null,
-    date: null,
-    min: null,
-    max: null,
-    avg: null,
-    samples: null,
-    createdAt: null,
-    updatedAt: null,
+  // price_snapshots
+  batch.set(db.collection("price_snapshots").doc("ASIN123_20250101"), {
+    orgId: "orgId",
+    asin: "ASIN123",
+    date: "2025-01-01",
+    min: 10,
+    max: 20,
+    avg: 15,
+    samples: 5,
+    createdAt: now,
+    updatedAt: now,
   });
 
-  await b.commit();
+  await batch.commit();
+  console.log("Seed complete");
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

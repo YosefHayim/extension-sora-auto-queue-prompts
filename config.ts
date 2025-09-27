@@ -47,6 +47,3 @@ const fireBaseConfig = {
 
 const firebaseApp = initializeApp(fireBaseConfig);
 export const fireBaseDb = getFirestore(firebaseApp);
-
-const firebaseAdminApp = initializeAdminApp({ projectId: config.firebase.projectId, storageBucket: config.firebase.storageBucket, databaseURL: config.firebase.dbUrl, })
-export const fireBaseAdminDb = getFirestore(firebaseAdminApp);

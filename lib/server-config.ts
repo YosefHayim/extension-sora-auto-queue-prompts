@@ -1,12 +1,12 @@
-import { initializeApp } from "firebase/app";
+import { getApps, initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
 import * as admin from "firebase-admin";
 import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
 import { OAuth2Client } from "google-auth-library";
 import serviceAccount from "../firebase-admin-credentials.json" with { type: "json" };
-import { featureFlags } from "./feature-flags";
+import { featureFlags } from "./server-feature-flags";
 
-export const config = {
+export const serverConfig = {
   platform: {
     baseUrl: featureFlags.currentEnv === "production" ? "https://mi23aibddp.eu-central-1.awsapprunner.com" : "http://localhost:3000",
   },
@@ -28,34 +28,25 @@ export const config = {
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID,
-    dbUrl: process.env.FIREBASE_DB_URL,
+    databaseURL: process.env.FIREBASE_DB_URL,
     measurementId: process.env.FIREBASE_MEASUREMENT_ID,
   },
 };
 
 export const oAuth2Client = new OAuth2Client({
-  clientId: config.google.clientId,
-  clientSecret: config.google.clientSecret,
-  redirectUri: config.google.redirectUri,
+  clientId: serverConfig.google.clientId,
+  clientSecret: serverConfig.google.clientSecret,
+  redirectUri: serverConfig.google.redirectUri,
 });
 
-const fireBaseConfig = {
-  apiKey: config.firebase.apiKey,
-  appId: config.firebase.appId,
-  databaseURL: config.firebase.dbUrl,
-  authDomain: config.firebase.authDomain,
-  projectId: config.firebase.projectId,
-  storageBucket: config.firebase.storageBucket,
-  messagingSenderId: config.firebase.messagingSenderId,
-  measurementId: config.firebase.measurementId,
-};
-
-const firebaseApp = initializeApp(fireBaseConfig);
+const firebaseApp = getApps().length === 0 ? initializeApp(serverConfig.firebase) : getApps()[0];
 export const fireBaseDb = getFirestore(firebaseApp);
 
-export const fireBaseAdminApp = admin.initializeApp({
+const fireBaseAdminApp = admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://autobay-saas-ds-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL: serverConfig.firebase.databaseURL,
 });
+
+export const adminRole = fireBaseAdminApp.auth();
 
 export const fireBaseAdminDb = getAdminFirestore();

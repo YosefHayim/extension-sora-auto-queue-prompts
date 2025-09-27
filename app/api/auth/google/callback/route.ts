@@ -1,8 +1,8 @@
 import type { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import { type NextRequest, NextResponse } from "next/server";
-import { ResponseStatus } from "@/lib/definitions";
 import { oAuth2Client } from "@/lib/server-config";
 import { formatExpiredDate } from "@/lib/utils";
+import { ResponseStatus } from "@/types/api/request";
 
 oAuth2Client.on("tokens", (tokens) => {
   if (tokens.refresh_token) {

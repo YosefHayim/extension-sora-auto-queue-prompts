@@ -1,15 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { getAuth, signInWithPopup } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { clientConfig } from "@/lib/client-config";
+import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
+import { clientConfig, firebaseClientApp, googleProvider } from "@/lib/client-config";
+import { clientFeatureFlagsConfig } from "@/lib/client-feature-flags";
 
 const loginSchema = z.object({
   email: z.email().min(1, "Email is required"),
@@ -19,15 +24,48 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+  const fireBaseClientAuth = getAuth(firebaseClientApp);
+  fireBaseClientAuth.useDeviceLanguage();
+
+  const {
+    isSuccess,
+    isPending,
+    isError,
+    mutateAsync: loginMutate,
+  } = useMutation({
+    mutationFn: async (values: LoginValues) => {
+      await fetch(`${clientConfig.platform.baseUrl}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+    },
+    onSuccess: () => {
+      redirect("/dashboard");
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
-    mode: "onBlur",
+    mode: clientFeatureFlagsConfig.formMode,
   });
 
-  const onSubmit = (values: LoginValues) => {
-    // Replace with your auth call
-    console.log(values);
+  const onSubmit = async (values: LoginValues) => {
+    await loginMutate(values);
+  };
+
+  const handleGoogleRegister = async () => {
+    const r = await signInWithPopup(fireBaseClientAuth, googleProvider);
+    if (r.user) {
+      console.log(r)
+      redirect("/dashboard");
+    }
   };
 
   return (
@@ -39,12 +77,12 @@ export default function LoginPage() {
             <Image alt={"logo"} height={125} src={"/logo/logo.png"} width={125} />
           </div>
           <div className="flex w-full min-w-sm max-w-sm flex-col items-center gap-y-4 rounded-lg border px-6 py-12">
+            <Button className="hover:text flex w-full items-center bg-white text-black hover:bg-white/90" onClick={handleGoogleRegister} type="submit">
+              <FcGoogle />
+              Login with Google
+            </Button>
             <Form {...form}>
               <form className="w-full space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-                <Button className="hover:text flex w-full items-center bg-white text-black hover:bg-white/90" type="button">
-                  <FcGoogle />
-                  Login with Google
-                </Button>
                 <div className="relative flex w-full items-center justify-center py-2">
                   <div className="absolute h-[1px] w-full border-border border-t" />
                   <span className="relative bg-background px-2 text-muted-foreground text-xs">OR</span>
@@ -75,9 +113,7 @@ export default function LoginPage() {
                     </FormItem>
                   )}
                 />
-                <Button className="inline-flex h-9 w-full items-center justify-center rounded-md px-4 py-2 text-sm shadow-xs" type="submit" variant="secondary">
-                  Login
-                </Button>
+                <ButtonWithLoading className="w-full" loading={isPending} text="Login" type="submit" variant="secondary" />
               </form>
             </Form>
           </div>
@@ -96,7 +132,7 @@ export default function LoginPage() {
 
       {/* Right side: Placeholder image */}
       <div className="hidden items-center justify-center bg-gray-100 lg:flex">
-        <Image alt="login-register" className="h-full object-fill" height={600} src={"/login-register.png"} width={800} />
+        <Image alt="login-register" className="h-full w-full object-fill" height={600} src={"/login-register.png"} width={800} />
       </div>
     </div>
   );

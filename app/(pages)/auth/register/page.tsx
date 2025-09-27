@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { getAuth, signInWithPopup } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -12,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
-import { clientConfig } from "@/lib/client-config";
+import { clientConfig, firebaseClientApp, googleProvider } from "@/lib/client-config";
+import { clientFeatureFlagsConfig } from "@/lib/client-feature-flags";
 
 const loginSchema = z.object({
   email: z.email({ message: "Invalid email address" }),
@@ -26,7 +28,15 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 export default function RegisterPage() {
-  const { isPending, isError, isSuccess, mutateAsync } = useMutation({
+  const fireBaseClientAuth = getAuth(firebaseClientApp);
+  fireBaseClientAuth.useDeviceLanguage();
+
+  const {
+    isPending,
+    isError,
+    isSuccess,
+    mutateAsync: regRegisterMutation,
+  } = useMutation({
     mutationFn: async (values: LoginValues) => {
       await fetch(`${clientConfig.platform.baseUrl}/api/auth/register`, {
         method: "POST",
@@ -38,11 +48,11 @@ export default function RegisterPage() {
     },
     onSuccess: () => {
       if (isSuccess) {
-        redirect("/");
+        redirect("/dashboard");
       }
     },
     onError: (error) => {
-      if (isError) {
+      if (error) {
         console.log(error);
       }
     },
@@ -51,16 +61,25 @@ export default function RegisterPage() {
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "", firstName: "", lastName: "", phoneNumber: "", confirmPassword: "" },
-    mode: "onBlur",
+    mode: clientFeatureFlagsConfig.formMode,
   });
 
   const onSubmit = async (values: LoginValues) => {
     if (values.password !== values.confirmPassword) {
       form.setError("confirmPassword", { message: "Passwords do not match" });
-      return
+      return;
     }
-    await mutateAsync(values);
+    await regRegisterMutation(values);
 
+    form.reset();
+  };
+
+  const handleGoogleRegister = async () => {
+    const r = await signInWithPopup(fireBaseClientAuth, googleProvider);
+    if (r.user) {
+      console.log(r)
+      redirect("/dashboard");
+    }
     form.reset()
   };
 
@@ -73,12 +92,12 @@ export default function RegisterPage() {
             <Image alt={"logo"} height={125} src={"/logo/logo.png"} width={125} />
           </div>
           <div className="flex w-full min-w-sm max-w-sm flex-col items-center gap-y-4 rounded-lg border px-6 py-12">
+            <Button className="hover:text flex w-full items-center bg-white text-black hover:bg-white/90" onClick={handleGoogleRegister} type="submit">
+              <FcGoogle />
+              Continue with Google
+            </Button>
             <Form {...form}>
               <form className="w-full space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-                <Button className="hover:text flex w-full items-center bg-white text-black hover:bg-white/90" type="button">
-                  <FcGoogle />
-                  Continue with Google
-                </Button>
                 <div className="relative flex w-full items-center justify-center py-2">
                   <div className="absolute h-[1px] w-full border-border border-t" />
                   <span className="relative bg-background px-2 text-muted-foreground text-xs">OR</span>
@@ -183,7 +202,7 @@ export default function RegisterPage() {
 
       {/* Right side: Placeholder image */}
       <div className="hidden items-center justify-center bg-gray-100 lg:flex">
-        <Image alt="login-register-v2" className="h-full object-fill" height={600} src={"/login-register-v2.png"} width={800} />
+        <Image alt="login-register-v2" className="h-full w-full object-fill" height={600} src={"/login-register-v2.png"} width={800} />
       </div>
     </div>
   );

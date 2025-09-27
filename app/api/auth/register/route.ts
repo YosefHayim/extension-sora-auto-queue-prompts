@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { fireBaseAdminApp } from "@/lib/server-config";
+import { adminRole } from "@/lib/server-config";
 import { ResponseStatus } from "@/types/api/request";
 
 export async function POST(request: Request) {
   const body = await request.json();
   const { email, password, firstName, lastName, phoneNumber } = body;
 
-  const admin = fireBaseAdminApp.auth();
 
-  const user = await admin.createUser({
+  const user = await adminRole.createUser({
     email,
     password,
     displayName: `${firstName} ${lastName}`,

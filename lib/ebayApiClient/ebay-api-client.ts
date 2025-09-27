@@ -1,6 +1,6 @@
 import { EBAY_SCOPES } from "@/definitions";
-import { featureFlags } from "@/lib/feature-flags";
 import { config } from "@/lib/server-config";
+import { featureFlags } from "@/lib/server-feature-flags";
 import { formatExpiredDate } from "@/lib/utils";
 import type { BaseUrlName, RequestOptions } from "@/types/api/request";
 import type { EbayTokenResponse } from "@/types/ebay/oauth/ebay-response-token";

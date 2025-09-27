@@ -7,7 +7,7 @@ import { useTheme } from "./theme-provider";
 const ToasterContext = createContext({});
 
 const ToasterProvider = ({ children }: { children: ReactNode }) => {
-  const theme = useTheme();
+  const { theme } = useTheme()
   return (
     <ToasterContext value={""}>
       {children}

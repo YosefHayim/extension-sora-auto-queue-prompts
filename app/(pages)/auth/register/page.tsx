@@ -2,34 +2,25 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { getAuth, signInWithPopup } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
-import { clientConfig, firebaseClientApp, googleProvider } from "@/lib/client/client-config";
+import { clientAuth, clientConfig, googleProvider } from "@/lib/client/client-config";
+import type { RegisterValues } from "@/lib/client/client-definitions";
 import { clientFeatureFlagsConfig } from "@/lib/client/client-feature-flags";
+import { registerSchema } from "@/lib/client/schemas/register-schema";
+import registerUser from "@/lib/client/services/register-service";
 
-const loginSchema = z.object({
-  email: z.email({ message: "Invalid email address" }),
-  password: z.string().min(1, { message: "Password is required" }),
-  confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
-  firstName: z.string().min(1, { message: "First name is required" }),
-  lastName: z.string().min(1, { message: "Last name is required" }),
-  phoneNumber: z.string(),
-});
-
-type LoginValues = z.infer<typeof loginSchema>;
 
 export default function RegisterPage() {
-  const fireBaseClientAuth = getAuth(firebaseClientApp);
-  fireBaseClientAuth.useDeviceLanguage();
+  clientAuth.useDeviceLanguage();
 
   const {
     isPending,
@@ -37,49 +28,40 @@ export default function RegisterPage() {
     isSuccess,
     mutateAsync: regRegisterMutation,
   } = useMutation({
-    mutationFn: async (values: LoginValues) => {
-      await fetch(`${clientConfig.platform.baseUrl}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-    },
+    mutationFn: async (values: RegisterValues) => registerUser(values),
     onSuccess: () => {
       if (isSuccess) {
         redirect("/dashboard");
       }
     },
     onError: (error) => {
-      if (error) {
+      if (isError) {
         console.log(`error received on client: ${error}`);
       }
     },
   });
 
-  const form = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<RegisterValues>({
+    resolver: zodResolver(registerSchema),
     defaultValues: { email: "", password: "", firstName: "", lastName: "", phoneNumber: "", confirmPassword: "" },
-    mode: clientFeatureFlagsConfig.formMode,
+    mode: clientFeatureFlagsConfig.formMode.register,
   });
 
-  const onSubmit = async (values: LoginValues) => {
+  const onSubmit = async (values: RegisterValues) => {
     if (values.password !== values.confirmPassword) {
       form.setError("confirmPassword", { message: "Passwords do not match" });
       return;
     }
     await regRegisterMutation(values);
-
   };
 
   const handleGoogleRegister = async () => {
-    const r = await signInWithPopup(fireBaseClientAuth, googleProvider);
+    const r = await signInWithPopup(clientAuth, googleProvider);
     if (r.user) {
-      console.log(r)
+      console.log(r);
       redirect("/dashboard");
     }
-    form.reset()
+    form.reset();
   };
 
   return (

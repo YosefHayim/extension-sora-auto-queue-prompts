@@ -2,30 +2,23 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { getAuth, signInWithPopup } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
-import { clientConfig, firebaseClientApp, googleProvider } from "@/lib/client/client-config";
+import { clientAuth, clientConfig, googleProvider } from "@/lib/client/client-config";
+import type { LoginValues } from "@/lib/client/client-definitions";
 import { clientFeatureFlagsConfig } from "@/lib/client/client-feature-flags";
-
-const loginSchema = z.object({
-  email: z.email().min(1, "Email is required"),
-  password: z.string().min(1, "Password is required"),
-});
-
-type LoginValues = z.infer<typeof loginSchema>;
+import { loginSchema } from "@/lib/client/schemas/login-schema";
 
 export default function LoginPage() {
-  const fireBaseClientAuth = getAuth(firebaseClientApp);
-  fireBaseClientAuth.useDeviceLanguage();
+  clientAuth.useDeviceLanguage();
 
   const {
     isSuccess,
@@ -42,21 +35,25 @@ export default function LoginPage() {
         body: JSON.stringify(values),
       });
       if (r.status !== 200) {
-        console.log(r)
+        console.log(r);
       }
     },
     onSuccess: () => {
-      redirect("/dashboard");
+      if (isSuccess) {
+        redirect("/dashboard");
+      }
     },
     onError: (error) => {
-      console.log(`error received on client: ${error}`);
+      if (isError) {
+        console.log(`error received on client: ${error}`);
+      }
     },
   });
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
-    mode: clientFeatureFlagsConfig.formMode,
+    mode: clientFeatureFlagsConfig.formMode.login,
   });
 
   const onSubmit = async (values: LoginValues) => {
@@ -64,9 +61,9 @@ export default function LoginPage() {
   };
 
   const handleGoogleRegister = async () => {
-    const r = await signInWithPopup(fireBaseClientAuth, googleProvider);
+    const r = await signInWithPopup(clientAuth, googleProvider);
     if (r.user) {
-      console.log(r)
+      console.log(r);
       redirect("/dashboard");
     }
   };

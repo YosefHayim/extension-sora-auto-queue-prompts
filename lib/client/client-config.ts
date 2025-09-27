@@ -1,7 +1,7 @@
 "use client";
 
 import { getApps, initializeApp } from "firebase/app";
-import { GoogleAuthProvider } from "firebase/auth";
+import { GoogleAuthProvider, getAuth } from "firebase/auth";
 
 export const clientConfig = {
   platform: {
@@ -20,6 +20,8 @@ export const clientConfig = {
 };
 
 export const firebaseClientApp = getApps().length === 0 ? initializeApp(clientConfig.firebase) : getApps()[0];
+
+export const clientAuth = getAuth(firebaseClientApp);
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope("https://www.googleapis.com/auth/userinfo.email");

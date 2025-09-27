@@ -1,9 +1,13 @@
 import type { ClientFeatureFlags } from "./client-definitions";
 
 export const clientFeatureFlags: ClientFeatureFlags = {
-  reactFormHooksMode: "onSubmit",
+  reactFormHooksModeLogin: "onSubmit",
+  reactFormHooksModeRegister: "onSubmit",
 };
 
 export const clientFeatureFlagsConfig = {
-  formMode: clientFeatureFlags.reactFormHooksMode,
+  formMode: {
+    login: clientFeatureFlags.reactFormHooksModeLogin,
+    register: clientFeatureFlags.reactFormHooksModeRegister
+  },
 };

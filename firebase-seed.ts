@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
-import serviceAccount from "../firebase-admin-credentials.json" with { type: "json" };
+import serviceAccount from "./firebase-admin-credentials.json" with { type: "json" };
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),

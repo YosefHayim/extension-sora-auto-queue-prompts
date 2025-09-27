@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { config, oAuth2Client } from "@/config";
 import { GOOGLE_SCOPES } from "@/lib/definitions";
+import { config, oAuth2Client } from "@/lib/server-config";
 
 export async function GET(_req: NextRequest) {
   const authorizeUrl = oAuth2Client.generateAuthUrl({

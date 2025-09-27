@@ -1,5 +1,103 @@
-const Page = () => {
-  return <div>Page</div>;
-};
+"use client";
 
-export default Page;
+import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { FcGoogle } from "react-icons/fc";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { clientConfig } from "@/lib/client-config";
+
+const loginSchema = z.object({
+  email: z.email().min(1, "Email is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
+
+export default function LoginPage() {
+  const form = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+    mode: "onSubmit",
+  });
+
+  const onSubmit = (values: LoginValues) => {
+    // Replace with your auth call
+    console.log(values);
+  };
+
+  return (
+    <div className="grid min-h-screen w-full grid-cols-1 space-y-2 lg:grid-cols-2">
+      {/* Left side: Register/Login Form */}
+      <div className="flex flex-col items-center justify-between p-6">
+        <div>
+          <div className="justify-items-center">
+            <Image alt={"logo"} height={125} src={"/logo/logo.png"} width={125} />
+          </div>
+          <div className="flex w-full min-w-sm max-w-sm flex-col items-center gap-y-4 rounded-lg border px-6 py-12">
+            <Form {...form}>
+              <form className="w-full space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+                <Button className="hover:text flex w-full items-center bg-white text-black hover:bg-white/90" type="button">
+                  <FcGoogle />
+                  Login with Google
+                </Button>
+                <div className="relative flex w-full items-center justify-center py-2">
+                  <div className="absolute h-[1px] w-full border-border border-t" />
+                  <span className="relative bg-background px-2 text-muted-foreground text-xs">OR</span>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col gap-2">
+                      <FormLabel className="font-medium text-sm">Email</FormLabel>
+                      <FormControl>
+                        <Input autoComplete="email" className="h-9 text-sm" placeholder="Email" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col gap-2">
+                      <FormLabel className="font-medium text-sm">Password</FormLabel>
+                      <FormControl>
+                        <Input autoComplete="current-password" className="h-9 text-sm" placeholder="Password" type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button className="inline-flex h-9 w-full items-center justify-center rounded-md px-4 py-2 text-sm shadow-xs" type="submit" variant="secondary">
+                  Login
+                </Button>
+              </form>
+            </Form>
+          </div>
+          <div className="mt-4 flex justify-center gap-1 text-muted-foreground text-sm">
+            <p>Need an account?</p>
+            <a className="font-medium text-accent-foreground hover:underline" href={`${clientConfig.platform.baseUrl}/auth/register`}>
+              Register
+            </a>
+          </div>
+        </div>
+        <div className="flex w-full justify-between px-20">
+          <Link href="/privacy-policy">Privacy Policy</Link>
+          <Link href="/terms-of-service">Terms of Service</Link>
+        </div>
+      </div>
+
+      {/* Right side: Placeholder image */}
+      <div className="hidden items-center justify-center bg-gray-100 lg:flex">
+        <Image alt="login-register" className="h-full object-fill" height={600} src={"/login-register.png"} width={800} />
+      </div>
+    </div>
+  );
+}

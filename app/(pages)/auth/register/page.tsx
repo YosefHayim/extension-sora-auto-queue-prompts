@@ -1,45 +1,162 @@
 "use client";
 
-import { useState } from "react";
-import { handleRegister } from "./action";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { FcGoogle } from "react-icons/fc";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { clientConfig } from "@/lib/client-config";
 
-const Register = () => {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+const loginSchema = z.object({
+  email: z.email().min(1, "Email is required"),
+  password: z.string().min(1, "Password is required"),
+  confirmPassword: z.string().min(1, "Confirm password is required"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phone: z.string().min(1, "Phone number is required"),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
+
+export default function RegisterPage() {
+  const form = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "", firstName: "", lastName: "", phone: "", confirmPassword: "" },
+    mode: "onSubmit",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  const onSubmit = (values: LoginValues) => {
+    // Replace with your auth call
+    console.log(values);
   };
 
   return (
-    <div>
-      <h1>Register</h1>
-      <form action={handleRegister}>
-        <div>
-          <label htmlFor="username">Username:</label>
-          <input id="username" name="username" onChange={handleChange} required type="text" value={formData.username} />
+    <div className="grid min-h-screen w-full grid-cols-1 space-y-2 lg:grid-cols-2">
+      {/* Left side: Register/Login Form */}
+      <div className="flex flex-col justify-between">
+        <div className="flex flex-col items-center justify-center p-6">
+          <div className="justify-items-center">
+            <Image alt={"logo"} height={125} src={"/logo/logo.png"} width={125} />
+          </div>
+          <div className="flex w-full min-w-sm max-w-sm flex-col items-center gap-y-4 rounded-lg border px-6 py-12">
+            <Form {...form}>
+              <form className="w-full space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+                <Button className="hover:text flex w-full items-center bg-white text-black hover:bg-white/90" type="button">
+                  <FcGoogle />
+                  Register with Google
+                </Button>
+                <div className="relative flex w-full items-center justify-center py-2">
+                  <div className="absolute h-[1px] w-full border-border border-t" />
+                  <span className="relative bg-background px-2 text-muted-foreground text-xs">OR</span>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col gap-2">
+                      <FormLabel className="font-medium text-sm">First Name</FormLabel>
+                      <FormControl>
+                        <Input autoComplete="name" className="h-9 text-sm" placeholder="John" type="text" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col gap-2">
+                      <FormLabel className="font-medium text-sm" htmlFor="lastName">
+                        Last Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input autoComplete="family-name" className="h-9 text-sm" id="lastName" placeholder="Doe" type="text" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col gap-2">
+                      <FormLabel className="font-medium text-sm">Email</FormLabel>
+                      <FormControl>
+                        <Input autoComplete="email" className="h-9 text-sm" placeholder="example@gmail.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col gap-2">
+                      <FormLabel className="font-medium text-sm">Phone</FormLabel>
+                      <FormControl>
+                        <Input autoComplete="tel" className="h-9 text-sm" placeholder="+1 (555) 555-5555" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col gap-2">
+                      <FormLabel className="font-medium text-sm">Password</FormLabel>
+                      <FormControl>
+                        <Input autoComplete="new-password" className="h-9 text-sm" placeholder="Password" type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem className="flex w-full flex-col gap-2">
+                      <FormLabel className="font-medium text-sm">Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input autoComplete="current-password" className="h-9 text-sm" placeholder="Confirm Password" type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button className="inline-flex h-9 w-full items-center justify-center rounded-md px-4 py-2 text-sm shadow-xs" type="submit" variant="secondary">
+                  Register
+                </Button>
+              </form>
+            </Form>
+          </div>
+          <div className="mt-4 flex justify-center gap-1 text-muted-foreground text-sm">
+            <p>Already have an account?</p>
+            <a className="font-medium text-accent-foreground hover:underline" href={`${clientConfig.platform.baseUrl}/auth/login`}>
+              Login
+            </a>
+          </div>
         </div>
-        <div>
-          <label htmlFor="email">Email:</label>
-          <input id="email" name="email" onChange={handleChange} required type="email" value={formData.email} />
+
+        <div className="flex w-full justify-between px-20">
+          <Link href="/privacy-policy">Privacy Policy</Link>
+          <Link href="/terms-of-service">Terms of Service</Link>
         </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input id="password" name="password" onChange={handleChange} required type="password" value={formData.password} />
-        </div>
-        <div>
-          <label htmlFor="confirmPassword">Confirm Password:</label>
-          <input id="confirmPassword" name="confirmPassword" onChange={handleChange} required type="password" value={formData.confirmPassword} />
-        </div>
-        <button type="submit">Register</button>
-      </form>
+      </div>
+
+      {/* Right side: Placeholder image */}
+      <div className="hidden items-center justify-center bg-gray-100 lg:flex">
+        <Image alt="login-register-v2" className="h-full object-fill" height={600} src={"/login-register-v2.png"} width={800} />
+      </div>
     </div>
   );
-};
-
-export default Register;
+}

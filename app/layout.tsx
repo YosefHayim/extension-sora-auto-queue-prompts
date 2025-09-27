@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,9 +30,9 @@ export default function RootLayout({
         <link href="/favicon.ico" rel="icon" sizes="any" />
         <link href="/apple-icon?<generated>" rel="apple-touch-icon" sizes="<generated>" type="image/<generated>" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased ${"dark"} `}>
         {/* <Navbar /> */}
-        <main>{children}</main>
+        <main className="flex min-h-screen w-full flex-col items-center justify-center">{children}</main>
       </body>
     </html>
   );

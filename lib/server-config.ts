@@ -1,10 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
-import { initializeApp as initializeAdminApp } from "firebase-admin/app";
 import { OAuth2Client } from "google-auth-library";
-import { featureFlags } from "./lib/feature-flags";
+import { featureFlags } from "./feature-flags";
 
 export const config = {
+  platform: {
+    baseUrl: featureFlags.currentEnv === "production" ? "https://mi23aibddp.eu-central-1.awsapprunner.com" : "http://localhost:3000",
+  },
   google: {
     apiKey: process.env.GOOGLE_API_KEY,
     clientId: process.env.GOOGLE_CLIENT_ID_PROD,

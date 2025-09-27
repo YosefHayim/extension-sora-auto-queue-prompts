@@ -1,9 +1,20 @@
+import { createUserWithEmailAndPassword, getAuth, updateProfile } from "firebase/auth";
 import { NextResponse } from "next/server";
+import { ResponseStatus } from "@/types/api/request";
+
 export async function POST(request: Request) {
   const body = await request.json();
-  const { email, password } = body;
+  const { email, password, firstName, lastName } = body;
 
-  console.log('recieved on backend: ', { email, password });
+  const auth = getAuth();
 
-  return NextResponse.json({ email, password });
+  const { user } = await createUserWithEmailAndPassword(auth, email, password)
+
+  await updateProfile(user, { displayName: `${firstName} ${lastName}` })
+
+  if (!user) {
+    return NextResponse.json({ status: ResponseStatus.BAD_REQUEST, message: 'Register user failed' });
+  }
+
+  return NextResponse.json({ status: ResponseStatus.SUCCESS, data: user });
 }

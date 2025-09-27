@@ -1,7 +1,7 @@
 import type { GetTokenResponse } from "google-auth-library/build/src/auth/oauth2client";
 import { type NextRequest, NextResponse } from "next/server";
-import { oAuth2Client } from "@/lib/server-config";
-import { formatExpiredDate } from "@/lib/utils";
+import { formatExpiredDate } from "@/lib/client/utils";
+import { oAuth2Client } from "@/lib/server/server-config";
 import { ResponseStatus } from "@/types/api/request";
 
 oAuth2Client.on("tokens", (tokens) => {
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   const code = url.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.json({ status: ResponseStatus.BAD_REQUEST, reason: "missing code" });
+    return NextResponse.json({ reason: "missing code" }, { status: ResponseStatus.BAD_REQUEST });
   }
 
   let r: GetTokenResponse | null = null;
@@ -28,12 +28,11 @@ export async function GET(req: NextRequest) {
     oAuth2Client.setCredentials(r.tokens);
 
     return NextResponse.json({
-      status: ResponseStatus.SUCCESS,
       accessTokenExpiresWithin: formatExpiredDate(r?.tokens?.expiry_date || 0),
       data: r.tokens,
-    });
+    }, { status: ResponseStatus.SUCCESS, });
   } catch (error) {
     console.error("OAuth token exchange failed:", error);
-    return NextResponse.json({ status: ResponseStatus.INTERNAL_ERROR, data: r });
+    return NextResponse.json({ data: r }, { status: ResponseStatus.INTERNAL_ERROR });
   }
 }

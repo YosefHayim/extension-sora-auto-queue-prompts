@@ -1,4 +1,4 @@
-import { fireBaseAdminDb } from "./lib/server-config";
+import { fireBaseAdminDb } from "./lib/server/server-config";
 
 const now = Date.now()
 

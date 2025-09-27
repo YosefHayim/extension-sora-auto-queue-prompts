@@ -1,3 +1,9 @@
+import type { FeatureFlagsServer } from "./server-definitions";
+
+export const featureFlags: FeatureFlagsServer = {
+  currentEnv: process.env.NODE_ENV === "production" ? "production" : "development",
+};
+
 export const EBAY_SCOPES = [
   "https://api.ebay.com/oauth/api_scope",
   "https://api.ebay.com/oauth/api_scope/sell.marketing.readonly",
@@ -21,13 +27,3 @@ export const EBAY_SCOPES = [
   "https://api.ebay.com/oauth/scope/sell.edelivery",
   "https://api.ebay.com/oauth/api_scope/commerce.vero",
 ] as const;
-
-export type ClientFeatureFlags = {
-  reactFormHooksMode: "onBlur" | "onChange" | "onSubmit" | "onTouched" | "all" | undefined
-}
-
-export type FeatureFlagsServer = {
-  currentEnv: string | undefined;
-  authWGoogle: boolean;
-  authWEbay: boolean;
-};

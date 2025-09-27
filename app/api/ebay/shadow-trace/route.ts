@@ -9,9 +9,7 @@ export async function GET(req: NextRequest) {
 
   if (!seller) {
     return NextResponse.json({
-      status: "error",
-      message: "Missing _ssn (seller ID).",
-    });
+    }, { status: ResponseStatus.BAD_REQUEST, statusText: "Missing _ssn (seller ID).", });
   }
 
   const ebayUrl = `https://www.ebay.com/sch/i.html?_ssn=${encodeURIComponent(seller)}&_ipg=240&_pgn=${encodeURIComponent(page)}&LH_Sold=1&_sacat=0`;
@@ -39,19 +37,13 @@ export async function GET(req: NextRequest) {
     });
 
     if (!r.ok) {
-      return NextResponse.json({
-        status: ResponseStatus.BAD_REQUEST,
-        message: `eBay request failed: ${r.status}`,
-      });
+      return NextResponse.json(null, { status: ResponseStatus.BAD_REQUEST, statusText: `eBay request failed: ${r.status}` });
     }
 
     const html = await r.text();
     return new NextResponse(html);
   } catch (e) {
     return NextResponse.json({
-      status: ResponseStatus.INTERNAL_ERROR,
-      message: "Fetch failed.",
-      error: String(e),
-    });
+    }, { status: ResponseStatus.INTERNAL_ERROR, statusText: `Fetch failed: ${e}`, });
   }
 }

@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
+import { ResponseStatus } from "@/types/api/request";
 
 function sha256Hex(s: string) {
   const h = crypto.createHash("sha256");
@@ -10,8 +11,9 @@ function sha256Hex(s: string) {
 export async function GET(req: NextRequest) {
   const challengeCode = req.nextUrl.searchParams.get("challenge_code");
   if (!challengeCode) {
-    return new NextResponse(JSON.stringify({ error: "missing challenge_code" }), {
-      status: 400,
+    return NextResponse.json({}, {
+      status: ResponseStatus.BAD_REQUEST,
+      statusText: "missing challenge_code",
       headers: { "content-type": "application/json" },
     });
   }
@@ -23,8 +25,8 @@ export async function GET(req: NextRequest) {
   const toHash = `${challengeCode}${endpoint}`;
   const challengeResponse = sha256Hex(toHash);
 
-  return new NextResponse(JSON.stringify({ challengeResponse }), {
-    status: 200,
+  return NextResponse.json({ challengeResponse }, {
+    status: ResponseStatus.SUCCESS,
     headers: { "content-type": "application/json" },
   });
 }
@@ -39,5 +41,5 @@ export async function POST(req: NextRequest) {
   // TODO: implement signature verification using Notification API public key
   // TODO: delete user data by userId/eiasToken, log/audit
 
-  return new Response(null, { status: 204 });
+  return new Response(null, { status: ResponseStatus.NO_CONTENT });
 }

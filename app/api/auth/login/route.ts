@@ -11,10 +11,10 @@ const POST = async (req: NextRequest, _res: NextResponse) => {
   const { user } = await signInWithEmailAndPassword(auth, email, password);
 
   if (!user) {
-    return NextResponse.json({ status: ResponseStatus.BAD_REQUEST, error: "Register user failed" });
+    return NextResponse.json({ error: "Register user failed" }, { status: ResponseStatus.BAD_REQUEST });
   }
 
-  return NextResponse.json({ status: ResponseStatus.SUCCESS, data: user });
+  return NextResponse.json({ data: user }, { status: ResponseStatus.SUCCESS });
 };
 
 export default POST;

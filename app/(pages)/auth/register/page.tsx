@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
-import { clientConfig, firebaseClientApp, googleProvider } from "@/lib/client-config";
-import { clientFeatureFlagsConfig } from "@/lib/client-feature-flags";
+import { clientConfig, firebaseClientApp, googleProvider } from "@/lib/client/client-config";
+import { clientFeatureFlagsConfig } from "@/lib/client/client-feature-flags";
 
 const loginSchema = z.object({
   email: z.email({ message: "Invalid email address" }),
@@ -22,7 +22,7 @@ const loginSchema = z.object({
   confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
   firstName: z.string().min(1, { message: "First name is required" }),
   lastName: z.string().min(1, { message: "Last name is required" }),
-  phoneNumber: z.string().min(1, { message: "Phone number is required" }),
+  phoneNumber: z.string(),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -53,7 +53,7 @@ export default function RegisterPage() {
     },
     onError: (error) => {
       if (error) {
-        console.log(error);
+        console.log(`error received on client: ${error}`);
       }
     },
   });
@@ -71,7 +71,6 @@ export default function RegisterPage() {
     }
     await regRegisterMutation(values);
 
-    form.reset();
   };
 
   const handleGoogleRegister = async () => {

@@ -1,26 +1,31 @@
 import { NextResponse } from "next/server";
-import { adminRole } from "@/lib/server-config";
+import { adminRole } from "@/lib/server/server-config";
 import { ResponseStatus } from "@/types/api/request";
 
-export async function POST(request: Request) {
-  const body = await request.json();
-  const { email, password, firstName, lastName, phoneNumber } = body;
+// If you're on Next.js App Router, ensure Node runtime for Admin SDK:
+// export const runtime = "nodejs";
 
+export async function POST(request: Request, _res: NextResponse) {
+  try {
+    const body = await request.json();
+    const { email, password, firstName, lastName, phoneNumber } = body;
 
-  const user = await adminRole.createUser({
-    email,
-    password,
-    displayName: `${firstName} ${lastName}`,
-    disabled: false,
-    emailVerified: false,
-    phoneNumber,
-  });
+    // Basic guard (prevents Admin call with empty values)
+    if (!(email && password && firstName && lastName)) {
+      return NextResponse.json({ status: ResponseStatus.BAD_REQUEST, message: "Missing required fields" }, { status: 400 });
+    }
 
-  if (!user) {
-    return NextResponse.json({ status: ResponseStatus.BAD_REQUEST, message: "Register user failed" });
+    const user = await adminRole.createUser({
+      email,
+      password,
+      displayName: `${firstName} ${lastName}`,
+      disabled: false,
+      emailVerified: false,
+      phoneNumber, // optional; remove if not always present
+    });
+
+    return NextResponse.json({ data: user }, { status: ResponseStatus.SUCCESS });
+  } catch (error) {
+    return NextResponse.json({ message: (error as Error).message }, { status: ResponseStatus.INTERNAL_ERROR });
   }
-
-  console.log("user created: ", user);
-
-  return NextResponse.json({ status: ResponseStatus.SUCCESS, data: user });
 }

@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
-import { clientConfig, firebaseClientApp, googleProvider } from "@/lib/client-config";
-import { clientFeatureFlagsConfig } from "@/lib/client-feature-flags";
+import { clientConfig, firebaseClientApp, googleProvider } from "@/lib/client/client-config";
+import { clientFeatureFlagsConfig } from "@/lib/client/client-feature-flags";
 
 const loginSchema = z.object({
   email: z.email().min(1, "Email is required"),
@@ -34,19 +34,22 @@ export default function LoginPage() {
     mutateAsync: loginMutate,
   } = useMutation({
     mutationFn: async (values: LoginValues) => {
-      await fetch(`${clientConfig.platform.baseUrl}/api/auth/login`, {
+      const r = await fetch(`${clientConfig.platform.baseUrl}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
       });
+      if (r.status !== 200) {
+        console.log(r)
+      }
     },
     onSuccess: () => {
       redirect("/dashboard");
     },
     onError: (error) => {
-      console.log(error);
+      console.log(`error received on client: ${error}`);
     },
   });
 

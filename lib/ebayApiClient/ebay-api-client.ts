@@ -1,9 +1,8 @@
-import { EBAY_SCOPES } from "@/definitions";
-import { config } from "@/lib/server-config";
-import { featureFlags } from "@/lib/server-feature-flags";
-import { formatExpiredDate } from "@/lib/utils";
+import { formatExpiredDate } from "@/lib/client/utils";
+import { EBAY_SCOPES, featureFlags } from "@/lib/server/server-feature-flags";
 import type { BaseUrlName, RequestOptions } from "@/types/api/request";
 import type { EbayTokenResponse } from "@/types/ebay/oauth/ebay-response-token";
+import { serverConfig } from "../server/server-config";
 export class EbayService {
   readonly productionBaseUrl = "https://api.ebay.com";
   readonly developmentBaseUrl = "https://api.sandbox.ebay.com";
@@ -1051,9 +1050,9 @@ export class EbayService {
 const ebayService = new EbayService();
 
 ebayService.env = featureFlags.currentEnv;
-ebayService.clientId = config.ebay.clientId || "";
-ebayService.clientSecret = config.ebay.clientSecret || "";
-ebayService.redirectUri = config.ebay.redirectUri || "";
+ebayService.clientId = serverConfig.ebay.clientId || "";
+ebayService.clientSecret = serverConfig.ebay.clientSecret || "";
+ebayService.redirectUri = serverConfig.ebay.redirectUri || "";
 ebayService.scope = EBAY_SCOPES.join(" ");
 
 export default ebayService;

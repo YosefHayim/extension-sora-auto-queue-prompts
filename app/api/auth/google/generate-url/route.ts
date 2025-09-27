@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { , oAuth2Client, serverConfig } from "@/lib/server-config";
+import { , oAuth2Client, serverConfig } from "@/lib/server/server-config";
 
 export async function GET(_req: NextRequest) {
   const authorizeUrl = oAuth2Client.generateAuthUrl({

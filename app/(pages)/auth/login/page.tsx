@@ -22,7 +22,7 @@ export default function LoginPage() {
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
-    mode: "onSubmit",
+    mode: "onBlur",
   });
 
   const onSubmit = (values: LoginValues) => {
@@ -33,7 +33,7 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-screen w-full grid-cols-1 space-y-2 lg:grid-cols-2">
       {/* Left side: Register/Login Form */}
-      <div className="flex flex-col items-center justify-between p-6">
+      <div className="flex flex-col items-center justify-around p-6">
         <div>
           <div className="justify-items-center">
             <Image alt={"logo"} height={125} src={"/logo/logo.png"} width={125} />

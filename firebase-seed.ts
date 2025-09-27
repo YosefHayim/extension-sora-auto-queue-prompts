@@ -1,20 +1,12 @@
-import * as admin from "firebase-admin";
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
-import serviceAccount from "./firebase-admin-credentials.json" with { type: "json" };
+import { fireBaseAdminDb } from "./lib/server-config";
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://autobay-saas-ds-default-rtdb.asia-southeast1.firebasedatabase.app",
-});
-
-const db = getFirestore();
-const now = FieldValue.serverTimestamp();
+const now = Date.now()
 
 async function main() {
-  const batch = db.batch();
+  const batch = fireBaseAdminDb.batch();
 
   // Organizations
-  batch.set(db.collection("organizations").doc("orgId"), {
+  batch.set(fireBaseAdminDb.collection("organizations").doc("orgId"), {
     name: "Org Name",
     plan: "free",
     settings: {
@@ -27,7 +19,7 @@ async function main() {
   });
 
   // Users
-  batch.set(db.collection("users").doc("userId"), {
+  batch.set(fireBaseAdminDb.collection("users").doc("userId"), {
     email: "user@example.com",
     displayName: "John Doe",
     status: "active",
@@ -36,7 +28,7 @@ async function main() {
   });
 
   // EbayPolicies
-  batch.set(db.collection("ebayPolicies").doc("policyId"), {
+  batch.set(fireBaseAdminDb.collection("ebayPolicies").doc("policyId"), {
     orgId: "orgId",
     ebayAccountId: "accountId",
     type: "shipping",
@@ -49,7 +41,7 @@ async function main() {
   });
 
   // EbayAccounts
-  batch.set(db.collection("ebayAccounts").doc("ebayAccountId"), {
+  batch.set(fireBaseAdminDb.collection("ebayAccounts").doc("ebayAccountId"), {
     orgId: "orgId",
     siteId: "siteId",
     oauth: {
@@ -65,7 +57,7 @@ async function main() {
   });
 
   // SourceItems
-  batch.set(db.collection("sourceItems").doc("ASIN123"), {
+  batch.set(fireBaseAdminDb.collection("sourceItems").doc("ASIN123"), {
     orgId: "orgId",
     asin: "ASIN123",
     baseCost: 10,
@@ -79,7 +71,7 @@ async function main() {
   });
 
   // Listings
-  batch.set(db.collection("listings").doc("listingId"), {
+  batch.set(fireBaseAdminDb.collection("listings").doc("listingId"), {
     orgId: "orgId",
     ebayAccountId: "accountId",
     sku: "SKU123",
@@ -94,7 +86,7 @@ async function main() {
   });
 
   // Orders
-  batch.set(db.collection("orders").doc("orderId"), {
+  batch.set(fireBaseAdminDb.collection("orders").doc("orderId"), {
     orgId: "orgId",
     ebayAccountId: "accountId",
     ebayOrderId: "ebayOrder123",
@@ -118,7 +110,7 @@ async function main() {
   });
 
   // Jobs
-  batch.set(db.collection("jobs").doc("jobId"), {
+  batch.set(fireBaseAdminDb.collection("jobs").doc("jobId"), {
     orgId: "orgId",
     kind: "repricer",
     state: "queued",
@@ -129,7 +121,7 @@ async function main() {
   });
 
   // IdempotencyKeys
-  batch.set(db.collection("idempotency_keys").doc("key"), {
+  batch.set(fireBaseAdminDb.collection("idempotency_keys").doc("key"), {
     scope: "webhook",
     hash: "hash123",
     status: "used",
@@ -138,14 +130,14 @@ async function main() {
   });
 
   // Uniques
-  batch.set(db.collection("uniques").doc("key"), {
+  batch.set(fireBaseAdminDb.collection("uniques").doc("key"), {
     purpose: "sku",
     createdAt: now,
     updatedAt: now,
   });
 
   // sales_daily
-  batch.set(db.collection("sales_daily").doc("orgId_20250101"), {
+  batch.set(fireBaseAdminDb.collection("sales_daily").doc("orgId_20250101"), {
     orgId: "orgId",
     date: "2025-01-01",
     orders: 10,
@@ -158,7 +150,7 @@ async function main() {
   });
 
   // listing_metrics
-  batch.set(db.collection("listing_metrics").doc("listingId"), {
+  batch.set(fireBaseAdminDb.collection("listing_metrics").doc("listingId"), {
     orgId: "orgId",
     listingId: "listingId",
     createdAt: now,
@@ -166,7 +158,7 @@ async function main() {
   });
 
   // price_snapshots
-  batch.set(db.collection("price_snapshots").doc("ASIN123_20250101"), {
+  batch.set(fireBaseAdminDb.collection("price_snapshots").doc("ASIN123_20250101"), {
     orgId: "orgId",
     asin: "ASIN123",
     date: "2025-01-01",

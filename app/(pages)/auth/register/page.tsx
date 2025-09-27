@@ -1,37 +1,67 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
 import { clientConfig } from "@/lib/client-config";
 
 const loginSchema = z.object({
-  email: z.email().min(1, "Email is required"),
-  password: z.string().min(1, "Password is required"),
-  confirmPassword: z.string().min(1, "Confirm password is required"),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  phone: z.string().min(1, "Phone number is required"),
+  email: z.email({ message: "Invalid email address" }),
+  password: z.string().min(1, { message: "Password is required" }),
+  confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
+  firstName: z.string().min(1, { message: "First name is required" }),
+  lastName: z.string().min(1, { message: "Last name is required" }),
+  phoneNumber: z.string().min(1, { message: "Phone number is required" }),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
 
 export default function RegisterPage() {
-  const form = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "", firstName: "", lastName: "", phone: "", confirmPassword: "" },
-    mode: "onSubmit",
+  const { isPending, isError, isSuccess, mutateAsync } = useMutation({
+    mutationFn: async (values: LoginValues) => {
+      await fetch(`${clientConfig.platform.baseUrl}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+    },
+    onSuccess: () => {
+      if (isSuccess) {
+        redirect("/");
+      }
+    },
+    onError: (error) => {
+      if (isError) {
+        console.log(error);
+      }
+    },
   });
 
-  const onSubmit = (values: LoginValues) => {
-    // Replace with your auth call
-    console.log(values);
+  const form = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "", firstName: "", lastName: "", phoneNumber: "", confirmPassword: "" },
+    mode: "onBlur",
+  });
+
+  const onSubmit = async (values: LoginValues) => {
+    if (values.password !== values.confirmPassword) {
+      form.setError("confirmPassword", { message: "Passwords do not match" });
+      return
+    }
+    await mutateAsync(values);
+
+    form.reset()
   };
 
   return (
@@ -47,7 +77,7 @@ export default function RegisterPage() {
               <form className="w-full space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
                 <Button className="hover:text flex w-full items-center bg-white text-black hover:bg-white/90" type="button">
                   <FcGoogle />
-                  Register with Google
+                  Continue with Google
                 </Button>
                 <div className="relative flex w-full items-center justify-center py-2">
                   <div className="absolute h-[1px] w-full border-border border-t" />
@@ -96,12 +126,12 @@ export default function RegisterPage() {
                 />
                 <FormField
                   control={form.control}
-                  name="phone"
+                  name="phoneNumber"
                   render={({ field }) => (
                     <FormItem className="flex w-full flex-col gap-2">
                       <FormLabel className="font-medium text-sm">Phone</FormLabel>
                       <FormControl>
-                        <Input autoComplete="tel" className="h-9 text-sm" placeholder="+1 (555) 555-5555" type="email" {...field} />
+                        <Input autoComplete="tel" className="h-9 text-sm" placeholder="+1 (555) 555-5555" type="text" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -133,9 +163,7 @@ export default function RegisterPage() {
                     </FormItem>
                   )}
                 />
-                <Button className="inline-flex h-9 w-full items-center justify-center rounded-md px-4 py-2 text-sm shadow-xs" type="submit" variant="secondary">
-                  Register
-                </Button>
+                <ButtonWithLoading className={"w-full"} loading={isPending} text="Register" type="submit" variant="secondary" />
               </form>
             </Form>
           </div>

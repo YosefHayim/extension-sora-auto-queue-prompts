@@ -1,6 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
+import * as admin from "firebase-admin";
+import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
 import { OAuth2Client } from "google-auth-library";
+import serviceAccount from "../firebase-admin-credentials.json" with { type: "json" };
 import { featureFlags } from "./feature-flags";
 
 export const config = {
@@ -49,3 +52,10 @@ const fireBaseConfig = {
 
 const firebaseApp = initializeApp(fireBaseConfig);
 export const fireBaseDb = getFirestore(firebaseApp);
+
+export const fireBaseAdminApp = admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://autobay-saas-ds-default-rtdb.asia-southeast1.firebasedatabase.app",
+});
+
+export const fireBaseAdminDb = getAdminFirestore();

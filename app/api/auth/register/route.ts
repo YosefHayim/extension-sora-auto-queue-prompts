@@ -1,20 +1,27 @@
-import { createUserWithEmailAndPassword, getAuth, updateProfile } from "firebase/auth";
 import { NextResponse } from "next/server";
+import { fireBaseAdminApp } from "@/lib/server-config";
 import { ResponseStatus } from "@/types/api/request";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { email, password, firstName, lastName } = body;
+  const { email, password, firstName, lastName, phoneNumber } = body;
 
-  const auth = getAuth();
+  const admin = fireBaseAdminApp.auth();
 
-  const { user } = await createUserWithEmailAndPassword(auth, email, password)
-
-  await updateProfile(user, { displayName: `${firstName} ${lastName}` })
+  const user = await admin.createUser({
+    email,
+    password,
+    displayName: `${firstName} ${lastName}`,
+    disabled: false,
+    emailVerified: false,
+    phoneNumber,
+  });
 
   if (!user) {
-    return NextResponse.json({ status: ResponseStatus.BAD_REQUEST, message: 'Register user failed' });
+    return NextResponse.json({ status: ResponseStatus.BAD_REQUEST, message: "Register user failed" });
   }
+
+  console.log("user created: ", user);
 
   return NextResponse.json({ status: ResponseStatus.SUCCESS, data: user });
 }

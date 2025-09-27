@@ -2,14 +2,14 @@
 
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 
-type Theme = "light" | "dark";
+type Theme = 'light' | 'dark' | 'system';
 type ThemeContextValue = {
   theme: Theme;
   setTheme: (t: Theme) => void;
   toggle: () => void;
 };
 
-export const ThemeContext = createContext<ThemeContextValue | null>(null);
+export const ThemeContext = createContext<ThemeContextValue['theme']>('system');
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);

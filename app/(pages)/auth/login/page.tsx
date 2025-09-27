@@ -6,45 +6,39 @@ import { signInWithPopup } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
-import { clientAuth, clientConfig, googleProvider } from "@/lib/client/client-config";
+import { clientConfig, fireBaseClientAuth, googleProvider } from "@/lib/client/client-config";
 import type { LoginValues } from "@/lib/client/client-definitions";
 import { clientFeatureFlagsConfig } from "@/lib/client/client-feature-flags";
 import { loginSchema } from "@/lib/client/schemas/login-schema";
+import loginUser from "@/lib/client/services/login";
 
 export default function LoginPage() {
-  clientAuth.useDeviceLanguage();
+  fireBaseClientAuth.useDeviceLanguage();
+  const router = useRouter();
 
   const {
     isSuccess,
     isPending,
     isError,
+    error,
+    reset,
     mutateAsync: loginMutate,
   } = useMutation({
-    mutationFn: async (values: LoginValues) => {
-      const r = await fetch(`${clientConfig.platform.baseUrl}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-      if (r.status !== 200) {
-        console.log(r);
-      }
-    },
+    mutationFn: async (values: LoginValues) => loginUser(values),
     onSuccess: () => {
-      if (isSuccess) {
-        redirect("/dashboard");
+      if (isSuccess && !isPending) {
+        router.push("/dashboard");
       }
     },
-    onError: (error) => {
-      if (isError) {
+    onError: () => {
+      if (isError && errror) {
         console.log(`error received on client: ${error}`);
       }
     },

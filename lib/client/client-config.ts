@@ -21,7 +21,7 @@ export const clientConfig = {
 
 export const firebaseClientApp = getApps().length === 0 ? initializeApp(clientConfig.firebase) : getApps()[0];
 
-export const clientAuth = getAuth(firebaseClientApp);
+export const fireBaseClientAuth = getAuth(firebaseClientApp);
 
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope("https://www.googleapis.com/auth/userinfo.email");

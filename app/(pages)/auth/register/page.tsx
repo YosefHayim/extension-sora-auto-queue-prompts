@@ -5,39 +5,34 @@ import { useMutation } from "@tanstack/react-query";
 import { signInWithPopup } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
-import { clientAuth, clientConfig, googleProvider } from "@/lib/client/client-config";
+import { clientConfig, fireBaseClientAuth, googleProvider } from "@/lib/client/client-config";
 import type { RegisterValues } from "@/lib/client/client-definitions";
 import { clientFeatureFlagsConfig } from "@/lib/client/client-feature-flags";
 import { registerSchema } from "@/lib/client/schemas/register-schema";
-import registerUser from "@/lib/client/services/register-service";
-
+import registerUser from "@/lib/client/services/register";
 
 export default function RegisterPage() {
-  clientAuth.useDeviceLanguage();
+  fireBaseClientAuth.useDeviceLanguage();
+  const router = useRouter();
 
-  const {
-    isPending,
-    isError,
-    isSuccess,
-    mutateAsync: regRegisterMutation,
-  } = useMutation({
+  const { isPending, mutateAsync: regRegisterMutation } = useMutation({
     mutationFn: async (values: RegisterValues) => registerUser(values),
-    onSuccess: () => {
-      if (isSuccess) {
-        redirect("/dashboard");
-      }
+    retry: false,
+    onSuccess: async () => {
+      toast.success("Account Created");
+      router.push("/dashboard");
     },
-    onError: (error) => {
-      if (isError) {
-        console.log(`error received on client: ${error}`);
-      }
+    onError: (e) => {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error(msg, {});
     },
   });
 
@@ -52,14 +47,15 @@ export default function RegisterPage() {
       form.setError("confirmPassword", { message: "Passwords do not match" });
       return;
     }
+
     await regRegisterMutation(values);
   };
 
   const handleGoogleRegister = async () => {
-    const r = await signInWithPopup(clientAuth, googleProvider);
+    const r = await signInWithPopup(fireBaseClientAuth, googleProvider);
     if (r.user) {
       console.log(r);
-      redirect("/dashboard");
+      router.push("/dashboard");
     }
     form.reset();
   };

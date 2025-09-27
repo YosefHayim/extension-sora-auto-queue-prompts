@@ -9,9 +9,14 @@ const ToasterContext = createContext({});
 const ToasterProvider = ({ children }: { children: ReactNode }) => {
   const theme = useTheme();
   return (
-    <ToasterContext value={''}>
+    <ToasterContext value={""}>
       {children}
-      <Toaster closeButton={true} duration={3000} position={"top-center"} theme={theme} />
+      <Toaster
+        closeButton={true}
+        duration={20_000}
+        position={"top-center"}
+        theme={theme}
+      />
     </ToasterContext>
   );
 };

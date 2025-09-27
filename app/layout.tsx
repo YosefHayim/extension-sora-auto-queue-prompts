@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import "./globals.css";
-import { Toaster } from "@/components/ui/sonner";
 import { TanstackProvider } from "./providers/tanstack-provider";
 import ThemeProvider from "./providers/theme-provider";
 import ToasterProvider from "./providers/toaster-provider";
+import AuthProvider from "./providers/user-provider";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -22,13 +23,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="/favicon.ico" rel="icon" sizes="any" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <TanstackProvider>
-          <ThemeProvider>
-            <ToasterProvider>
-              <main>{children}</main>
-            </ToasterProvider>
-          </ThemeProvider>
-        </TanstackProvider>
+        <ThemeProvider>
+          <TanstackProvider>
+            <AuthProvider>
+              <ToasterProvider>
+                <main>{children}</main>
+              </ToasterProvider>
+            </AuthProvider>
+          </TanstackProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

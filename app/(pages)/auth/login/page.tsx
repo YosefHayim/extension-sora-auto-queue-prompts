@@ -5,10 +5,10 @@ import { useMutation } from "@tanstack/react-query";
 import { signInWithPopup } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -23,24 +23,14 @@ export default function LoginPage() {
   fireBaseClientAuth.useDeviceLanguage();
   const router = useRouter();
 
-  const {
-    isSuccess,
-    isPending,
-    isError,
-    error,
-    reset,
-    mutateAsync: loginMutate,
-  } = useMutation({
+  const { isPending, mutateAsync: loginMutate } = useMutation({
     mutationFn: async (values: LoginValues) => loginUser(values),
-    onSuccess: () => {
-      if (isSuccess && !isPending) {
-        router.push("/dashboard");
-      }
+    onSuccess: async () => {
+      toast.success("Account Created");
+      router.push("/dashboard");
     },
-    onError: () => {
-      if (isError && errror) {
-        console.log(`error received on client: ${error}`);
-      }
+    onError: (e) => {
+      toast.error(e instanceof Error ? e.message : String(e));
     },
   });
 
@@ -55,10 +45,10 @@ export default function LoginPage() {
   };
 
   const handleGoogleRegister = async () => {
-    const r = await signInWithPopup(clientAuth, googleProvider);
+    const r = await signInWithPopup(fireBaseClientAuth, googleProvider);
     if (r.user) {
       console.log(r);
-      redirect("/dashboard");
+      router.push("/dashboard");
     }
   };
 

@@ -9,7 +9,7 @@ type ThemeContextValue = {
   toggle: () => void;
 };
 
-export const ThemeContext = createContext<ThemeContextValue['theme']>('system');
+export const ThemeContext = createContext<ThemeContextValue['theme']>('dark');
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);

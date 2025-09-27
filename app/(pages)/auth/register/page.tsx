@@ -31,8 +31,7 @@ export default function RegisterPage() {
       router.push("/dashboard");
     },
     onError: (e) => {
-      const msg = e instanceof Error ? e.message : String(e);
-      toast.error(msg, {});
+      toast.error(e instanceof Error ? e.message : String(e));
     },
   });
 

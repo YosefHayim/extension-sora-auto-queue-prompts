@@ -49,7 +49,6 @@ export const oAuth2Client = new OAuth2Client({
   redirectUri: serverConfig.google.redirectUri,
 });
 
-// Client SDK
 const firebaseApp =
   getApps().length === 0
     ? initializeApp(serverConfig.firebase)
@@ -57,7 +56,6 @@ const firebaseApp =
 
 export const fireBaseDb = getFirestore(firebaseApp);
 
-// Admin SDK
 const fireBaseAdminApp =
   admin.apps.length === 0
     ? admin.initializeApp({

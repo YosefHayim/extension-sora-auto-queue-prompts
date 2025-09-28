@@ -26,7 +26,6 @@ export default function LoginPage() {
   const { isPending, mutateAsync: loginMutate } = useMutation({
     mutationFn: async (values: LoginValues) => loginUser(values),
     onSuccess: async () => {
-      toast.success("Account Created");
       router.push("/dashboard");
     },
     onError: (e) => {
@@ -46,8 +45,7 @@ export default function LoginPage() {
 
   const handleGoogleRegister = async () => {
     const r = await signInWithPopup(fireBaseClientAuth, googleProvider);
-    if (r.user) {
-      console.log(r);
+    if (r.user.email) {
       router.push("/dashboard");
     }
   };

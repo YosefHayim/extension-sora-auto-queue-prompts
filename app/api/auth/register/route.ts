@@ -18,11 +18,13 @@ export async function POST(request: Request, _res: NextResponse) {
       displayName: `${firstName} ${lastName}`,
       disabled: false,
       emailVerified: false,
-      phoneNumber, // optional; remove if not always present
+      // phoneNumber, 
     });
 
-    return NextResponse.json({ data: user }, { status: ResponseStatus.SUCCESS });
+    if (user.email) {
+      return NextResponse.json({ data: user }, { status: ResponseStatus.SUCCESS });
+    }
   } catch (error) {
-    return NextResponse.json(null, { status: (error as Error).status, statusText: (error as Error).message });
+    return NextResponse.json(null, { status: ResponseStatus.INTERNAL_ERROR, statusText: (error as Error).message });
   }
 }

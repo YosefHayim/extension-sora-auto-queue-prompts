@@ -1,27 +1,15 @@
-import { clientConfig } from "../client-config";
-import type { LoginValues } from "../client-definitions";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { fireBaseClientAuth } from "@/lib/client/client-config";
 
-const loginUser = async (values: LoginValues) => {
+const loginUser = async ({ email, password }: { email: string; password: string }) => {
   try {
-    const r = await fetch(`${clientConfig.platform.baseUrl}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(values),
-    });
-
-    const data = await r.json()
-
-    if (!r.ok) {
-      throw new Error(data?.message || r.statusText);
+    const { user } = await signInWithEmailAndPassword(fireBaseClientAuth, email, password);
+    if (user) {
+      return user
     }
-  } catch (err) {
-    if (err instanceof Error) {
-      throw err;
-    }
-    throw new Error(String(err));
+  } catch (error) {
+    return error
   }
 };
 
-export default loginUser
+export default loginUser;

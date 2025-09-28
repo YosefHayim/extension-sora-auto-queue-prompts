@@ -42,8 +42,8 @@ export default function RegisterPage() {
     defaultValues: {
       email: "",
       password: "",
-      firstName: "",
-      lastName: "",
+      // firstName: "",
+      // lastName: "",
       phoneNumber: "",
       confirmPassword: "",
     },
@@ -76,7 +76,7 @@ export default function RegisterPage() {
             <div className="flex size-6 items-center justify-center overflow-hidden rounded-md bg-primary text-primary-foreground">
               <Image alt="logo" height={24} src="/logo/logo.png" width={24} />
             </div>
-            <span className="hidden sm:inline">Predicto</span>
+            <span className="hidden sm:inline">AutoBay</span>
           </Link>
         </div>
 
@@ -103,7 +103,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="grid gap-6">
-                  <FormField
+                  {/* <FormField
                     control={form.control}
                     name="firstName"
                     render={({ field }) => (
@@ -129,7 +129,7 @@ export default function RegisterPage() {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                  /> */}
 
                   <FormField
                     control={form.control}
@@ -215,11 +215,11 @@ export default function RegisterPage() {
       {/* Right: muted full-bleed image */}
       <div className="relative hidden bg-muted lg:block">
         <Image
-          alt="login-register-v2"
+          alt="auth-wallpaper"
           className="absolute inset-0 object-cover dark:brightness-[0.2] dark:grayscale"
           fill
           priority
-          src="/login-register-v2.png"
+          src="/auth-wallpaper.png"
         />
       </div>
     </div>

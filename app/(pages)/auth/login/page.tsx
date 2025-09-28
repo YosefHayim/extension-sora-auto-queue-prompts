@@ -64,7 +64,7 @@ export default function LoginPage() {
               <Image alt="logo" height={24} src="/logo/logo.png" width={24} />
             </div>
             <span className="sr-only">Home</span>
-            <span className="hidden sm:inline">Predicto</span>
+            <span className="hidden sm:inline">AutoBay</span>
           </Link>
         </div>
 
@@ -151,7 +151,7 @@ export default function LoginPage() {
 
       {/* Right: muted full-bleed image */}
       <div className="relative hidden bg-muted lg:block">
-        <Image alt="login-register" className="absolute inset-0 object-cover dark:brightness-[0.2] dark:grayscale" fill priority src="/login-register.png" />
+        <Image alt="auth-wallpaper" className="absolute inset-0 object-cover dark:brightness-[0.2] dark:grayscale" fill priority src="/auth-wallpaper.png" />
       </div>
     </div>
   );

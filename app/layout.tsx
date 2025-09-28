@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import "./globals.css";
 import { TanstackProvider } from "./providers/tanstack-provider";
-import ThemeProvider from "./providers/theme-provider";
+import { ThemeProvider } from "./providers/theme-provider";
 import ToasterProvider from "./providers/toaster-provider";
 import AuthProvider from "./providers/user-provider";
 
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="/favicon.ico" rel="icon" sizes="any" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" disableTransitionOnChange enableSystem>
           <TanstackProvider>
             <AuthProvider>
               <ToasterProvider>

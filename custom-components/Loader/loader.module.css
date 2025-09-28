@@ -1,9 +1,9 @@
 .lightLoader {
-  border-color: black;
+  border: 2px solid black;
 }
 
 .darkLoader {
-  border-color: white;
+  border: 2px solid white;
 }
 
 .loader {

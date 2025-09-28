@@ -38,29 +38,29 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
+      title: "Upload Asins",
       url: "#",
       icon: IconListDetails,
     },
     {
-      title: "Analytics",
+      title: "Settings",
       url: "#",
       icon: IconChartBar,
     },
     {
-      title: "Projects",
+      title: "VA Users",
       url: "#",
       icon: IconFolder,
     },
     {
-      title: "Team",
+      title: "Amazon Accounts",
       url: "#",
       icon: IconUsers,
     },
   ],
   navClouds: [
     {
-      title: "Capture",
+      title: "eBay Accounts",
       icon: IconCamera,
       isActive: true,
       url: "#",
@@ -113,29 +113,29 @@ const data = {
       icon: IconSettings,
     },
     {
-      title: "Get Help",
+      title: "Support",
       url: "#",
       icon: IconHelp,
     },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
+    // {
+    //   title: "Search",
+    //   url: "#",
+    //   icon: IconSearch,
+    // },
   ],
   documents: [
     {
-      name: "Data Library",
+      name: "Automations",
       url: "#",
       icon: IconDatabase,
     },
     {
-      name: "Reports",
+      name: "Reports & Invoices",
       url: "#",
       icon: IconReport,
     },
     {
-      name: "Word Assistant",
+      name: "Template Messages",
       url: "#",
       icon: IconFileWord,
     },

@@ -11,11 +11,14 @@ function sha256Hex(s: string) {
 export async function GET(req: NextRequest) {
   const challengeCode = req.nextUrl.searchParams.get("challenge_code");
   if (!challengeCode) {
-    return NextResponse.json({}, {
-      status: ResponseStatus.BAD_REQUEST,
-      statusText: "missing challenge_code",
-      headers: { "content-type": "application/json" },
-    });
+    return NextResponse.json(
+      {},
+      {
+        status: ResponseStatus.BAD_REQUEST,
+        statusText: "missing challenge_code",
+        headers: { "content-type": "application/json" },
+      }
+    );
   }
 
   // Absolute endpoint URL as eBay sees it
@@ -25,10 +28,13 @@ export async function GET(req: NextRequest) {
   const toHash = `${challengeCode}${endpoint}`;
   const challengeResponse = sha256Hex(toHash);
 
-  return NextResponse.json({ challengeResponse }, {
-    status: ResponseStatus.SUCCESS,
-    headers: { "content-type": "application/json" },
-  });
+  return NextResponse.json(
+    { challengeResponse },
+    {
+      status: ResponseStatus.SUCCESS,
+      headers: { "content-type": "application/json" },
+    }
+  );
 }
 
 export async function POST(req: NextRequest) {

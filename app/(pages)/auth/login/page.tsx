@@ -9,11 +9,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
-
+import { BorderBeam } from "@/components/ui/border-beam";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
 import { clientConfig, fireBaseClientAuth, googleProvider } from "@/lib/client/client-config";
 import type { LoginValues } from "@/lib/client/client-definitions";
@@ -87,8 +86,7 @@ export default function LoginPage() {
               <form className="flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
                 <div className="flex flex-col items-center gap-2 text-center">
                   <h1 className="font-bold text-2xl">Login to your account</h1>
-                  <p className="text-balance text-muted-foreground text-sm">Enter your email below to login to your account
-                  </p>
+                  <p className="text-balance text-muted-foreground text-sm">Enter your email below to login to your account</p>
                 </div>
 
                 <div className="grid gap-6">
@@ -151,7 +149,8 @@ export default function LoginPage() {
 
       {/* Right: muted full-bleed image */}
       <div className="relative hidden bg-muted lg:block">
-        <Image alt="auth-wallpaper" className="absolute inset-0 object-cover dark:brightness-[0.2] dark:grayscale" fill priority src="/auth-wallpaper.png" />
+        <Image alt="auth-wallpaper" className="absolute inset-0 object-cover" fill priority src="/auth-wallpaper.png" />
+        <BorderBeam duration={8} size={100} />
       </div>
     </div>
   );

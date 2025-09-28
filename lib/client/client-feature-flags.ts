@@ -8,6 +8,6 @@ export const clientFeatureFlags: ClientFeatureFlags = {
 export const clientFeatureFlagsConfig = {
   formMode: {
     login: clientFeatureFlags.reactFormHooksModeLogin,
-    register: clientFeatureFlags.reactFormHooksModeRegister
+    register: clientFeatureFlags.reactFormHooksModeRegister,
   },
 };

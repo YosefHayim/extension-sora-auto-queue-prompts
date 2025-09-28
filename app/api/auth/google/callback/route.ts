@@ -27,10 +27,13 @@ export async function GET(req: NextRequest) {
     r = await oAuth2Client.getToken(code);
     oAuth2Client.setCredentials(r.tokens);
 
-    return NextResponse.json({
-      accessTokenExpiresWithin: formatExpiredDate(r?.tokens?.expiry_date || 0),
-      data: r.tokens,
-    }, { status: ResponseStatus.SUCCESS, });
+    return NextResponse.json(
+      {
+        accessTokenExpiresWithin: formatExpiredDate(r?.tokens?.expiry_date || 0),
+        data: r.tokens,
+      },
+      { status: ResponseStatus.SUCCESS }
+    );
   } catch (error) {
     console.error("OAuth token exchange failed:", error);
     return NextResponse.json({ data: r }, { status: ResponseStatus.INTERNAL_ERROR });

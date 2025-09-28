@@ -1,3 +1,3 @@
 export type FeatureFlagsServer = {
-  currentEnv: 'production' | 'development'
+  currentEnv: "production" | "development";
 };

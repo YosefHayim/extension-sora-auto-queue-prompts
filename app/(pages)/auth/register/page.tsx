@@ -214,13 +214,7 @@ export default function RegisterPage() {
 
       {/* Right: muted full-bleed image */}
       <div className="relative hidden bg-muted lg:block">
-        <Image
-          alt="auth-wallpaper"
-          className="absolute inset-0 object-cover dark:brightness-[0.2] dark:grayscale"
-          fill
-          priority
-          src="/auth-wallpaper.png"
-        />
+        <Image alt="auth-wallpaper" className="absolute inset-0 object-cover" fill priority src="/auth-wallpaper.png" />
       </div>
     </div>
   );

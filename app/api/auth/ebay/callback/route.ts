@@ -13,9 +13,12 @@ export async function GET(req: NextRequest) {
   ebayService.code = code;
   const { data, accessTokenExpiresWithin, refreshTokenExpiresWithin } = await ebayService.auth.getUserAccessTokenPayload();
 
-  return NextResponse.json({
-    accessTokenExpiresWithin,
-    refreshTokenExpiresWithin,
-    data,
-  }, { status: ResponseStatus.SUCCESS });
+  return NextResponse.json(
+    {
+      accessTokenExpiresWithin,
+      refreshTokenExpiresWithin,
+      data,
+    },
+    { status: ResponseStatus.SUCCESS }
+  );
 }

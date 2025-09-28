@@ -8,12 +8,18 @@ type ButtonWithLoadingProps = {
   loading: boolean;
   text: string;
   icon?: React.ReactNode;
-}
+};
 
 const ButtonWithLoading: React.FC<ButtonWithLoadingProps> = ({ className, type, variant, loading, text, icon }) => {
   return (
     <Button className={className} type={type} variant={variant}>
-      {loading ? <Loader /> : <>{icon} {text}</>}
+      {loading ? (
+        <Loader />
+      ) : (
+        <>
+          {icon} {text}
+        </>
+      )}
     </Button>
   );
 };

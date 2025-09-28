@@ -8,28 +8,18 @@ import { featureFlags } from "./server-feature-flags";
 
 export const serverConfig = {
   platform: {
-    baseUrl: featureFlags.currentEnv === "production"
-      ? "https://mi23aibddp.eu-central-1.awsapprunner.com"
-      : "http://localhost:3000",
+    baseUrl: featureFlags.currentEnv === "production" ? "https://mi23aibddp.eu-central-1.awsapprunner.com" : "http://localhost:3000",
   },
   google: {
     apiKey: process.env.GOOGLE_API_KEY,
     clientId: process.env.GOOGLE_CLIENT_ID_PROD,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET_PROD,
-    redirectUri: featureFlags.currentEnv === "production"
-      ? process.env.GOOGLE_REDIRECT_URI
-      : "http://localhost:3000/api/auth/google/callback",
+    redirectUri: featureFlags.currentEnv === "production" ? process.env.GOOGLE_REDIRECT_URI : "http://localhost:3000/api/auth/google/callback",
   },
   ebay: {
-    clientId: featureFlags.currentEnv === "production"
-      ? process.env.EBAY_CLIENT_ID_PROD
-      : process.env.EBAY_CLIENT_ID_SANDBOX,
-    clientSecret: featureFlags.currentEnv === "production"
-      ? process.env.EBAY_CLIENT_SECRET_ID_PROD
-      : process.env.EBAY_CLIENT_SECRET_SANDBOX,
-    redirectUri: featureFlags.currentEnv === "production"
-      ? process.env.EBAY_REDIRECT_URI_PROD
-      : process.env.EBAY_REDIRECT_URI_SANDBOX,
+    clientId: featureFlags.currentEnv === "production" ? process.env.EBAY_CLIENT_ID_PROD : process.env.EBAY_CLIENT_ID_SANDBOX,
+    clientSecret: featureFlags.currentEnv === "production" ? process.env.EBAY_CLIENT_SECRET_ID_PROD : process.env.EBAY_CLIENT_SECRET_SANDBOX,
+    redirectUri: featureFlags.currentEnv === "production" ? process.env.EBAY_REDIRECT_URI_PROD : process.env.EBAY_REDIRECT_URI_SANDBOX,
   },
   firebase: {
     apiKey: process.env.FIREBASE_API_KEY,
@@ -49,19 +39,16 @@ export const oAuth2Client = new OAuth2Client({
   redirectUri: serverConfig.google.redirectUri,
 });
 
-const firebaseApp =
-  getApps().length === 0
-    ? initializeApp(serverConfig.firebase)
-    : getApps()[0];
+const firebaseApp = getApps().length === 0 ? initializeApp(serverConfig.firebase) : getApps()[0];
 
 export const fireBaseDb = getFirestore(firebaseApp);
 
 const fireBaseAdminApp =
   admin.apps.length === 0
     ? admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      databaseURL: serverConfig.firebase.databaseURL,
-    })
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: serverConfig.firebase.databaseURL,
+      })
     : admin.app();
 
 export const adminRole = fireBaseAdminApp.auth();

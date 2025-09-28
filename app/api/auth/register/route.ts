@@ -18,7 +18,7 @@ export async function POST(request: Request, _res: NextResponse) {
       // displayName: `${firstName} ${lastName}`,
       disabled: false,
       emailVerified: false,
-      // phoneNumber, 
+      // phoneNumber,
     });
 
     if (user.email) {

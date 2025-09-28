@@ -9,9 +9,11 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
 import { clientConfig, fireBaseClientAuth, googleProvider } from "@/lib/client/client-config";
 import type { LoginValues } from "@/lib/client/client-definitions";
@@ -51,70 +53,105 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-screen w-full grid-cols-1 space-y-2 lg:grid-cols-2">
-      {/* Left side: Register/Login Form */}
-      <div className="flex flex-col items-center justify-around p-6">
-        <div>
-          <div className="justify-items-center">
-            <Image alt={"logo"} height={125} src={"/logo/logo.png"} width={125} />
-          </div>
-          <div className="flex w-full min-w-sm max-w-sm flex-col items-center gap-y-4 rounded-lg border px-6 py-12">
-            <Button className="hover:text flex w-full items-center bg-white text-black hover:bg-white/90" onClick={handleGoogleRegister} type="submit">
+    <div className="grid min-h-svh lg:grid-cols-2">
+      {/* Left: brand + centered form */}
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        {/* Brand row */}
+        <div className="flex justify-center gap-2 md:justify-start">
+          <Link className="flex items-center gap-2 font-medium" href="/">
+            <div className="flex size-6 items-center justify-center overflow-hidden rounded-md bg-primary text-primary-foreground">
+              {/* Small brand mark */}
+              <Image alt="logo" height={24} src="/logo/logo.png" width={24} />
+            </div>
+            <span className="sr-only">Home</span>
+            <span className="hidden sm:inline">Predicto</span>
+          </Link>
+        </div>
+
+        {/* Centered form card width */}
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            {/* Google button */}
+            <Button className="w-full" onClick={handleGoogleRegister} type="button" variant="outline">
               <FcGoogle />
-              Login with Google
+              <span className="ml-2">Login with Google</span>
             </Button>
+
+            {/* Divider */}
+            <div className="relative my-6 text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-border after:border-t">
+              <span className="relative z-10 bg-background px-2 text-muted-foreground">Or continue with</span>
+            </div>
+
+            {/* Email/password form (unchanged logic) */}
             <Form {...form}>
-              <form className="w-full space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="relative flex w-full items-center justify-center py-2">
-                  <div className="absolute h-[1px] w-full border-border border-t" />
-                  <span className="relative bg-background px-2 text-muted-foreground text-xs">OR</span>
+              <form className="flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <h1 className="font-bold text-2xl">Login to your account</h1>
+                  <p className="text-balance text-muted-foreground text-sm">Enter your email below to login to your account
+                  </p>
                 </div>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col gap-2">
-                      <FormLabel className="font-medium text-sm">Email</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="email" className="h-9 text-sm" placeholder="Email" type="email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col gap-2">
-                      <FormLabel className="font-medium text-sm">Password</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="current-password" className="h-9 text-sm" placeholder="Password" type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <ButtonWithLoading className="w-full" loading={isPending} text="Login" type="submit" variant="secondary" />
+
+                <div className="grid gap-6">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-3">
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="email" className="h-9 text-sm" placeholder="m@example.com" type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-3">
+                        <div className="flex items-center">
+                          <FormLabel>Password</FormLabel>
+                          <Link className="ml-auto text-sm underline-offset-4 hover:underline" href="/forgot-password">
+                            Forgot your password?
+                          </Link>
+                        </div>
+                        <FormControl>
+                          <Input autoComplete="current-password" className="h-9 text-sm" placeholder="••••••••" type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <ButtonWithLoading className="w-full" loading={isPending} text="Login" type="submit" variant="default" />
+                </div>
+
+                <div className="text-center text-sm">
+                  Don&apos;t have an account?{" "}
+                  <a className="underline underline-offset-4" href={`${clientConfig.platform.baseUrl}/auth/register`}>
+                    Sign up
+                  </a>
+                </div>
               </form>
             </Form>
+
+            <div className="mt-6 flex items-center justify-between text-muted-foreground text-xs">
+              <Link className="hover:underline" href="/privacy-policy">
+                Privacy Policy
+              </Link>
+              <Link className="hover:underline" href="/terms-of-service">
+                Terms of Service
+              </Link>
+            </div>
           </div>
-          <div className="mt-4 flex justify-center gap-1 text-muted-foreground text-sm">
-            <p>Need an account?</p>
-            <a className="font-medium text-accent-foreground hover:underline" href={`${clientConfig.platform.baseUrl}/auth/register`}>
-              Register
-            </a>
-          </div>
-        </div>
-        <div className="flex w-full justify-between px-20">
-          <Link href="/privacy-policy">Privacy Policy</Link>
-          <Link href="/terms-of-service">Terms of Service</Link>
         </div>
       </div>
 
-      {/* Right side: Placeholder image */}
-      <div className="hidden items-center justify-center bg-gray-100 lg:flex">
-        <Image alt="login-register" className="h-full w-full object-fill" height={600} src={"/login-register.png"} width={800} />
+      {/* Right: muted full-bleed image */}
+      <div className="relative hidden bg-muted lg:block">
+        <Image alt="login-register" className="absolute inset-0 object-cover dark:brightness-[0.2] dark:grayscale" fill priority src="/login-register.png" />
       </div>
     </div>
   );

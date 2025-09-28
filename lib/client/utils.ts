@@ -1,10 +1,3 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
 export const formatExpiredDate = (target: Date | number) => {
   const targetTime = target instanceof Date ? target.getTime() : target;
   let diff = targetTime - Date.now();

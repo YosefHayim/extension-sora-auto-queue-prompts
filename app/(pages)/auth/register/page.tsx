@@ -9,9 +9,11 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
 import { clientConfig, fireBaseClientAuth, googleProvider } from "@/lib/client/client-config";
 import type { RegisterValues } from "@/lib/client/client-definitions";
@@ -37,7 +39,14 @@ export default function RegisterPage() {
 
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: "", password: "", firstName: "", lastName: "", phoneNumber: "", confirmPassword: "" },
+    defaultValues: {
+      email: "",
+      password: "",
+      firstName: "",
+      lastName: "",
+      phoneNumber: "",
+      confirmPassword: "",
+    },
     mode: clientFeatureFlagsConfig.formMode.register,
   });
 
@@ -46,139 +55,172 @@ export default function RegisterPage() {
       form.setError("confirmPassword", { message: "Passwords do not match" });
       return;
     }
-
     await regRegisterMutation(values);
   };
 
   const handleGoogleRegister = async () => {
     const r = await signInWithPopup(fireBaseClientAuth, googleProvider);
     if (r.user) {
-      console.log(r);
       router.push("/dashboard");
     }
     form.reset();
   };
 
   return (
-    <div className="grid min-h-screen w-full grid-cols-1 space-y-2 lg:grid-cols-2">
-      {/* Left side: Register/Login Form */}
-      <div className="flex flex-col justify-between">
-        <div className="flex flex-col items-center justify-center p-6">
-          <div className="justify-items-center">
-            <Image alt={"logo"} height={125} src={"/logo/logo.png"} width={125} />
-          </div>
-          <div className="flex w-full min-w-sm max-w-sm flex-col items-center gap-y-4 rounded-lg border px-6 py-12">
-            <Button className="hover:text flex w-full items-center bg-white text-black hover:bg-white/90" onClick={handleGoogleRegister} type="submit">
-              <FcGoogle />
-              Continue with Google
-            </Button>
-            <Form {...form}>
-              <form className="w-full space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
-                <div className="relative flex w-full items-center justify-center py-2">
-                  <div className="absolute h-[1px] w-full border-border border-t" />
-                  <span className="relative bg-background px-2 text-muted-foreground text-xs">OR</span>
-                </div>
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col gap-2">
-                      <FormLabel className="font-medium text-sm">First Name</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="name" className="h-9 text-sm" placeholder="John" type="text" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col gap-2">
-                      <FormLabel className="font-medium text-sm" htmlFor="lastName">
-                        Last Name
-                      </FormLabel>
-                      <FormControl>
-                        <Input autoComplete="family-name" className="h-9 text-sm" id="lastName" placeholder="Doe" type="text" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col gap-2">
-                      <FormLabel className="font-medium text-sm">Email</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="email" className="h-9 text-sm" placeholder="example@gmail.com" type="email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col gap-2">
-                      <FormLabel className="font-medium text-sm">Phone</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="tel" className="h-9 text-sm" placeholder="+1 (555) 555-5555" type="text" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col gap-2">
-                      <FormLabel className="font-medium text-sm">Password</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="new-password" className="h-9 text-sm" placeholder="Password" type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem className="flex w-full flex-col gap-2">
-                      <FormLabel className="font-medium text-sm">Confirm Password</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="current-password" className="h-9 text-sm" placeholder="Confirm Password" type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <ButtonWithLoading className={"w-full"} loading={isPending} text="Register" type="submit" variant="secondary" />
-              </form>
-            </Form>
-          </div>
-          <div className="mt-4 flex justify-center gap-1 text-muted-foreground text-sm">
-            <p>Already have an account?</p>
-            <a className="font-medium text-accent-foreground hover:underline" href={`${clientConfig.platform.baseUrl}/auth/login`}>
-              Login
-            </a>
-          </div>
+    <div className="grid min-h-svh lg:grid-cols-2">
+      {/* Left: brand + centered form */}
+      <div className="flex flex-col gap-4 p-6 md:p-10">
+        {/* Brand row */}
+        <div className="flex justify-center gap-2 md:justify-start">
+          <Link className="flex items-center gap-2 font-medium" href="/">
+            <div className="flex size-6 items-center justify-center overflow-hidden rounded-md bg-primary text-primary-foreground">
+              <Image alt="logo" height={24} src="/logo/logo.png" width={24} />
+            </div>
+            <span className="hidden sm:inline">Predicto</span>
+          </Link>
         </div>
 
-        <div className="flex w-full justify-between px-20">
-          <Link href="/privacy-policy">Privacy Policy</Link>
-          <Link href="/terms-of-service">Terms of Service</Link>
+        {/* Centered form column */}
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-xs">
+            {/* Social auth */}
+            <Button className="w-full" onClick={handleGoogleRegister} type="button" variant="outline">
+              <FcGoogle />
+              <span className="ml-2">Continue with Google</span>
+            </Button>
+
+            {/* Divider */}
+            <div className="relative my-6 text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-border after:border-t">
+              <span className="relative z-10 bg-background px-2 text-muted-foreground">Or continue with</span>
+            </div>
+
+            {/* Register form (logic unchanged) */}
+            <Form {...form}>
+              <form className="flex flex-col gap-6" onSubmit={form.handleSubmit(onSubmit)}>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <h1 className="font-bold text-2xl">Create your account</h1>
+                  <p className="text-balance text-muted-foreground text-sm">Enter details to get started</p>
+                </div>
+
+                <div className="grid gap-6">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-3">
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="given-name" className="h-9 text-sm" placeholder="John" type="text" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-3">
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="family-name" className="h-9 text-sm" placeholder="Doe" type="text" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-3">
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="email" className="h-9 text-sm" placeholder="example@gmail.com" type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-3">
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="tel" className="h-9 text-sm" placeholder="+1 (555) 555-5555" type="text" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-3">
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="new-password" className="h-9 text-sm" placeholder="••••••••" type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem className="grid gap-3">
+                        <FormLabel>Confirm Password</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="new-password" className="h-9 text-sm" placeholder="••••••••" type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <ButtonWithLoading className="w-full" loading={isPending} text="Register" type="submit" variant="default" />
+                </div>
+
+                <div className="text-center text-sm">
+                  Already have an account?{" "}
+                  <a className="underline underline-offset-4" href={`${clientConfig.platform.baseUrl}/auth/login`}>
+                    Login
+                  </a>
+                </div>
+              </form>
+            </Form>
+
+            {/* Footer links condensed */}
+            <div className="mt-6 flex items-center justify-between text-muted-foreground text-xs">
+              <Link className="hover:underline" href="/privacy-policy">
+                Privacy Policy
+              </Link>
+              <Link className="hover:underline" href="/terms-of-service">
+                Terms of Service
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Right side: Placeholder image */}
-      <div className="hidden items-center justify-center bg-gray-100 lg:flex">
-        <Image alt="login-register-v2" className="h-full w-full object-fill" height={600} src={"/login-register-v2.png"} width={800} />
+      {/* Right: muted full-bleed image */}
+      <div className="relative hidden bg-muted lg:block">
+        <Image
+          alt="login-register-v2"
+          className="absolute inset-0 object-cover dark:brightness-[0.2] dark:grayscale"
+          fill
+          priority
+          src="/login-register-v2.png"
+        />
       </div>
     </div>
   );

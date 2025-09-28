@@ -80,4 +80,4 @@ const ContactUsPage = ({
   );
 };
 
-export { ContactUsPage };
+export default ContactUsPage

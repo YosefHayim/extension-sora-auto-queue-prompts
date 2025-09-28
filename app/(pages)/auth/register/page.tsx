@@ -9,11 +9,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
-
+import { BorderBeam } from "@/components/ui/border-beam";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
 import ButtonWithLoading from "@/custom-components/button-with-loading-state/ButtonWithLoading";
 import { clientConfig, fireBaseClientAuth, googleProvider } from "@/lib/client/client-config";
 import type { RegisterValues } from "@/lib/client/client-definitions";
@@ -70,16 +69,6 @@ export default function RegisterPage() {
     <div className="grid min-h-svh lg:grid-cols-2">
       {/* Left: brand + centered form */}
       <div className="flex flex-col gap-4 p-6 md:p-10">
-        {/* Brand row */}
-        <div className="flex justify-center gap-2 md:justify-start">
-          <Link className="flex items-center gap-2 font-medium" href="/">
-            <div className="flex size-6 items-center justify-center overflow-hidden rounded-md bg-primary text-primary-foreground">
-              <Image alt="logo" height={24} src="/logo/logo.png" width={24} />
-            </div>
-            <span className="hidden sm:inline">AutoBay</span>
-          </Link>
-        </div>
-
         {/* Centered form column */}
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
@@ -215,6 +204,7 @@ export default function RegisterPage() {
       {/* Right: muted full-bleed image */}
       <div className="relative hidden bg-muted lg:block">
         <Image alt="auth-wallpaper" className="absolute inset-0 object-cover" fill priority src="/auth-wallpaper.png" />
+        <BorderBeam duration={8} size={100} />
       </div>
     </div>
   );

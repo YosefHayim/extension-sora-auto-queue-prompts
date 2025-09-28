@@ -55,18 +55,6 @@ export default function LoginPage() {
     <div className="grid min-h-svh lg:grid-cols-2">
       {/* Left: brand + centered form */}
       <div className="flex flex-col gap-4 p-6 md:p-10">
-        {/* Brand row */}
-        <div className="flex justify-center gap-2 md:justify-start">
-          <Link className="flex items-center gap-2 font-medium" href="/">
-            <div className="flex size-6 items-center justify-center overflow-hidden rounded-md bg-primary text-primary-foreground">
-              {/* Small brand mark */}
-              <Image alt="logo" height={24} src="/logo/logo.png" width={24} />
-            </div>
-            <span className="sr-only">Home</span>
-            <span className="hidden sm:inline">AutoBay</span>
-          </Link>
-        </div>
-
         {/* Centered form card width */}
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">

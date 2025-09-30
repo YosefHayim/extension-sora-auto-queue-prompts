@@ -2,11 +2,34 @@ from requests_tor import RequestsTor
 rt = RequestsTor(tor_ports=(9150,), tor_cport=9151)
 import time
 
-product_container = 'class="a-section a-spacing-base desktop-grid-content-view"'
-price = 'data-a-size="xl"'
-is_coupon_exist = '[data-component-type="s-coupon-component"]'
-product_link_to_extra_data = '"a.a-link-normal.s-no-outline"'
-title_ = 'h2.a-size-base-plus.a-spacing-none.a-color-base.a-text-normal'
+SELECTORS = {
+    "page_result_products": {
+        "product_container": ".a-section.a-spacing-base.desktop-grid-content-view",
+        "price": '[data-a-size="xl"]',
+        "is_coupon_exist": ".a-size-base.s-highlighted-text-padding.s-coupon-highlight-color.aok-inline-block",
+        "product_link_to_extra_data": "a.a-link-normal.s-no-outline",
+        "title": "h2.a-size-base-plus.a-spacing-none.a-color-base.a-text-normal",
+        "is_limited_time_deal": 'span[data-a-badge-color="sx-red-mvt"]',
+    },
+    "product_page": {
+        "images": "#altImages ul li.a-spacing-small.item.imageThumbnail.a-declarative img",
+        "seller_name": "#sellerProfileTriggerId",
+        "description": "#feature-bullets",
+
+        # Product details table(s): support multiple Amazon layouts
+        # Each entry is a <tr> with <th> = field name, <td> = value
+        "details_table_rows": (
+            "#productDetails_techSpec_section_1 tr, "
+            "#productDetails_detailBullets_sections1 tr, "
+            "#productDetails_techSpec_section_2 tr, "
+            "table.prodDetTable tr"
+        ),
+        "details_th": "th, td.prodDetSectionEntry",
+        "details_td": "td, td.prodDetAttrValue"
+    }
+}
+
+
 
 
 def use_new_ip(url: str):

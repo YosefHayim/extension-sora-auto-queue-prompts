@@ -15,9 +15,8 @@ SELECTORS = {
         "images": "#altImages ul li.a-spacing-small.item.imageThumbnail.a-declarative img",
         "seller_name": "#sellerProfileTriggerId",
         "description": "#feature-bullets",
-
-        # Product details table(s): support multiple Amazon layouts
-        # Each entry is a <tr> with <th> = field name, <td> = value
+        "is_on_stock":"#availability",
+        "return_policy":"#returnsInfoFeature_feature_div > div.offer-display-feature-text.a-size-small > span > a > span",
         "details_table_rows": (
             "#productDetails_techSpec_section_1 tr, "
             "#productDetails_detailBullets_sections1 tr, "
@@ -25,7 +24,8 @@ SELECTORS = {
             "table.prodDetTable tr"
         ),
         "details_th": "th, td.prodDetSectionEntry",
-        "details_td": "td, td.prodDetAttrValue"
+        "details_td": "td, td.prodDetAttrValue",
+        "is_more_deals_on_releated_products":"#sp_detail_thematic-hercules_hybrid_deals_T1"
     }
 }
 

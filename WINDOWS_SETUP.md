@@ -1,104 +1,147 @@
-# Windows Build Fix for Sharp Module
+# Windows Setup Guide
 
-This document explains how to fix the Sharp module installation issue on Windows.
+## Sharp Module Installation Issue
 
-## Problem
+### Problem
 
-The `sharp` module requires native binaries for Windows. When pnpm's security settings block build scripts, these binaries don't get installed, causing build failures.
+On Windows, the `sharp` module may fail to build correctly due to version conflicts in the dependency tree. The `plasmo` package depends on an older version of sharp (0.32.6), which conflicts with the required version (0.34.5) for proper Windows support.
 
-## Solution Options
+**Error Symptoms:**
+```
+Error: Something went wrong installing the "sharp" module
+Cannot find module '../build/Release/sharp-win32-x64.node'
+```
 
-### Option 1: Run the Fix Script (Recommended)
+### Solution
 
-We've provided automated scripts to fix the issue:
+We've implemented two fixes:
 
-**Using PowerShell (Recommended):**
+#### 1. Package.json Configuration
+
+The `package.json` now includes:
+- Sharp as a direct dependency (`"sharp": "^0.34.5"`)
+- pnpm overrides to force all packages to use the same sharp version
+
+```json
+{
+  "dependencies": {
+    "sharp": "^0.34.5"
+  },
+  "pnpm": {
+    "overrides": {
+      "sharp": "^0.34.5"
+    }
+  }
+}
+```
+
+#### 2. Automated Fix Script
+
+Run the `fix-sharp-windows.ps1` PowerShell script:
+
 ```powershell
 .\fix-sharp-windows.ps1
 ```
 
-**Using Command Prompt:**
-```cmd
-fix-sharp-windows.bat
-```
+This script will:
+1. Clean up existing node_modules and lock files
+2. Clear pnpm cache for sharp
+3. Reinstall all dependencies with the correct sharp version
+4. Rebuild sharp for Windows x64 platform
+5. Verify the installation
 
-### Option 2: Manual Steps
+### Manual Fix (if needed)
 
-If the scripts don't work, follow these manual steps:
+If the automated script doesn't work, try these steps:
 
-1. **Delete existing sharp installation:**
-   ```cmd
-   rmdir /s /q node_modules\sharp
-   del pnpm-lock.yaml
+1. **Clean installation:**
+   ```powershell
+   Remove-Item -Recurse -Force node_modules
+   Remove-Item -Force pnpm-lock.yaml
+   pnpm install
    ```
 
-2. **Install with scripts enabled:**
-   ```cmd
-   pnpm install --ignore-scripts=false
+2. **Rebuild sharp:**
+   ```powershell
+   pnpm rebuild sharp
    ```
 
-3. **Build the project:**
-   ```cmd
-   pnpm run build
+3. **Verify installation:**
+   ```powershell
+   pnpm exec node -e "require('sharp'); console.log('Sharp is working')"
    ```
 
-### Option 3: Use npm instead of pnpm
+### Alternative: Using npm Instead of pnpm
 
-If pnpm continues to have issues, you can use npm:
+If pnpm continues to cause issues, you can use npm:
 
-1. **Remove pnpm files:**
-   ```cmd
-   del pnpm-lock.yaml
-   rmdir /s /q node_modules
+1. Remove pnpm files:
+   ```powershell
+   Remove-Item -Recurse -Force node_modules
+   Remove-Item -Force pnpm-lock.yaml
    ```
 
-2. **Install with npm:**
-   ```cmd
+2. Install with npm:
+   ```bash
    npm install
    ```
 
-3. **Build with npm:**
-   ```cmd
+3. Build:
+   ```bash
    npm run build
    ```
 
-## Configuration Files
-
-The repository includes:
-
-- `.npmrc` - Configuration for sharp binary downloads
-- `package.json` - Updated with correct dependency versions
-
-## Verification
-
-After running the fix, verify the installation:
-
-```cmd
-node -e "console.log(require('sharp'))"
-```
-
-This should output sharp version information without errors.
-
-## Common Issues
-
-### "Cannot find module 'sharp-win32-x64.node'"
-- Run the fix script or manual steps above
-- Ensure you're using the `--ignore-scripts=false` flag
-
-### "Permission denied" errors
-- Run PowerShell or Command Prompt as Administrator
-- Check your antivirus isn't blocking the installation
-
-### Still having issues?
-1. Clear all caches: `pnpm store prune`
-2. Try using npm instead of pnpm
-3. Check Node.js version (v18+ recommended)
-
-## Technical Details
+### Why This Happens
 
 The issue occurs because:
-1. Sharp is a native module that needs platform-specific binaries
-2. pnpm blocks build scripts by default for security
-3. Without the build script, sharp's Windows binary isn't downloaded
-4. The `.npmrc` file configures the binary download URLs
-5. The `--ignore-scripts=false` flag allows the necessary scripts to run
+1. Plasmo has a dependency on sharp@0.32.6
+2. Sharp@0.32.6 doesn't have proper Windows x64 prebuilt binaries
+3. pnpm's strict dependency management keeps both versions
+4. The build process picks up the older, incompatible version
+
+The fix forces all packages to use sharp@0.34.5, which has proper Windows support.
+
+### Verification
+
+After running the fix, you should see:
+```
+Sharp installation complete and verified!
+You can now run: pnpm run build
+```
+
+Then you can successfully run:
+```powershell
+pnpm run build
+```
+
+## Troubleshooting
+
+### Issue: "Access Denied" when removing node_modules
+
+Run PowerShell as Administrator or use:
+```powershell
+Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
+```
+
+### Issue: pnpm command not found
+
+Install pnpm first:
+```powershell
+npm install -g pnpm
+```
+
+### Issue: Still getting sharp errors after fix
+
+Try clearing all caches:
+```powershell
+pnpm store prune
+Remove-Item -Recurse -Force $env:LOCALAPPDATA\pnpm-cache
+Remove-Item -Recurse -Force node_modules
+pnpm install
+```
+
+## Additional Resources
+
+- [Sharp Installation Documentation](https://sharp.pixelplumbing.com/install)
+- [pnpm Overrides Documentation](https://pnpm.io/package_json#pnpmoverrides)
+- [Plasmo Framework Documentation](https://docs.plasmo.com/)

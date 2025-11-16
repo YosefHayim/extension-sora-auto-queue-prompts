@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "npm run build -- --watch",
     "build": "npm run clean && npm run bundle && npm run copy-assets",
-    "bundle": "esbuild src/background.ts --bundle --outfile=dist/background.js --format=iife --target=chrome90 && esbuild src/popup.tsx --bundle --outfile=dist/popup.js --format=iife --target=chrome90",
+    "bundle": "esbuild src/background.ts --bundle --outfile=dist/background.js --format=iife --target=chrome90 && esbuild src/popup.tsx --bundle --outfile=dist/popup.js --format=iife --target=chrome90 && esbuild src/content.ts --bundle --outfile=dist/content.js --format=iife --target=chrome90",
     "copy-assets": "cpy icons dist --parents && cpy \"assets/*.{json,html,css}\" dist --flat",
     "test": "jest",
     "test:watch": "jest --watch",

@@ -1,6 +1,7 @@
 import { storage } from './storage';
 import { PromptGenerator } from './promptGenerator';
-import type { GeneratedPrompt, PromptConfig } from '~types';
+import { logger, log } from './logger';
+import type { GeneratedPrompt, PromptConfig } from '../types';
 
 export class QueueProcessor {
   private isProcessing = false;
@@ -90,14 +91,37 @@ export class QueueProcessor {
   }
 
   private async processPrompt(prompt: GeneratedPrompt): Promise<void> {
-    // This is where you would integrate with Sora
-    // For now, we'll just simulate processing
-    console.log('Processing prompt:', prompt.text);
+    try {
+      // Find the Sora tab
+      const tabs = await chrome.tabs.query({ url: '*://sora.com/*' });
 
-    // In a real implementation, this would:
-    // 1. Send the prompt to Sora
-    // 2. Wait for confirmation
-    // 3. Handle any errors
+      if (tabs.length === 0) {
+        throw new Error('No Sora tab found. Please open sora.com');
+      }
+
+      const soraTab = tabs[0];
+
+      if (!soraTab.id) {
+        throw new Error('Invalid Sora tab');
+      }
+
+      // Send prompt to content script
+      logger.info('queueProcessor', `Submitting prompt to Sora: ${prompt.text.substring(0, 50)}...`);
+
+      const response = await chrome.tabs.sendMessage(soraTab.id, {
+        action: 'submitPrompt',
+        prompt: prompt,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to submit prompt');
+      }
+
+      logger.info('queueProcessor', 'Prompt submitted successfully');
+    } catch (error) {
+      logger.error('queueProcessor', 'Failed to process prompt', { error });
+      throw error;
+    }
   }
 
   private async handleEmptyQueue(): Promise<void> {

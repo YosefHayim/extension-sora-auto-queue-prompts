@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "tabs"
   ],
   "host_permissions": [
     "https://*/*"
@@ -26,5 +27,15 @@
   },
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://sora.com/*",
+        "*://*.sora.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
 }

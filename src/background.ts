@@ -1,6 +1,8 @@
 import { storage } from '~utils/storage';
 import { PromptGenerator } from '~utils/promptGenerator';
-import type { GeneratedPrompt } from '~types';
+import { queueProcessor } from '~utils/queueProcessor';
+import { PromptActions } from '~utils/promptActions';
+import type { GeneratedPrompt, PromptEditAction } from '~types';
 
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener(() => {
@@ -9,38 +11,63 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Handle messages from popup and content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'generatePrompts') {
-    handleGeneratePrompts(request.data)
-      .then(sendResponse)
-      .catch((error) => {
-        sendResponse({ success: false, error: error.message });
-      });
-    return true; // Will respond asynchronously
-  }
+  const handler = async () => {
+    try {
+      switch (request.action) {
+        case 'generatePrompts':
+          return await handleGeneratePrompts(request.data);
 
-  if (request.action === 'getNextPrompt') {
-    handleGetNextPrompt()
-      .then(sendResponse)
-      .catch((error) => {
-        sendResponse({ success: false, error: error.message });
-      });
-    return true;
-  }
+        case 'getNextPrompt':
+          return await handleGetNextPrompt();
 
-  if (request.action === 'markPromptComplete') {
-    handleMarkPromptComplete(request.promptId)
-      .then(sendResponse)
-      .catch((error) => {
-        sendResponse({ success: false, error: error.message });
-      });
-    return true;
-  }
+        case 'markPromptComplete':
+          return await handleMarkPromptComplete(request.promptId);
+
+        case 'startQueue':
+          await queueProcessor.startQueue();
+          return { success: true };
+
+        case 'pauseQueue':
+          await queueProcessor.pauseQueue();
+          return { success: true };
+
+        case 'resumeQueue':
+          await queueProcessor.resumeQueue();
+          return { success: true };
+
+        case 'stopQueue':
+          await queueProcessor.stopQueue();
+          return { success: true };
+
+        case 'promptAction':
+          return await handlePromptAction(request.data);
+
+        case 'enhancePrompt':
+          return await handleEnhancePrompt(request.data);
+
+        default:
+          return { success: false, error: 'Unknown action' };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  };
+
+  handler().then(sendResponse);
+  return true; // Will respond asynchronously
 });
 
 async function handleGeneratePrompts(data: {
   context: string;
   count: number;
   mediaType: 'video' | 'image';
+  useSecretPrompt?: boolean;
+  aspectRatio?: string;
+  variations?: number;
+  preset?: string;
 }) {
   const config = await storage.getConfig();
   const generator = new PromptGenerator(config.apiKey);
@@ -49,6 +76,7 @@ async function handleGeneratePrompts(data: {
     context: data.context,
     count: data.count,
     mediaType: data.mediaType,
+    useSecretPrompt: data.useSecretPrompt ?? config.useSecretPrompt,
   });
 
   if (result.success) {
@@ -58,9 +86,17 @@ async function handleGeneratePrompts(data: {
       timestamp: Date.now(),
       status: 'pending',
       mediaType: data.mediaType,
+      aspectRatio: data.aspectRatio as any,
+      variations: data.variations,
+      preset: data.preset as any,
+      enhanced: data.useSecretPrompt ?? config.useSecretPrompt,
     }));
 
     await storage.addPrompts(prompts);
+
+    // Check if should auto-generate on received
+    await queueProcessor.onPromptsReceived();
+
     return { success: true, count: prompts.length };
   }
 
@@ -90,4 +126,18 @@ async function handleMarkPromptComplete(promptId: string) {
   }
 
   return { success: true };
+}
+
+async function handlePromptAction(action: PromptEditAction) {
+  const config = await storage.getConfig();
+  const promptActions = new PromptActions(config.apiKey);
+
+  return await promptActions.executeAction(action);
+}
+
+async function handleEnhancePrompt(data: { text: string; mediaType: 'video' | 'image' }) {
+  const config = await storage.getConfig();
+  const generator = new PromptGenerator(config.apiKey);
+
+  return await generator.enhancePrompt(data.text, data.mediaType);
 }

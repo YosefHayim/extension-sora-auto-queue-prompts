@@ -1,5 +1,6 @@
 export type AspectRatio = '16:9' | '9:16' | '1:1' | '4:3' | '3:4' | '21:9';
 export type PresetType = 'cinematic' | 'documentary' | 'artistic' | 'realistic' | 'animated' | 'none';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface PromptConfig {
   contextPrompt: string;
@@ -70,4 +71,13 @@ export interface PromptEditAction {
   promptId: string;
   newText?: string;
   count?: number; // For duplicate/generate-similar
+}
+
+export interface LogEntry {
+  timestamp: number;
+  level: LogLevel;
+  category: string;
+  message: string;
+  data?: any;
+  stack?: string;
 }

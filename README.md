@@ -30,17 +30,24 @@ A powerful browser extension built with Plasmo framework that automates prompt g
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Run in development mode
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 
 # Package for distribution
-npm run package
+pnpm run package
 ```
+
+> **Windows Users:** If you encounter sharp module installation errors on Windows, see the [Windows Setup Guide](WINDOWS_SETUP.md) for a fix.
+>
+> **Quick Fix for Windows:**
+> ```powershell
+> .\fix-sharp-windows.ps1
+> ```
 
 ### For Users
 

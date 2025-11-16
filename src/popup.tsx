@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { storage } from '~utils/storage';
-import { CSVParser } from '~utils/csvParser';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom/client';
+import { storage } from './utils/storage';
+import { CSVParser } from './utils/csvParser';
 import type {
   PromptConfig,
   GeneratedPrompt,
@@ -9,8 +10,7 @@ import type {
   PresetType,
   PromptEditAction,
   LogEntry
-} from '~types';
-import './popup.css';
+} from './types';
 
 type Tab = 'generate' | 'manual' | 'csv' | 'queue' | 'settings' | 'debug';
 
@@ -796,4 +796,8 @@ function IndexPopup() {
   );
 }
 
-export default IndexPopup;
+// Mount the React app
+const root = document.getElementById('root');
+if (root) {
+  ReactDOM.createRoot(root).render(<IndexPopup />);
+}

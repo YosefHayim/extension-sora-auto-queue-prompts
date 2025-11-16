@@ -16,22 +16,15 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
-    "noEmit": true,
-    "paths": {
-      "~*": [
-        "./*"
-      ]
-    }
+    "noEmit": true
   },
   "include": [
-    ".plasmo/index.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
     "build",
-    "dist",
-    ".plasmo"
+    "dist"
   ]
 }

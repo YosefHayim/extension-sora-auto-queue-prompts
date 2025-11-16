@@ -1,9 +1,9 @@
-import { storage } from '~utils/storage';
-import { PromptGenerator } from '~utils/promptGenerator';
-import { queueProcessor } from '~utils/queueProcessor';
-import { PromptActions } from '~utils/promptActions';
-import { logger, log } from '~utils/logger';
-import type { GeneratedPrompt, PromptEditAction } from '~types';
+import { storage } from './utils/storage';
+import { PromptGenerator } from './utils/promptGenerator';
+import { queueProcessor } from './utils/queueProcessor';
+import { PromptActions } from './utils/promptActions';
+import { logger, log } from './utils/logger';
+import type { GeneratedPrompt, PromptEditAction } from './types';
 
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {

@@ -18,6 +18,12 @@ describe('Storage Utility', () => {
         mediaType: 'video',
         variationCount: 4,
         autoRun: false,
+        useSecretPrompt: true,
+        autoGenerateOnEmpty: false,
+        autoGenerateOnReceived: false,
+        minDelayMs: 2000,
+        maxDelayMs: 5000,
+        setupCompleted: false,
       });
     });
 
@@ -171,6 +177,65 @@ describe('Storage Utility', () => {
     });
   });
 
+  describe('deletePrompt', () => {
+    it('should delete prompt by id', async () => {
+      const prompts = [
+        {
+          id: '1',
+          text: 'prompt 1',
+          timestamp: 123,
+          status: 'pending' as const,
+          mediaType: 'video' as const,
+        },
+        {
+          id: '2',
+          text: 'prompt 2',
+          timestamp: 456,
+          status: 'pending' as const,
+          mediaType: 'video' as const,
+        },
+      ];
+
+      (chrome.storage.local.get as jest.Mock).mockResolvedValue({ prompts });
+
+      await storage.deletePrompt('1');
+
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        prompts: [prompts[1]],
+      });
+    });
+  });
+
+  describe('getHistory', () => {
+    it('should return empty array when no history exists', async () => {
+      (chrome.storage.local.get as jest.Mock).mockResolvedValue({});
+
+      const history = await storage.getHistory();
+
+      expect(history).toEqual([]);
+    });
+
+    it('should return stored history', async () => {
+      const mockHistory = [
+        {
+          id: '1',
+          text: 'completed prompt',
+          timestamp: 123456,
+          status: 'completed' as const,
+          mediaType: 'video' as const,
+        },
+      ];
+
+      (chrome.storage.local.get as jest.Mock).mockResolvedValue({
+        history: mockHistory,
+      });
+
+      const history = await storage.getHistory();
+
+      expect(history).toEqual(mockHistory);
+    });
+  });
+
   describe('addToHistory', () => {
     it('should add prompts to history', async () => {
       const existingHistory = [
@@ -233,6 +298,142 @@ describe('Storage Utility', () => {
         .history;
       expect(savedHistory).toHaveLength(1000);
       expect(savedHistory[0]).toEqual(newPrompts[0]);
+    });
+  });
+
+  describe('getQueueState', () => {
+    it('should return default queue state when none exists', async () => {
+      (chrome.storage.local.get as jest.Mock).mockResolvedValue({});
+
+      const state = await storage.getQueueState();
+
+      expect(state).toEqual({
+        isRunning: false,
+        isPaused: false,
+        currentPromptId: null,
+        processedCount: 0,
+        totalCount: 0,
+      });
+    });
+
+    it('should return stored queue state', async () => {
+      const mockState = {
+        isRunning: true,
+        isPaused: false,
+        currentPromptId: 'prompt-123',
+        processedCount: 5,
+        totalCount: 10,
+      };
+
+      (chrome.storage.local.get as jest.Mock).mockResolvedValue({
+        queueState: mockState,
+      });
+
+      const state = await storage.getQueueState();
+
+      expect(state).toEqual(mockState);
+    });
+  });
+
+  describe('setQueueState', () => {
+    it('should merge partial queue state with existing state', async () => {
+      const existingState = {
+        isRunning: true,
+        isPaused: false,
+        currentPromptId: 'prompt-123',
+        processedCount: 5,
+        totalCount: 10,
+      };
+
+      (chrome.storage.local.get as jest.Mock).mockResolvedValue({
+        queueState: existingState,
+      });
+
+      await storage.setQueueState({ processedCount: 6 });
+
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        queueState: {
+          ...existingState,
+          processedCount: 6,
+        },
+      });
+    });
+  });
+
+  describe('pauseQueue', () => {
+    it('should set isPaused to true', async () => {
+      const existingState = {
+        isRunning: true,
+        isPaused: false,
+        currentPromptId: 'prompt-123',
+        processedCount: 5,
+        totalCount: 10,
+      };
+
+      (chrome.storage.local.get as jest.Mock).mockResolvedValue({
+        queueState: existingState,
+      });
+
+      await storage.pauseQueue();
+
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        queueState: {
+          ...existingState,
+          isPaused: true,
+        },
+      });
+    });
+  });
+
+  describe('resumeQueue', () => {
+    it('should set isPaused to false', async () => {
+      const existingState = {
+        isRunning: true,
+        isPaused: true,
+        currentPromptId: 'prompt-123',
+        processedCount: 5,
+        totalCount: 10,
+      };
+
+      (chrome.storage.local.get as jest.Mock).mockResolvedValue({
+        queueState: existingState,
+      });
+
+      await storage.resumeQueue();
+
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        queueState: {
+          ...existingState,
+          isPaused: false,
+        },
+      });
+    });
+  });
+
+  describe('stopQueue', () => {
+    it('should reset queue state', async () => {
+      const existingState = {
+        isRunning: true,
+        isPaused: false,
+        currentPromptId: 'prompt-123',
+        processedCount: 5,
+        totalCount: 10,
+      };
+
+      (chrome.storage.local.get as jest.Mock).mockResolvedValue({
+        queueState: existingState,
+      });
+
+      await storage.stopQueue();
+
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        queueState: {
+          ...existingState,
+          isRunning: false,
+          isPaused: false,
+          currentPromptId: null,
+        },
+      });
     });
   });
 });

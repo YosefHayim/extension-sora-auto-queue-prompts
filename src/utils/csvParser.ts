@@ -1,4 +1,4 @@
-import type { CSVRow, AspectRatio, PresetType, GeneratedPrompt } from '~types';
+import type { CSVRow, AspectRatio, PresetType, GeneratedPrompt } from '../types';
 
 export interface CSVParseResult {
   rows: CSVRow[];

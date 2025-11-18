@@ -1,6 +1,6 @@
 import { storage } from './storage';
 import { PromptGenerator } from './promptGenerator';
-import type { GeneratedPrompt, PromptEditAction } from '~types';
+import type { GeneratedPrompt, PromptEditAction } from '../types';
 
 export class PromptActions {
   private apiKey: string;
@@ -128,11 +128,11 @@ export class PromptActions {
       );
 
       if (result.success) {
-        const similarPrompts: GeneratedPrompt[] = result.prompts.map((text, index) => ({
+        const similarPrompts: GeneratedPrompt[] = result.prompts.map((text: string, index: number) => ({
           id: `${Date.now()}-sim-${index}`,
           text,
           timestamp: Date.now() + index,
-          status: 'pending',
+          status: 'pending' as const,
           mediaType: prompt.mediaType,
           aspectRatio: prompt.aspectRatio,
           variations: prompt.variations,

@@ -1,0 +1,350 @@
+================================================================================
+                    SORA AUTO QUEUE PROMPTS - UI ARCHITECTURE
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          CHROME EXTENSION POPUP UI                          │
+│                           (600px x 700px max)                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │ HEADER (32px)                                                       │  │
+│  │  Sora Auto Queue  |  ⏳ Pending (5) ▶ Processing (2) ✓ Completed (10) │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │ TAB NAVIGATION                                                      │  │
+│  │ Generate  Manual  CSV  Queue  Settings  Debug                      │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │ [Active Tab Content] - Scrollable (max 550px)                      │  │
+│  │                                                                     │  │
+│  │ TAB 1: GENERATE                                                    │  │
+│  │  ├─ OpenAI API Key (password input)                               │  │
+│  │  ├─ Context Prompt (textarea, 4 rows)                             │  │
+│  │  ├─ Batch Size (number input, 1-200)                              │  │
+│  │  ├─ Media Type (dropdown: video/image)                            │  │
+│  │  ├─ Variations (dropdown: 2/4)                                    │  │
+│  │  ├─ Enhanced Prompts (checkbox)                                   │  │
+│  │  └─ Generate Prompts (button)                                     │  │
+│  │                                                                     │  │
+│  │ TAB 2: MANUAL                                                     │  │
+│  │  ├─ Prompts textarea (10 rows)                                    │  │
+│  │  └─ Add Prompts (button)                                          │  │
+│  │                                                                     │  │
+│  │ TAB 3: CSV                                                        │  │
+│  │  ├─ File input (.csv)                                             │  │
+│  │  ├─ Download Template (button)                                    │  │
+│  │  └─ Export Prompts (button)                                       │  │
+│  │                                                                     │  │
+│  │ TAB 4: QUEUE                                                      │  │
+│  │  ├─ Queue Controls                                                │  │
+│  │  │   ├─ Status: "▶ Running" | "⏸ Paused" | "⏹ Stopped"           │  │
+│  │  │   ├─ Progress: "5 / 25"                                        │  │
+│  │  │   └─ Buttons: Start, Pause, Resume, Stop                      │  │
+│  │  │                                                                 │  │
+│  │  └─ Prompt List (scrollable cards)                                │  │
+│  │      └─ Each Card:                                                │  │
+│  │          ├─ Badges: [VIDEO] [16:9] [CINEMATIC] [PENDING]         │  │
+│  │          ├─ Text: "Beautiful cinematic landscape..."              │  │
+│  │          ├─ Meta: Variations, Enhanced status                     │  │
+│  │          └─ Actions: ✏️ 📋 ✨ 🔄 🗑️                              │  │
+│  │                                                                     │  │
+│  │ TAB 5: SETTINGS                                                   │  │
+│  │  ├─ Queue Automation                                              │  │
+│  │  │   ├─ Auto-generate on empty (checkbox)                        │  │
+│  │  │   └─ Auto-generate on received (checkbox)                     │  │
+│  │  ├─ Anti-Bot Delays                                               │  │
+│  │  │   ├─ Min Delay (number: 1000-30000ms)                          │  │
+│  │  │   └─ Max Delay (number: 1000-60000ms)                          │  │
+│  │  └─ Clear All Prompts (button, with confirmation)                │  │
+│  │                                                                     │  │
+│  │ TAB 6: DEBUG                                                      │  │
+│  │  ├─ Header: "Debug Logs" + Actions                               │  │
+│  │  │   ├─ Refresh (button)                                          │  │
+│  │  │   ├─ Export (button)                                           │  │
+│  │  │   └─ Clear (button)                                            │  │
+│  │  └─ Log List (scrollable)                                         │  │
+│  │      └─ Each Log Entry:                                           │  │
+│  │          ├─ [DEBUG] [QUEUE] 14:32:15                              │  │
+│  │          ├─ Message text                                          │  │
+│  │          └─ JSON data (collapsible)                               │  │
+│  │                                                                     │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐  │
+│  │ NOTIFICATIONS (dismissible)                                         │  │
+│  │  ├─ SUCCESS (green): "Generated 25 prompts!" [×]                  │  │
+│  │  └─ ERROR (red): "Please enter API key" [×]                       │  │
+│  └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                              DATA FLOW ARCHITECTURE
+================================================================================
+
+  POPUP UI (React Component)                   BACKGROUND SERVICE WORKER
+  ─────────────────────────────────────────────────────────────────────
+  IndexPopup.tsx (804 lines)                   background.ts
+       │                                            │
+       ├─ State: config, prompts,            ┌─────┴─────────────┐
+       │ queueState, logs                    │                   │
+       │                                      ▼                   ▼
+       │                         ┌──────────────────────┐  ┌──────────────┐
+       └─ Message Passing ──────▶│  Message Handler     │  │ Storage API  │
+            │                    │  (chrome.runtime)    │  │              │
+            │                    │                      │  │ Persists:    │
+            │                    ├─ generatePrompts     │  │ - config     │
+            │                    ├─ startQueue         │  │ - prompts    │
+            │                    ├─ pauseQueue         │  │ - queueState │
+            │                    ├─ resumeQueue        │  │ - logs       │
+            │                    ├─ stopQueue          │  │              │
+            │                    ├─ promptAction       │  │              │
+            │                    └─ getLogs            │  │              │
+            │                            │             │  └──────────────┘
+            │                            ▼             │
+            │                    ┌──────────────────────┐
+            └────────────────────│  Utils Modules       │
+                                 │                      │
+                                 ├─ promptGenerator.ts │
+                                 │  (GPT-4 API calls)  │
+                                 │                      │
+                                 ├─ queueProcessor.ts  │
+                                 │  (queue logic)       │
+                                 │                      │
+                                 ├─ promptActions.ts   │
+                                 │  (edit/refine/etc)   │
+                                 │                      │
+                                 ├─ storage.ts         │
+                                 │  (Chrome API)        │
+                                 │                      │
+                                 └─ logger.ts          │
+                                    (logging)          │
+                                         │
+                                         ▼
+                              ┌──────────────────────┐
+                              │ CONTENT SCRIPT       │
+                              │ content.ts (on       │
+                              │ sora.com pages)      │
+                              │                      │
+                              ├─ Listens for        │
+                              │  submitPrompt msg    │
+                              │                      │
+                              ├─ Finds textarea     │
+                              │  on Sora page       │
+                              │                      │
+                              ├─ Types prompt      │
+                              │  (simulate typing)   │
+                              │                      │
+                              ├─ Submits form       │
+                              │                      │
+                              └─ Waits for          │
+                                 completion          │
+                                         │
+                                         ▼
+                              ┌──────────────────────┐
+                              │ SORA.COM             │
+                              │ (target website)     │
+                              │                      │
+                              │ Video/Image          │
+                              │ Generation API       │
+                              └──────────────────────┘
+
+================================================================================
+                              COMPONENT HIERARCHY
+================================================================================
+
+popup.tsx
+│
+├─ IndexPopup (main React component)
+│  │
+│  ├─ Header
+│  │  ├─ Title: "Sora Auto Queue"
+│  │  └─ Stats badges (pending, processing, completed)
+│  │
+│  ├─ Tab Navigation (6 buttons)
+│  │  ├─ Generate
+│  │  ├─ Manual
+│  │  ├─ CSV
+│  │  ├─ Queue
+│  │  ├─ Settings
+│  │  └─ Debug
+│  │
+│  ├─ Notifications
+│  │  ├─ Error Toast (dismissible)
+│  │  └─ Success Toast (dismissible)
+│  │
+│  └─ Tab Content (conditionally rendered)
+│     ├─ Generate Tab
+│     │  ├─ Form inputs
+│     │  └─ Generate button
+│     │
+│     ├─ Manual Tab
+│     │  ├─ Textarea
+│     │  └─ Add button
+│     │
+│     ├─ CSV Tab
+│     │  ├─ File input
+│     │  └─ Action buttons
+│     │
+│     ├─ Queue Tab
+│     │  ├─ Queue Controls
+│     │  │  ├─ Status indicator
+│     │  │  ├─ Progress counter
+│     │  │  └─ Control buttons
+│     │  │
+│     │  └─ Prompt List
+│     │     └─ Prompt Cards (multiple)
+│     │        ├─ Badges
+│     │        ├─ Text
+│     │        ├─ Metadata
+│     │        └─ Action buttons
+│     │
+│     ├─ Settings Tab
+│     │  ├─ Automation checkboxes
+│     │  ├─ Delay inputs
+│     │  └─ Danger zone buttons
+│     │
+│     └─ Debug Tab
+│        ├─ Header with actions
+│        └─ Log List
+│           └─ Log Entries (multiple)
+
+================================================================================
+                              FILE ORGANIZATION
+================================================================================
+
+Source Structure:
+src/
+├── popup.tsx                    # Main React UI component (804 lines)
+├── popup.css                    # All styling (640 lines)
+├── background.ts               # Service worker (message handler)
+├── content.ts                  # Content script for sora.com
+├── types/
+│   └── index.ts               # TypeScript interfaces
+└── utils/
+    ├── storage.ts             # Chrome storage wrapper
+    ├── promptGenerator.ts      # GPT-4 integration
+    ├── queueProcessor.ts       # Queue management
+    ├── promptActions.ts        # Prompt operations
+    ├── csvParser.ts           # CSV import/export
+    └── logger.ts              # Debug logging
+
+Build Output (dist/):
+dist/
+├── popup.html                  # 312 bytes (simple entry point)
+├── popup.js                    # 1.1 MB (React + all UI bundled)
+├── popup.css                   # 9.3 KB (compiled styles)
+├── background.js               # 33.7 KB (service worker)
+├── content.js                  # 8.8 KB (content script)
+├── manifest.json               # 840 bytes (extension config)
+└── icons/
+    ├── icon16.png
+    ├── icon48.png
+    └── icon128.png
+
+================================================================================
+                              STYLING APPROACH
+================================================================================
+
+CSS Organization (popup.css):
+├─ Global resets
+├─ Body and base styles
+├─ Popup container (600px × 700px max)
+├─ Header section
+├─ Tab navigation
+├─ Tab content area
+├─ Form elements
+├─ Buttons (primary, secondary, danger, warning, small, action)
+├─ Message notifications
+├─ Queue controls
+├─ Prompt cards
+│  ├─ Badges
+│  ├─ Card states (pending, processing, completed, editing)
+│  ├─ Action buttons
+│  └─ Edit mode
+├─ Settings section
+├─ Debug section
+├─ Log entries
+├─ Empty states
+├─ Loading states
+├─ Scrollbar styling
+└─ Responsive utilities
+
+Color Scheme:
+┌──────────────────┬────────┐
+│ Primary Blue     │ #007bff│
+│ Dark Text        │ #333   │
+│ Light BG         │ #f5f5f5│
+│ White Cards      │ #fff   │
+│ Borders          │ #ddd   │
+├──────────────────┼────────┤
+│ Pending (warn)   │ #ffc107│
+│ Processing (info)│ #007bff│
+│ Completed (ok)   │ #28a745│
+│ Error            │ #dc3545│
+│ Debug            │ #6c757d│
+└──────────────────┴────────┘
+
+================================================================================
+                          USER INTERACTION FLOWS
+================================================================================
+
+Workflow 1: AI Generation & Auto-Submission
+┌────────────────────────────────────────────────────────────────────────┐
+│ 1. User clicks extension icon → Popup opens                            │
+│ 2. User navigates to "Generate" tab                                    │
+│ 3. User enters:                                                         │
+│    - OpenAI API Key                                                     │
+│    - Context Prompt (e.g., "Cyberpunk cityscapes")                     │
+│    - Batch Size: 25                                                     │
+│    - Media Type: video                                                  │
+│ 4. User clicks "Generate Prompts" button                               │
+│ 5. Extension sends message to background script                        │
+│ 6. Background script calls GPT-4 API → generates 25 prompts           │
+│ 7. Prompts stored in Chrome storage with "pending" status              │
+│ 8. Popup updates with new prompts in queue                             │
+│ 9. User navigates to "Queue" tab                                       │
+│ 10. User clicks "Start Queue" button                                   │
+│ 11. Background script starts auto-submitter                            │
+│ 12. For each prompt:                                                   │
+│     a) Content script finds Sora textarea                              │
+│     b) Types prompt (simulates human typing)                           │
+│     c) Submits form                                                     │
+│     d) Waits for generation to complete                                │
+│     e) Random delay (2-60s) before next prompt                         │
+│ 13. Popup shows real-time progress:                                    │
+│     - Prompt status changes: pending → processing → completed          │
+│     - Stats header updates: "⏳ 10 ▶ 5 ✓ 10"                            │
+│ 14. User can:                                                           │
+│     - Pause queue (button changes from "Pause" to "Resume")            │
+│     - Stop queue (button "Stop" available)                             │
+│     - Edit prompts inline (click ✏️ button)                            │
+│     - Delete prompts (click 🗑️ button)                                │
+│     - Refine with AI (click ✨ button)                                │
+│     - Generate variations (click 🔄 button)                           │
+└────────────────────────────────────────────────────────────────────────┘
+
+Workflow 2: CSV Import
+┌────────────────────────────────────────────────────────────────────────┐
+│ 1. User clicks extension icon → Popup opens                            │
+│ 2. User navigates to "CSV" tab                                         │
+│ 3. User clicks "Download Template"                                     │
+│ 4. CSV template file downloaded:                                       │
+│    prompt, type, aspect_ratio, variations, preset                     │
+│ 5. User creates/edits CSV file with prompt data                        │
+│ 6. User uploads CSV file using file input                              │
+│ 7. Extension parses CSV (5-column format)                              │
+│ 8. For each row: creates GeneratedPrompt object with metadata           │
+│    - type: video/image                                                 │
+│    - aspectRatio: 16:9, 1:1, etc.                                      │
+│    - variations: 2 or 4                                                │
+│    - preset: cinematic, realistic, etc.                                │
+│ 9. Prompts stored in Chrome storage                                    │
+│ 10. Popup navigates to Queue tab showing imported prompts              │
+│ 11. User can click "Start Queue" to begin submissions                  │
+└────────────────────────────────────────────────────────────────────────┘
+
+================================================================================

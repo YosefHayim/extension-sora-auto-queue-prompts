@@ -1,0 +1,118 @@
+# Product Requirements Document: Sora Auto Queue Prompts Chrome Extension
+
+## Project Overview
+A Chrome extension that automates prompt generation and queue management for Sora AI video/image generation using GPT-4 API integration, React UI, and intelligent queue processing.
+
+## Current Features (v1.0.1 - Completed)
+- AI-powered prompt generation using OpenAI GPT-4
+- Enhanced prompts mode with cinematography/photography optimization
+- Queue management with pause/resume functionality
+- Anti-bot delay system (configurable 2-60s random delays)
+- CSV import/export (5-column format)
+- In-queue prompt editing (edit, duplicate, generate similar)
+- Per-prompt customization (aspect ratio, variations, media type, presets)
+- Auto-generation modes (on empty, on received)
+- Chrome local storage persistence
+- History tracking (configurable limit)
+- Debug logging system
+- 93.82% test coverage
+
+## Future Features (Prioritized Roadmap)
+
+### Phase 1: Quick Wins (Weeks 1-4)
+1. Prompt Template Library & Marketplace
+   - Pre-built templates for common use cases
+   - Community template sharing
+   - Template categories (cinematic, documentary, artistic, etc.)
+   - Import/export template collections
+   - Priority: HIGH | Complexity: MEDIUM | Timeline: 2 weeks
+
+2. Multi-Account & Workspace Management
+   - Multiple Sora account support
+   - Workspace isolation for different projects
+   - Per-workspace settings and configurations
+   - Quick workspace switching
+   - Priority: HIGH | Complexity: MEDIUM | Timeline: 2 weeks
+
+### Phase 2: Strategic Bets (Weeks 5-12)
+3. Live Result Capture & Asset Management
+   - Automatic video/image download upon generation
+   - Asset library with thumbnails and metadata
+   - Search and filter generated assets
+   - Linking assets to source prompts
+   - Priority: HIGHEST | Complexity: HIGH | Timeline: 3-4 weeks
+
+4. A/B Testing & Performance Analytics
+   - Track prompt effectiveness metrics
+   - Compare prompt variations side-by-side
+   - Success rate tracking by style/category
+   - Analytics dashboard with insights
+   - Priority: HIGH | Complexity: MEDIUM-HIGH | Timeline: 2-3 weeks
+
+### Phase 3: Advanced Features (Weeks 13-20)
+5. Prompt Chain Workflows & Dependencies
+   - Multi-step prompt sequences
+   - Conditional prompt generation based on results
+   - Dependency management (prompt B after prompt A completes)
+   - Workflow templates for complex projects
+   - Priority: MEDIUM | Complexity: HIGH | Timeline: 3-4 weeks
+
+6. Smart Scheduling & Queue Optimization
+   - Time-based queue scheduling
+   - Priority-based queue ordering
+   - Adaptive delay optimization (ML-based)
+   - Batch optimization for cost efficiency
+   - Priority: MEDIUM | Complexity: MEDIUM-HIGH | Timeline: 2-3 weeks
+
+### Phase 4: Future Considerations (Weeks 21+)
+7. Collaborative Prompt Sharing & Version Control
+   - Real-time collaboration features
+   - Version control for prompt history
+   - Team workspace functionality
+   - Cloud sync for multi-device access
+   - Priority: MEDIUM | Complexity: HIGH | Timeline: 4-5 weeks
+   - Note: Requires backend infrastructure
+
+8. Advanced AI Features: Context-Aware Prompt Improvement
+   - TensorFlow.js integration for local ML
+   - Prompt quality prediction
+   - Style transfer between prompts
+   - Semantic similarity clustering
+   - Priority: LOW | Complexity: HIGH | Timeline: 4-5 weeks
+
+## Technical Architecture
+- Language: TypeScript 5.3
+- UI Framework: React 18
+- Build Tool: esbuild
+- Testing: Jest + React Testing Library
+- APIs: OpenAI GPT-4, Chrome Storage API, Chrome Downloads API
+- Storage: Chrome Local Storage (current), IndexedDB (future for large data)
+
+## Key Technical Constraints
+- Chrome extension manifest v3 requirements
+- Storage quota limits (Chrome local storage ~5MB, sync storage ~100KB)
+- Content script must handle Sora UI changes (fragile DOM selectors)
+- Anti-bot detection requires human-like delays and behavior
+- OpenAI API rate limits and cost management
+- Must maintain 70%+ test coverage
+
+## Success Metrics
+- User adoption rate (Chrome Web Store installs)
+- Prompt generation volume (prompts created per user)
+- Queue completion rate (successful submissions)
+- Template usage (library engagement)
+- Feature utilization (which features are most used)
+- User retention (DAU/MAU ratios)
+
+## Risk Mitigation
+- DOM selector fragility: Implement selector fallbacks and auto-detection
+- Storage quota limits: Migrate to IndexedDB for large datasets
+- API cost management: Implement usage tracking and warnings
+- Bot detection: Continuous monitoring and delay optimization
+- Privacy concerns: Keep all data local, provide export options
+- Backend infrastructure: Start with client-side only, evaluate backend necessity
+
+## Monetization Strategy (Future)
+- Free Tier: Basic features (50 prompts/day, 2 workspaces)
+- Pro Tier ($9/month): Unlimited prompts, templates, analytics
+- Team Tier ($29/month): Collaboration, team workspaces, priority support

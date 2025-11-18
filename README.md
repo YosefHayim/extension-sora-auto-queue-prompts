@@ -286,13 +286,22 @@ Click **Download Template** in the CSV tab to get a pre-formatted CSV file.
 
 ---
 
+## 📚 Documentation
+
+Comprehensive documentation is available in the `/docs` directory:
+
+- **[Development Guide](docs/DEVELOPMENT.md)** - Setup, workflow, testing, and troubleshooting
+- **[Architecture Overview](docs/architecture/overview.md)** - System design, data flow, and technical decisions
+- **[UI Components](docs/ui/components.md)** - UI structure, components, and styling guide
+- **[CI/CD Setup](docs/setup/ci-cd.md)** - GitHub Actions, coverage enforcement, and deployment
+- **[Changelog](CHANGELOG.md)** - Version history and release notes
+- **[Contributing Guidelines](CONTRIBUTING.md)** - How to contribute to the project
+
+---
+
 ## 🛠️ Development
 
-### Prerequisites
-- Node.js 18+
-- npm or pnpm
-
-### Setup
+### Quick Start
 
 ```bash
 # Clone the repository
@@ -300,23 +309,22 @@ git clone https://github.com/YosefHayim/extension-sora-auto-queue-prompts.git
 cd extension-sora-auto-queue-prompts
 
 # Install dependencies
-npm install
+pnpm install
 
 # Run in development mode (watch mode)
-npm run dev
+pnpm run dev
 
 # Build for production
-npm run build
+pnpm run build
 
 # Run tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
+pnpm test
 
 # Generate coverage report
-npm run test:coverage
+pnpm run test:coverage
 ```
+
+For detailed development instructions, see the [Development Guide](docs/DEVELOPMENT.md).
 
 ### Project Structure
 

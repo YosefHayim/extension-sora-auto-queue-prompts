@@ -4,11 +4,13 @@ import { StatusBar } from './components/StatusBar';
 import { QueueControls } from './components/QueueControls';
 import { PromptCard } from './components/PromptCard';
 import { EmptyState } from './components/EmptyState';
+import { DebugPanel } from './components/DebugPanel';
 import { Button } from './components/ui/button';
-import { Sparkles, Settings } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
+import { Sparkles, Settings, List, Bug } from 'lucide-react';
 import { storage } from './utils/storage';
+import { log } from './utils/logger';
 import type { PromptConfig, GeneratedPrompt, QueueState } from './types';
-import './styles/globals.css';
 
 function IndexPopup() {
   const [config, setConfig] = useState<PromptConfig | null>(null);
@@ -25,6 +27,7 @@ function IndexPopup() {
 
   async function loadData() {
     try {
+      log.ui.action('loadData', { timestamp: Date.now() });
       const [loadedConfig, loadedPrompts, loadedQueueState] = await Promise.all([
         storage.getConfig(),
         storage.getPrompts(),
@@ -34,8 +37,12 @@ function IndexPopup() {
       setPrompts(loadedPrompts);
       setQueueState(loadedQueueState);
       setLoading(false);
+      log.ui.action('loadData:success', {
+        promptCount: loadedPrompts.length,
+        queueRunning: loadedQueueState.isRunning
+      });
     } catch (error) {
-      console.error('Failed to load data:', error);
+      log.ui.error('loadData', error);
       setLoading(false);
     }
   }
@@ -48,106 +55,126 @@ function IndexPopup() {
   // Handler functions
   async function handleStartQueue() {
     try {
+      log.ui.action('handleStartQueue:clicked', { promptCount: prompts.length });
       await chrome.runtime.sendMessage({ action: 'startQueue' });
       await loadData();
+      log.ui.action('handleStartQueue:success');
     } catch (error) {
-      console.error('Failed to start queue:', error);
+      log.ui.error('handleStartQueue', error);
     }
   }
 
   async function handlePauseQueue() {
     try {
+      log.ui.action('handlePauseQueue:clicked');
       await chrome.runtime.sendMessage({ action: 'pauseQueue' });
       await loadData();
+      log.ui.action('handlePauseQueue:success');
     } catch (error) {
-      console.error('Failed to pause queue:', error);
+      log.ui.error('handlePauseQueue', error);
     }
   }
 
   async function handleResumeQueue() {
     try {
+      log.ui.action('handleResumeQueue:clicked');
       await chrome.runtime.sendMessage({ action: 'resumeQueue' });
       await loadData();
+      log.ui.action('handleResumeQueue:success');
     } catch (error) {
-      console.error('Failed to resume queue:', error);
+      log.ui.error('handleResumeQueue', error);
     }
   }
 
   async function handleStopQueue() {
     try {
+      log.ui.action('handleStopQueue:clicked');
       await chrome.runtime.sendMessage({ action: 'stopQueue' });
       await loadData();
+      log.ui.action('handleStopQueue:success');
     } catch (error) {
-      console.error('Failed to stop queue:', error);
+      log.ui.error('handleStopQueue', error);
     }
   }
 
   async function handleEditPrompt(id: string) {
+    log.ui.action('handleEditPrompt:clicked', { promptId: id });
     // TODO: Implement edit modal
-    console.log('Edit prompt:', id);
+    log.ui.action('handleEditPrompt:notImplemented', { promptId: id });
   }
 
   async function handleDuplicatePrompt(id: string) {
     try {
+      log.ui.action('handleDuplicatePrompt:clicked', { promptId: id });
       await chrome.runtime.sendMessage({
         action: 'promptAction',
         data: { promptId: id, actionType: 'duplicate' }
       });
       await loadData();
+      log.ui.action('handleDuplicatePrompt:success', { promptId: id });
     } catch (error) {
-      console.error('Failed to duplicate prompt:', error);
+      log.ui.error('handleDuplicatePrompt', error);
     }
   }
 
   async function handleRefinePrompt(id: string) {
     try {
+      log.ui.action('handleRefinePrompt:clicked', { promptId: id });
       await chrome.runtime.sendMessage({
         action: 'promptAction',
         data: { promptId: id, actionType: 'refine' }
       });
       await loadData();
+      log.ui.action('handleRefinePrompt:success', { promptId: id });
     } catch (error) {
-      console.error('Failed to refine prompt:', error);
+      log.ui.error('handleRefinePrompt', error);
     }
   }
 
   async function handleGenerateSimilar(id: string) {
     try {
+      log.ui.action('handleGenerateSimilar:clicked', { promptId: id });
       await chrome.runtime.sendMessage({
         action: 'promptAction',
         data: { promptId: id, actionType: 'similar' }
       });
       await loadData();
+      log.ui.action('handleGenerateSimilar:success', { promptId: id });
     } catch (error) {
-      console.error('Failed to generate similar:', error);
+      log.ui.error('handleGenerateSimilar', error);
     }
   }
 
   async function handleDeletePrompt(id: string) {
     try {
+      log.ui.action('handleDeletePrompt:clicked', { promptId: id });
       await chrome.runtime.sendMessage({
         action: 'promptAction',
         data: { promptId: id, actionType: 'delete' }
       });
       await loadData();
+      log.ui.action('handleDeletePrompt:success', { promptId: id });
     } catch (error) {
-      console.error('Failed to delete prompt:', error);
+      log.ui.error('handleDeletePrompt', error);
     }
   }
 
   function handleGenerate() {
+    log.ui.action('handleGenerate:clicked');
     // TODO: Implement generate modal
-    console.log('Open generate modal');
+    log.ui.action('handleGenerate:notImplemented');
   }
 
   function handleImport() {
+    log.ui.action('handleImport:clicked');
     // TODO: Implement CSV import modal
-    console.log('Open import modal');
+    log.ui.action('handleImport:notImplemented');
   }
 
   function handleSettings() {
+    log.ui.action('handleSettings:clicked');
     // TODO: Implement settings modal
-    console.log('Open settings');
+    log.ui.action('handleSettings:notImplemented');
   }
 
   if (loading) {
@@ -190,37 +217,59 @@ function IndexPopup() {
         </div>
       </header>
 
-      {/* Queue Controls */}
-      <QueueControls
-        queueState={queueState}
-        totalCount={prompts.length}
-        onStart={handleStartQueue}
-        onPause={handlePauseQueue}
-        onResume={handleResumeQueue}
-        onStop={handleStopQueue}
-      />
+      {/* Tabs Navigation */}
+      <Tabs defaultValue="queue">
+        <TabsList>
+          <TabsTrigger value="queue" className="flex-1">
+            <List className="h-4 w-4 mr-2" />
+            Queue
+          </TabsTrigger>
+          <TabsTrigger value="debug" className="flex-1">
+            <Bug className="h-4 w-4 mr-2" />
+            Debug
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Prompt List */}
-      <div className="space-y-3">
-        {prompts.length === 0 ? (
-          <EmptyState
-            onGenerate={handleGenerate}
-            onImport={handleImport}
+        {/* Queue Tab Content */}
+        <TabsContent value="queue" className="space-y-4">
+          {/* Queue Controls */}
+          <QueueControls
+            queueState={queueState}
+            totalCount={prompts.length}
+            onStart={handleStartQueue}
+            onPause={handlePauseQueue}
+            onResume={handleResumeQueue}
+            onStop={handleStopQueue}
           />
-        ) : (
-          prompts.map((prompt) => (
-            <PromptCard
-              key={prompt.id}
-              prompt={prompt}
-              onEdit={handleEditPrompt}
-              onDuplicate={handleDuplicatePrompt}
-              onRefine={handleRefinePrompt}
-              onGenerateSimilar={handleGenerateSimilar}
-              onDelete={handleDeletePrompt}
-            />
-          ))
-        )}
-      </div>
+
+          {/* Prompt List */}
+          <div className="space-y-3">
+            {prompts.length === 0 ? (
+              <EmptyState
+                onGenerate={handleGenerate}
+                onImport={handleImport}
+              />
+            ) : (
+              prompts.map((prompt) => (
+                <PromptCard
+                  key={prompt.id}
+                  prompt={prompt}
+                  onEdit={handleEditPrompt}
+                  onDuplicate={handleDuplicatePrompt}
+                  onRefine={handleRefinePrompt}
+                  onGenerateSimilar={handleGenerateSimilar}
+                  onDelete={handleDeletePrompt}
+                />
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Debug Tab Content */}
+        <TabsContent value="debug">
+          <DebugPanel />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

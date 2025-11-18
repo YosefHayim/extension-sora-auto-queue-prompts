@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Inbox, Sparkles, Upload } from 'lucide-react';
+import { log } from '@/utils/logger';
 
 interface EmptyStateProps {
   onGenerate: () => void;
@@ -8,6 +9,16 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ onGenerate, onImport }: EmptyStateProps) {
+  const handleGenerate = () => {
+    log.ui.action('EmptyState:Generate');
+    onGenerate();
+  };
+
+  const handleImport = () => {
+    log.ui.action('EmptyState:Import');
+    onImport();
+  };
+
   return (
     <Card className="border-dashed">
       <CardContent className="flex flex-col items-center justify-center py-12">
@@ -19,11 +30,11 @@ export function EmptyState({ onGenerate, onImport }: EmptyStateProps) {
           Generate AI prompts or import from CSV to get started with your queue
         </p>
         <div className="flex gap-3">
-          <Button onClick={onGenerate}>
+          <Button onClick={handleGenerate}>
             <Sparkles className="mr-2 h-4 w-4" />
             Generate Prompts
           </Button>
-          <Button variant="outline" onClick={onImport}>
+          <Button variant="outline" onClick={handleImport}>
             <Upload className="mr-2 h-4 w-4" />
             Import CSV
           </Button>

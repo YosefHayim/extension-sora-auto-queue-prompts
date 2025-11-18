@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Pencil, Copy, Sparkles, MoreVertical, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { log } from '@/utils/logger';
 import type { GeneratedPrompt } from '@/types';
 
 interface PromptCardProps {
@@ -23,6 +24,31 @@ export function PromptCard({
   onGenerateSimilar,
   onDelete,
 }: PromptCardProps) {
+  const handleEdit = () => {
+    log.ui.action('PromptCard:Edit', { promptId: prompt.id, status: prompt.status });
+    onEdit(prompt.id);
+  };
+
+  const handleDuplicate = () => {
+    log.ui.action('PromptCard:Duplicate', { promptId: prompt.id, mediaType: prompt.mediaType });
+    onDuplicate(prompt.id);
+  };
+
+  const handleRefine = () => {
+    log.ui.action('PromptCard:Refine', { promptId: prompt.id, enhanced: prompt.enhanced });
+    onRefine(prompt.id);
+  };
+
+  const handleGenerateSimilar = () => {
+    log.ui.action('PromptCard:GenerateSimilar', { promptId: prompt.id });
+    onGenerateSimilar(prompt.id);
+  };
+
+  const handleDelete = () => {
+    log.ui.action('PromptCard:Delete', { promptId: prompt.id, status: prompt.status });
+    onDelete(prompt.id);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
@@ -81,7 +107,7 @@ export function PromptCard({
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onEdit(prompt.id)}
+          onClick={handleEdit}
           title="Edit prompt"
         >
           <Pencil className="h-4 w-4" />
@@ -89,7 +115,7 @@ export function PromptCard({
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onDuplicate(prompt.id)}
+          onClick={handleDuplicate}
           title="Duplicate"
         >
           <Copy className="h-4 w-4" />
@@ -97,7 +123,7 @@ export function PromptCard({
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onRefine(prompt.id)}
+          onClick={handleRefine}
           title="Refine with AI"
         >
           <Sparkles className="h-4 w-4" />
@@ -110,12 +136,12 @@ export function PromptCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onGenerateSimilar(prompt.id)}>
+            <DropdownMenuItem onClick={handleGenerateSimilar}>
               Generate Similar
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => onDelete(prompt.id)}
+              onClick={handleDelete}
               className="text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />

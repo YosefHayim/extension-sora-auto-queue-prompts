@@ -2,9 +2,28 @@
   "name": "sora-auto-queue-prompts",
   "displayName": "Sora Auto Queue Prompts",
   "version": "1.0.0",
-  "description": "Browser extension to automate prompt generation and queueing for Sora AI",
+  "description": "Automate prompt generation and queue management for Sora AI video/image generation",
   "author": "YosefHayim",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YosefHayim/extension-sora-auto-queue-prompts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YosefHayim/extension-sora-auto-queue-prompts/issues"
+  },
+  "homepage": "https://github.com/YosefHayim/extension-sora-auto-queue-prompts#readme",
+  "keywords": [
+    "sora",
+    "ai",
+    "prompts",
+    "automation",
+    "chrome-extension",
+    "openai",
+    "queue",
+    "video-generation",
+    "image-generation"
+  ],
   "scripts": {
     "dev": "npm run build -- --watch",
     "build": "npm run clean && npm run bundle && npm run copy-assets",

@@ -41,6 +41,10 @@ export const storage = {
     return result.prompts || [];
   },
 
+  async setPrompts(prompts: GeneratedPrompt[]): Promise<void> {
+    await chrome.storage.local.set({ prompts });
+  },
+
   async addPrompts(prompts: GeneratedPrompt[]): Promise<void> {
     const currentPrompts = await this.getPrompts();
     await chrome.storage.local.set({

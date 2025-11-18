@@ -67,6 +67,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           await logger.exportLogs(request.filename);
           return { success: true };
 
+        case 'contentLog':
+          // Log from content script to background console
+          const prefix = '[Content Script]';
+          if (request.level === 'error') {
+            console.error(prefix, request.message, request.data || '');
+          } else if (request.level === 'warn') {
+            console.warn(prefix, request.message, request.data || '');
+          } else {
+            console.log(prefix, request.message, request.data || '');
+          }
+          return { success: true };
+
         default:
           logger.warn('background', `Unknown action: ${request.action}`);
           return { success: false, error: 'Unknown action' };

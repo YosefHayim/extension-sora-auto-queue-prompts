@@ -1,14 +1,15 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Inbox, Sparkles, Upload } from 'lucide-react';
+import { Inbox, Sparkles, Upload, ListPlus } from 'lucide-react';
 import { log } from '@/utils/logger';
 
 interface EmptyStateProps {
   onGenerate: () => void;
   onImport: () => void;
+  onManual: () => void;
 }
 
-export function EmptyState({ onGenerate, onImport }: EmptyStateProps) {
+export function EmptyState({ onGenerate, onImport, onManual }: EmptyStateProps) {
   const handleGenerate = () => {
     log.ui.action('EmptyState:Generate');
     onGenerate();
@@ -19,6 +20,11 @@ export function EmptyState({ onGenerate, onImport }: EmptyStateProps) {
     onImport();
   };
 
+  const handleManual = () => {
+    log.ui.action('EmptyState:Manual');
+    onManual();
+  };
+
   return (
     <Card className="border-dashed">
       <CardContent className="flex flex-col items-center justify-center py-12">
@@ -27,12 +33,16 @@ export function EmptyState({ onGenerate, onImport }: EmptyStateProps) {
         </div>
         <h3 className="text-lg font-semibold mb-2">No prompts yet</h3>
         <p className="text-sm text-muted-foreground mb-6 text-center max-w-sm">
-          Generate AI prompts or import from CSV to get started with your queue
+          Generate AI prompts, add manually, or import from CSV to get started
         </p>
         <div className="flex gap-3">
           <Button onClick={handleGenerate}>
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate Prompts
+            Generate
+          </Button>
+          <Button variant="outline" onClick={handleManual}>
+            <ListPlus className="mr-2 h-4 w-4" />
+            Manual Add
           </Button>
           <Button variant="outline" onClick={handleImport}>
             <Upload className="mr-2 h-4 w-4" />

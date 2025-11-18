@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { StatusBar } from './components/StatusBar';
 import { QueueControls } from './components/QueueControls';
-import { PromptCard } from './components/PromptCard';
+import { SortablePromptCard } from './components/SortablePromptCard';
 import { EmptyState } from './components/EmptyState';
 import { DebugPanel } from './components/DebugPanel';
+import { GenerateDialog } from './components/GenerateDialog';
+import { CSVImportDialog } from './components/CSVImportDialog';
+import { SettingsDialog } from './components/SettingsDialog';
+import { ManualAddDialog } from './components/ManualAddDialog';
 import { Button } from './components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
 import { Sparkles, Settings, List, Bug } from 'lucide-react';
@@ -17,6 +23,19 @@ function IndexPopup() {
   const [prompts, setPrompts] = useState<GeneratedPrompt[]>([]);
   const [queueState, setQueueState] = useState<QueueState | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
+  const [csvDialogOpen, setCsvDialogOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [manualDialogOpen, setManualDialogOpen] = useState(false);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement before drag starts (prevents accidental drags)
+      },
+    })
+  );
 
   useEffect(() => {
     loadData();
@@ -27,7 +46,6 @@ function IndexPopup() {
 
   async function loadData() {
     try {
-      log.ui.action('loadData', { timestamp: Date.now() });
       const [loadedConfig, loadedPrompts, loadedQueueState] = await Promise.all([
         storage.getConfig(),
         storage.getPrompts(),
@@ -37,10 +55,6 @@ function IndexPopup() {
       setPrompts(loadedPrompts);
       setQueueState(loadedQueueState);
       setLoading(false);
-      log.ui.action('loadData:success', {
-        promptCount: loadedPrompts.length,
-        queueRunning: loadedQueueState.isRunning
-      });
     } catch (error) {
       log.ui.error('loadData', error);
       setLoading(false);
@@ -108,7 +122,7 @@ function IndexPopup() {
       log.ui.action('handleDuplicatePrompt:clicked', { promptId: id });
       await chrome.runtime.sendMessage({
         action: 'promptAction',
-        data: { promptId: id, actionType: 'duplicate' }
+        data: { type: 'duplicate', promptId: id }
       });
       await loadData();
       log.ui.action('handleDuplicatePrompt:success', { promptId: id });
@@ -122,7 +136,7 @@ function IndexPopup() {
       log.ui.action('handleRefinePrompt:clicked', { promptId: id });
       await chrome.runtime.sendMessage({
         action: 'promptAction',
-        data: { promptId: id, actionType: 'refine' }
+        data: { type: 'refine', promptId: id }
       });
       await loadData();
       log.ui.action('handleRefinePrompt:success', { promptId: id });
@@ -136,7 +150,7 @@ function IndexPopup() {
       log.ui.action('handleGenerateSimilar:clicked', { promptId: id });
       await chrome.runtime.sendMessage({
         action: 'promptAction',
-        data: { promptId: id, actionType: 'similar' }
+        data: { type: 'generate-similar', promptId: id }
       });
       await loadData();
       log.ui.action('handleGenerateSimilar:success', { promptId: id });
@@ -150,7 +164,7 @@ function IndexPopup() {
       log.ui.action('handleDeletePrompt:clicked', { promptId: id });
       await chrome.runtime.sendMessage({
         action: 'promptAction',
-        data: { promptId: id, actionType: 'delete' }
+        data: { type: 'delete', promptId: id }
       });
       await loadData();
       log.ui.action('handleDeletePrompt:success', { promptId: id });
@@ -161,20 +175,100 @@ function IndexPopup() {
 
   function handleGenerate() {
     log.ui.action('handleGenerate:clicked');
-    // TODO: Implement generate modal
-    log.ui.action('handleGenerate:notImplemented');
+    setGenerateDialogOpen(true);
   }
 
   function handleImport() {
     log.ui.action('handleImport:clicked');
-    // TODO: Implement CSV import modal
-    log.ui.action('handleImport:notImplemented');
+    setCsvDialogOpen(true);
+  }
+
+  function handleManual() {
+    log.ui.action('handleManual:clicked');
+    setManualDialogOpen(true);
   }
 
   function handleSettings() {
     log.ui.action('handleSettings:clicked');
-    // TODO: Implement settings modal
-    log.ui.action('handleSettings:notImplemented');
+    setSettingsDialogOpen(true);
+  }
+
+  async function handleGeneratePrompts(count: number, context: string) {
+    if (!config) return;
+
+    log.ui.action('handleGeneratePrompts', { count, contextLength: context.length });
+
+    const response = await chrome.runtime.sendMessage({
+      action: 'generatePrompts',
+      data: {
+        context,
+        count,
+        mediaType: config.mediaType,
+        useSecretPrompt: config.useSecretPrompt,
+      },
+    });
+
+    if (response.success) {
+      await loadData();
+      log.ui.action('handleGeneratePrompts:success', { count: response.count });
+    } else {
+      log.ui.error('handleGeneratePrompts', response.error);
+      throw new Error(response.error || 'Failed to generate prompts');
+    }
+  }
+
+  async function handleImportCSV(newPrompts: GeneratedPrompt[]) {
+    log.ui.action('handleImportCSV', { count: newPrompts.length });
+
+    await storage.addPrompts(newPrompts);
+    await loadData();
+
+    log.ui.action('handleImportCSV:success', { count: newPrompts.length });
+  }
+
+  async function handleManualAdd(newPrompts: GeneratedPrompt[]) {
+    log.ui.action('handleManualAdd', { count: newPrompts.length });
+
+    await storage.addPrompts(newPrompts);
+    await loadData();
+
+    log.ui.action('handleManualAdd:success', { count: newPrompts.length });
+  }
+
+  async function handleSaveSettings(updates: Partial<PromptConfig>) {
+    if (!config) return;
+
+    log.ui.action('handleSaveSettings');
+
+    const newConfig = { ...config, ...updates };
+    await storage.setConfig(newConfig);
+    setConfig(newConfig);
+
+    log.ui.action('handleSaveSettings:success');
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = prompts.findIndex((p) => p.id === active.id);
+    const newIndex = prompts.findIndex((p) => p.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    const reorderedPrompts = arrayMove(prompts, oldIndex, newIndex);
+
+    // Optimistically update UI
+    setPrompts(reorderedPrompts);
+
+    // Save to storage
+    await storage.setPrompts(reorderedPrompts);
+    log.ui.action('handleDragEnd', { from: oldIndex, to: newIndex });
   }
 
   if (loading) {
@@ -248,19 +342,33 @@ function IndexPopup() {
               <EmptyState
                 onGenerate={handleGenerate}
                 onImport={handleImport}
+                onManual={handleManual}
               />
             ) : (
-              prompts.map((prompt) => (
-                <PromptCard
-                  key={prompt.id}
-                  prompt={prompt}
-                  onEdit={handleEditPrompt}
-                  onDuplicate={handleDuplicatePrompt}
-                  onRefine={handleRefinePrompt}
-                  onGenerateSimilar={handleGenerateSimilar}
-                  onDelete={handleDeletePrompt}
-                />
-              ))
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={prompts.map((p) => p.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-3">
+                    {prompts.map((prompt) => (
+                      <SortablePromptCard
+                        key={prompt.id}
+                        prompt={prompt}
+                        onEdit={handleEditPrompt}
+                        onDuplicate={handleDuplicatePrompt}
+                        onRefine={handleRefinePrompt}
+                        onGenerateSimilar={handleGenerateSimilar}
+                        onDelete={handleDeletePrompt}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             )}
           </div>
         </TabsContent>
@@ -270,6 +378,39 @@ function IndexPopup() {
           <DebugPanel />
         </TabsContent>
       </Tabs>
+
+      {/* Dialogs */}
+      {config && (
+        <>
+          <GenerateDialog
+            config={config}
+            isOpen={generateDialogOpen}
+            onClose={() => setGenerateDialogOpen(false)}
+            onGenerate={handleGeneratePrompts}
+          />
+
+          <CSVImportDialog
+            config={config}
+            isOpen={csvDialogOpen}
+            onClose={() => setCsvDialogOpen(false)}
+            onImport={handleImportCSV}
+          />
+
+          <ManualAddDialog
+            config={config}
+            isOpen={manualDialogOpen}
+            onClose={() => setManualDialogOpen(false)}
+            onAdd={handleManualAdd}
+          />
+
+          <SettingsDialog
+            config={config}
+            isOpen={settingsDialogOpen}
+            onClose={() => setSettingsDialogOpen(false)}
+            onSave={handleSaveSettings}
+          />
+        </>
+      )}
     </div>
   );
 }

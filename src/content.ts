@@ -8,6 +8,7 @@ import type { GeneratedPrompt } from './types';
 class SoraAutomation {
   private isProcessing = false;
   private currentPrompt: GeneratedPrompt | null = null;
+  private generationStarted = false; // Track if generation has started
 
   constructor() {
     this.init();
@@ -43,6 +44,7 @@ class SoraAutomation {
 
     this.isProcessing = true;
     this.currentPrompt = prompt;
+    this.generationStarted = false; // Reset generation state
 
     try {
       // Find the textarea
@@ -68,9 +70,11 @@ class SoraAutomation {
 
       this.isProcessing = false;
       this.currentPrompt = null;
+      this.generationStarted = false;
     } catch (error) {
       this.isProcessing = false;
       this.currentPrompt = null;
+      this.generationStarted = false;
       throw error;
     }
   }
@@ -190,9 +194,37 @@ class SoraAutomation {
     const checkInterval = 1000; // Check every second
     let elapsedTime = 0;
 
+    console.log('[Sora Auto Queue] Waiting for generation to complete...');
+
+    // Phase 1: Wait for generation to START (loader appears)
+    const startWaitTime = 10000; // Wait up to 10 seconds for generation to start
+    let startElapsed = 0;
+
+    while (startElapsed < startWaitTime && !this.generationStarted) {
+      if (this.checkIfGenerationStarted()) {
+        this.generationStarted = true;
+        console.log('[Sora Auto Queue] Generation started, waiting for completion...');
+        break;
+      }
+      await this.delay(checkInterval);
+      startElapsed += checkInterval;
+    }
+
+    // If generation never started, assume there was an error or instant completion
+    if (!this.generationStarted) {
+      console.log('[Sora Auto Queue] Generation did not start within 10 seconds, checking for errors...');
+      // Check if there's an error message
+      if (this.checkForError()) {
+        throw new Error('Generation failed to start');
+      }
+      // If no error, assume instant completion (rare)
+      return;
+    }
+
+    // Phase 2: Wait for generation to COMPLETE (loader disappears)
     while (elapsedTime < maxWaitTime) {
-      // Check if loader is gone or status shows ready
       if (this.checkIfReady()) {
+        console.log('[Sora Auto Queue] Generation completed!');
         // Wait a bit more to ensure it's fully done
         await this.delay(2000);
         return;
@@ -206,21 +238,88 @@ class SoraAutomation {
   }
 
   /**
-   * Check if Sora is ready for next prompt
+   * Check if generation has started (loader appeared)
    */
-  private checkIfReady(): boolean {
-    // Check for loader/spinner
-    const loaderSelectors = [
-      'svg circle[stroke-dashoffset]', // The percentage loader
-      '.surface-toast[role="status"]', // Status toast
-      '[aria-live="polite"]',
+  private checkIfGenerationStarted(): boolean {
+    // Look for loading indicators that appear when generation starts
+    const loadingSelectors = [
+      'svg circle[stroke-dashoffset]', // Percentage loader
+      '[aria-live="polite"]', // Loading status
+      '.bg-token-bg-secondary svg circle', // Generic loader
     ];
 
-    // Check if loader is present
-    const loader = document.querySelector(loaderSelectors[0]);
+    for (const selector of loadingSelectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        // Check if it's actually showing a loading state
+        const parent = element.parentElement;
+        if (parent?.textContent?.includes('%')) {
+          return true; // Percentage indicator = loading
+        }
+        // Check if the element is visible (not display:none)
+        if (element instanceof HTMLElement && element.offsetParent !== null) {
+          return true;
+        }
+      }
+    }
+
+    // Check for status toast indicating processing
+    const statusToast = document.querySelector<HTMLElement>('[role="status"]');
+    if (statusToast) {
+      const text = statusToast.textContent?.toLowerCase() || '';
+      if (text.includes('generating') || text.includes('processing') || text.includes('%')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if there's an error message
+   */
+  private checkForError(): boolean {
+    const statusToast = document.querySelector<HTMLElement>('[role="status"]');
+    if (statusToast) {
+      const text = statusToast.textContent?.toLowerCase() || '';
+      if (text.includes('error') || text.includes('failed')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Check if Sora is ready for next prompt (generation completed)
+   */
+  private checkIfReady(): boolean {
+    // Only check for completion if generation has started
+    if (!this.generationStarted) {
+      return false;
+    }
+
+    // Check if loader is still present with percentage
+    const loader = document.querySelector('svg circle[stroke-dashoffset]');
     if (loader && loader.parentElement?.textContent?.includes('%')) {
       // Still loading
       return false;
+    }
+
+    // Check for any visible loading indicators
+    const loadingSelectors = [
+      'svg circle[stroke-dashoffset]',
+      '[aria-live="polite"]',
+      '.bg-token-bg-secondary svg circle',
+    ];
+
+    for (const selector of loadingSelectors) {
+      const element = document.querySelector(selector);
+      if (element instanceof HTMLElement && element.offsetParent !== null) {
+        const parent = element.parentElement;
+        if (parent?.textContent?.includes('%')) {
+          return false; // Still showing percentage = still loading
+        }
+      }
     }
 
     // Check for "Ready" status toast
@@ -230,13 +329,13 @@ class SoraAutomation {
       if (text.includes('ready')) {
         return true;
       }
-      // If there's any other status (error, etc.), consider it ready to move on
+      // If error or failed, consider it done (so we can move to next prompt)
       if (text.includes('error') || text.includes('failed')) {
         return true;
       }
     }
 
-    // If no loader visible, consider ready
+    // If no loader is visible and generation had started, consider it complete
     const visibleLoader = document.querySelector('.bg-token-bg-secondary svg circle');
     if (!visibleLoader) {
       return true;

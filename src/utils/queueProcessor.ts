@@ -69,14 +69,25 @@ export class QueueProcessor {
     await storage.updatePrompt(nextPrompt.id, { status: 'processing' });
     await storage.setQueueState({ currentPromptId: nextPrompt.id });
 
-    // Simulate processing (in real implementation, this would send to Sora)
-    await this.processPrompt(nextPrompt);
+    try {
+      // Process the prompt (send to Sora)
+      await this.processPrompt(nextPrompt);
 
-    // Mark as completed
-    await storage.updatePrompt(nextPrompt.id, { status: 'completed' });
-    await storage.addToHistory([nextPrompt]);
+      // Mark as completed
+      await storage.updatePrompt(nextPrompt.id, { status: 'completed' });
+      await storage.addToHistory([nextPrompt]);
 
-    // Update processed count
+      logger.info('queueProcessor', `Prompt completed: ${nextPrompt.text.substring(0, 50)}...`);
+    } catch (error) {
+      // Mark as failed
+      await storage.updatePrompt(nextPrompt.id, { status: 'failed' });
+      logger.error('queueProcessor', `Prompt failed: ${nextPrompt.text.substring(0, 50)}...`, { error });
+
+      // Don't stop the queue, just log and continue
+      console.error('[Sora Auto Queue] Failed to process prompt:', error);
+    }
+
+    // Update processed count (count both completed and failed)
     const newProcessedCount = queueState.processedCount + 1;
     await storage.setQueueState({ processedCount: newProcessedCount });
 

@@ -367,6 +367,9 @@ dist/
 
 ---
 
+# When finish todos by user request:
+Preform a commit and push to the dev repo with a detailed proper commit using the commit agent.
+
 **Last Updated**: 2025-11-18
 **Extension Version**: 1.0.0
 **Manifest Version**: 3

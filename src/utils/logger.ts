@@ -200,19 +200,15 @@ class Logger {
         return `[${timestamp}] [${log.level.toUpperCase()}] [${log.category}]\n  ${log.message}${dataStr}${stackStr}\n`;
       }).join('\n');
 
-      const blob = new Blob([logText], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      // Convert to data URL for Chrome Downloads API
+      const dataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(logText);
 
-      link.href = url;
-      link.download = filename || `sora-logs-${Date.now()}.txt`;
-      link.style.display = 'none';
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      URL.revokeObjectURL(url);
+      // Use Chrome Downloads API (works in service worker)
+      await chrome.downloads.download({
+        url: dataUrl,
+        filename: filename || `sora-logs-${Date.now()}.txt`,
+        saveAs: true
+      });
 
       this.info('logger', 'Logs exported successfully');
     } catch (error) {

@@ -2,7 +2,7 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Pencil, Copy, Sparkles, MoreVertical, Trash2 } from 'lucide-react';
+import { Pencil, Copy, Sparkles, MoreVertical, Trash2, Image, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { log } from '@/utils/logger';
 import type { GeneratedPrompt } from '@/types';
@@ -64,6 +64,10 @@ export function PromptCard({
     }
   };
 
+  const capitalizeFirst = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   return (
     <Card
       className={cn(
@@ -74,8 +78,13 @@ export function PromptCard({
     >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div className="flex gap-2 flex-wrap">
-          <Badge variant="outline" className="text-xs">
-            {prompt.mediaType}
+          <Badge variant="outline" className="gap-1 text-xs">
+            {prompt.mediaType === 'video' ? (
+              <Video className="h-3 w-3" />
+            ) : (
+              <Image className="h-3 w-3" />
+            )}
+            {capitalizeFirst(prompt.mediaType)}
           </Badge>
           {prompt.aspectRatio && (
             <Badge variant="secondary" className="text-xs">
@@ -90,7 +99,7 @@ export function PromptCard({
           )}
         </div>
         <Badge className={cn('text-xs', getStatusColor(prompt.status))}>
-          {prompt.status}
+          {capitalizeFirst(prompt.status)}
         </Badge>
       </CardHeader>
 
@@ -103,7 +112,7 @@ export function PromptCard({
         )}
       </CardContent>
 
-      <CardFooter className="gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <CardFooter className="gap-2">
         <Button
           variant="ghost"
           size="icon"

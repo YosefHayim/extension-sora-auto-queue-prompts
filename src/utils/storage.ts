@@ -1,4 +1,4 @@
-import type { PromptConfig, GeneratedPrompt, QueueState } from '~types';
+import type { PromptConfig, GeneratedPrompt, QueueState } from '../types';
 
 const DEFAULT_CONFIG: PromptConfig = {
   contextPrompt: '',

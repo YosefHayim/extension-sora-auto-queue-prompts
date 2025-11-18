@@ -151,11 +151,11 @@ export class QueueProcessor {
     });
 
     if (result.success) {
-      const newPrompts: GeneratedPrompt[] = result.prompts.map((text, index) => ({
+      const newPrompts: GeneratedPrompt[] = result.prompts.map((text: string, index: number) => ({
         id: `${Date.now()}-${index}`,
         text,
         timestamp: Date.now(),
-        status: 'pending',
+        status: 'pending' as const,
         mediaType: config.mediaType,
         variations: config.variationCount,
         enhanced: config.useSecretPrompt,

@@ -3,7 +3,7 @@ import { PromptGenerator } from './utils/promptGenerator';
 import { queueProcessor } from './utils/queueProcessor';
 import { PromptActions } from './utils/promptActions';
 import { logger, log } from './utils/logger';
-import type { GeneratedPrompt, PromptEditAction } from './types';
+import type { GeneratedPrompt, PromptEditAction, AspectRatio, PresetType } from './types';
 
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
@@ -107,15 +107,15 @@ async function handleGeneratePrompts(data: {
   });
 
   if (result.success) {
-    const prompts: GeneratedPrompt[] = result.prompts.map((text, index) => ({
+    const prompts: GeneratedPrompt[] = result.prompts.map((text: string, index: number) => ({
       id: `${Date.now()}-${index}`,
       text,
       timestamp: Date.now(),
-      status: 'pending',
+      status: 'pending' as const,
       mediaType: data.mediaType,
-      aspectRatio: data.aspectRatio as any,
+      aspectRatio: data.aspectRatio as AspectRatio | undefined,
       variations: data.variations,
-      preset: data.preset as any,
+      preset: data.preset as PresetType | undefined,
       enhanced: data.useSecretPrompt ?? config.useSecretPrompt,
     }));
 

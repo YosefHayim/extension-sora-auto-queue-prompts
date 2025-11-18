@@ -1,4 +1,4 @@
-import type { PromptGenerationRequest, PromptGenerationResponse } from '~types';
+import type { PromptGenerationRequest, PromptGenerationResponse } from '../types';
 
 // Secret prompt enhancements optimized for Sora
 const SECRET_VIDEO_PROMPT = `Technical specifications: Use cinematic camera movements, dynamic lighting, and professional color grading. Include specific details about camera angles, movement speed, and scene transitions. Ensure temporal consistency and realistic physics. Specify atmosphere, mood, and visual style clearly.`;

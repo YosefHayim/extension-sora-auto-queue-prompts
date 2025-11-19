@@ -504,21 +504,35 @@ class SoraAutomation {
       startElapsed += checkInterval;
     }
 
-    // If generation never started, assume there was an error or instant completion
+    // If generation never started, this is an error condition
     if (!this.generationStarted) {
-      console.log('[Sora Auto Queue] Generation did not start within 10 seconds, checking for errors...');
+      this.log('error', '❌ Generation did not start within 10 seconds');
       // Check if there's an error message
       if (this.checkForError()) {
-        throw new Error('Generation failed to start');
+        throw new Error('Generation failed to start - error detected on page');
       }
-      // If no error, assume instant completion (rare)
-      return;
+      // If no error visible, still throw - something went wrong
+      throw new Error('Generation failed to start within 10 seconds - check Sora page for issues');
     }
 
     // Phase 2: Wait for generation to COMPLETE (loader disappears)
+    this.log('info', '⏳ Phase 2: Waiting for generation to complete...', {
+      maxWaitTime: maxWaitTime / 1000 + 's',
+      checkInterval: checkInterval / 1000 + 's',
+    });
+
     while (elapsedTime < maxWaitTime) {
-      if (this.checkIfReady()) {
-        console.log('[Sora Auto Queue] Generation completed!');
+      const isReady = this.checkIfReady();
+
+      // Log status every 10 seconds
+      if (elapsedTime % 10000 === 0) {
+        this.log('debug', `⏳ Still waiting... (${elapsedTime / 1000}s elapsed)`, { isReady });
+      }
+
+      if (isReady) {
+        this.log('info', '✅ Generation completed!', {
+          totalTime: elapsedTime / 1000 + 's',
+        });
         // Wait a bit more to ensure it's fully done
         await this.delay(2000);
         return;
@@ -528,6 +542,10 @@ class SoraAutomation {
       elapsedTime += checkInterval;
     }
 
+    this.log('error', '❌ Generation timed out', {
+      maxWaitTime: maxWaitTime / 1000 + 's',
+      elapsedTime: elapsedTime / 1000 + 's',
+    });
     throw new Error('Generation timed out after 5 minutes');
   }
 
@@ -548,10 +566,12 @@ class SoraAutomation {
         // Check if it's actually showing a loading state
         const parent = element.parentElement;
         if (parent?.textContent?.includes('%')) {
+          this.log('debug', `✅ Generation started - found loader with %: ${selector}`);
           return true; // Percentage indicator = loading
         }
         // Check if the element is visible (not display:none)
         if (element instanceof HTMLElement && element.offsetParent !== null) {
+          this.log('debug', `✅ Generation started - found visible loader: ${selector}`);
           return true;
         }
       }
@@ -562,6 +582,7 @@ class SoraAutomation {
     if (statusToast) {
       const text = statusToast.textContent?.toLowerCase() || '';
       if (text.includes('generating') || text.includes('processing') || text.includes('%')) {
+        this.log('debug', `✅ Generation started - status toast: ${text.substring(0, 50)}`);
         return true;
       }
     }
@@ -589,6 +610,7 @@ class SoraAutomation {
   private checkIfReady(): boolean {
     // Only check for completion if generation has started
     if (!this.generationStarted) {
+      this.log('debug', '⏸️ Not checking completion - generation not started yet');
       return false;
     }
 
@@ -596,6 +618,8 @@ class SoraAutomation {
     const loader = document.querySelector('svg circle[stroke-dashoffset]');
     if (loader && loader.parentElement?.textContent?.includes('%')) {
       // Still loading
+      const percentage = loader.parentElement?.textContent?.match(/\d+%/)?.[0];
+      this.log('debug', `⏳ Still loading: ${percentage || 'checking...'}`);
       return false;
     }
 
@@ -611,6 +635,7 @@ class SoraAutomation {
       if (element instanceof HTMLElement && element.offsetParent !== null) {
         const parent = element.parentElement;
         if (parent?.textContent?.includes('%')) {
+          this.log('debug', `⏳ Still loading - found active loader: ${selector}`);
           return false; // Still showing percentage = still loading
         }
       }
@@ -621,10 +646,12 @@ class SoraAutomation {
     if (statusToast) {
       const text = statusToast.textContent?.toLowerCase() || '';
       if (text.includes('ready')) {
+        this.log('info', '✅ Generation ready - status toast shows "ready"');
         return true;
       }
       // If error or failed, consider it done (so we can move to next prompt)
       if (text.includes('error') || text.includes('failed')) {
+        this.log('warn', `⚠️ Generation failed - status toast: ${text.substring(0, 50)}`);
         return true;
       }
     }
@@ -632,9 +659,11 @@ class SoraAutomation {
     // If no loader is visible and generation had started, consider it complete
     const visibleLoader = document.querySelector('.bg-token-bg-secondary svg circle');
     if (!visibleLoader) {
+      this.log('info', '✅ No visible loader - generation appears complete');
       return true;
     }
 
+    this.log('debug', '⏳ Still checking... loader visible but no percentage');
     return false;
   }
 

@@ -210,7 +210,7 @@ class Logger {
         saveAs: true
       });
 
-      this.info('logger', 'Logs exported successfully');
+      // Don't log the export action itself to avoid creating new logs
     } catch (error) {
       console.error('Failed to export logs:', error);
     }

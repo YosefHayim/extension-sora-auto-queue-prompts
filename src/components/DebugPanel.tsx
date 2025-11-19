@@ -17,13 +17,13 @@ export function DebugPanel() {
   async function loadLogs() {
     try {
       setIsLoading(true);
-      log.ui.action('DebugPanel:LoadLogs');
+      // Don't log during load operation to avoid creating new logs
       const response = await chrome.runtime.sendMessage({ action: 'getLogs' });
       if (response.success) {
         setLogs(response.logs);
-        log.ui.action('DebugPanel:LoadLogs:Success', { count: response.logs.length });
       }
     } catch (error) {
+      // Only log errors, which is acceptable as user should see failures
       log.ui.error('DebugPanel:LoadLogs', error);
     } finally {
       setIsLoading(false);
@@ -32,10 +32,10 @@ export function DebugPanel() {
 
   async function handleExportLogs() {
     try {
-      log.ui.action('DebugPanel:ExportLogs');
+      // Don't log during export to keep export clean
       await chrome.runtime.sendMessage({ action: 'exportLogs' });
-      log.ui.action('DebugPanel:ExportLogs:Success');
     } catch (error) {
+      // Only log errors
       log.ui.error('DebugPanel:ExportLogs', error);
     }
   }

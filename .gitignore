@@ -52,5 +52,23 @@ dev-debug.log
 # OS specific
 
 # Task files
-# tasks.json
-# tasks/ 
+tasks.json
+tasks/ 
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# dotenv
+.env*.local
+
+# misc
+.DS_Store
+.taskmaster/
+.claude/
+gemini.md
+claude.md
+

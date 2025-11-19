@@ -1,15 +1,108 @@
 import type { PromptGenerationRequest, PromptGenerationResponse } from '../types';
+import { log } from './logger';
 
 // Secret prompt enhancements optimized for Sora
 const SECRET_VIDEO_PROMPT = `Technical specifications: Use cinematic camera movements, dynamic lighting, and professional color grading. Include specific details about camera angles, movement speed, and scene transitions. Ensure temporal consistency and realistic physics. Specify atmosphere, mood, and visual style clearly.`;
 
 const SECRET_IMAGE_PROMPT = `Technical specifications: Use professional photography techniques, optimal composition rules (rule of thirds, golden ratio), dramatic lighting setup, and specific artistic style. Include color palette, depth of field, and mood specification. Ensure photorealistic details and aesthetic appeal.`;
 
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_DELAYS_MS = [1000, 2000, 4000]; // Exponential backoff: 1s, 2s, 4s
+
 export class PromptGenerator {
   private apiKey: string;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
+  }
+
+  /**
+   * Fetch with exponential backoff retry mechanism
+   * Handles transient network failures and rate limits (429)
+   */
+  private async fetchWithRetry(
+    url: string,
+    options: RequestInit,
+    attempt: number = 0
+  ): Promise<Response> {
+    try {
+      log.api.request('OpenAI', { attempt: attempt + 1, maxAttempts: MAX_RETRY_ATTEMPTS });
+
+      const response = await fetch(url, options);
+
+      // Rate limit detection
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('Retry-After');
+        const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : RETRY_DELAYS_MS[attempt] || 4000;
+
+        log.api.error('OpenAI', {
+          status: 429,
+          message: 'Rate limit exceeded',
+          retryAfter: retryAfter || 'not specified',
+          waitMs,
+          attempt: attempt + 1,
+        });
+
+        if (attempt < MAX_RETRY_ATTEMPTS - 1) {
+          await this.delay(waitMs);
+          return this.fetchWithRetry(url, options, attempt + 1);
+        }
+
+        throw new Error(`Rate limit exceeded. Please try again later.`);
+      }
+
+      // Success or non-retryable error
+      if (response.ok || !this.isRetryableStatus(response.status)) {
+        return response;
+      }
+
+      // Retryable error (5xx server errors, network issues)
+      if (attempt < MAX_RETRY_ATTEMPTS - 1) {
+        const delay = RETRY_DELAYS_MS[attempt];
+        log.api.error('OpenAI', {
+          status: response.status,
+          message: 'Retryable error occurred',
+          delay,
+          attempt: attempt + 1,
+        });
+
+        await this.delay(delay);
+        return this.fetchWithRetry(url, options, attempt + 1);
+      }
+
+      // Final attempt failed
+      return response;
+    } catch (error) {
+      // Network errors (connection failed, timeout, etc.)
+      if (attempt < MAX_RETRY_ATTEMPTS - 1) {
+        const delay = RETRY_DELAYS_MS[attempt];
+        log.api.error('OpenAI', {
+          error: error instanceof Error ? error.message : 'Network error',
+          delay,
+          attempt: attempt + 1,
+        });
+
+        await this.delay(delay);
+        return this.fetchWithRetry(url, options, attempt + 1);
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Determine if HTTP status code is retryable
+   */
+  private isRetryableStatus(status: number): boolean {
+    // Retry on server errors (5xx) and specific client errors
+    return status >= 500 || status === 408 || status === 429;
+  }
+
+  /**
+   * Delay helper for retry backoff
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private getSecretPrompt(mediaType: 'video' | 'image'): string {
@@ -44,7 +137,7 @@ export class PromptGenerator {
     }
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await this.fetchWithRetry('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +199,7 @@ export class PromptGenerator {
     }
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await this.fetchWithRetry('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -170,7 +263,7 @@ export class PromptGenerator {
     }
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await this.fetchWithRetry('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

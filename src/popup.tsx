@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { StatusBar } from './components/StatusBar';
 import { QueueControls } from './components/QueueControls';
 import { SortablePromptCard } from './components/SortablePromptCard';
@@ -11,6 +12,7 @@ import { GenerateDialog } from './components/GenerateDialog';
 import { CSVImportDialog } from './components/CSVImportDialog';
 import { SettingsDialog } from './components/SettingsDialog';
 import { ManualAddDialog } from './components/ManualAddDialog';
+import { EditPromptDialog } from './components/EditPromptDialog';
 import { Button } from './components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
 import { Sparkles, Settings, List, Bug } from 'lucide-react';
@@ -27,6 +29,8 @@ function IndexPopup() {
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [manualDialogOpen, setManualDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingPrompt, setEditingPrompt] = useState<GeneratedPrompt | null>(null);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -39,9 +43,43 @@ function IndexPopup() {
 
   useEffect(() => {
     loadData();
-    // Poll for updates every 2 seconds when queue is running
-    const interval = setInterval(loadData, 2000);
-    return () => clearInterval(interval);
+
+    // Listen for storage changes for real-time updates (replaces 2-second polling)
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const handleStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: chrome.storage.AreaName
+    ) => {
+      if (areaName !== 'local') return;
+
+      // Check if relevant keys changed
+      const relevantKeys = ['config', 'prompts', 'queueState'];
+      const hasRelevantChanges = relevantKeys.some((key) => key in changes);
+
+      if (!hasRelevantChanges) return;
+
+      log.ui.info('Storage change detected', Object.keys(changes));
+
+      // Debounce rapid changes (e.g., during batch operations)
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+
+      debounceTimer = setTimeout(() => {
+        loadData();
+        debounceTimer = null;
+      }, 100); // 100ms debounce
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
   }, []);
 
   async function loadData() {
@@ -113,8 +151,26 @@ function IndexPopup() {
 
   async function handleEditPrompt(id: string) {
     log.ui.action('handleEditPrompt:clicked', { promptId: id });
-    // TODO: Implement edit modal
-    log.ui.action('handleEditPrompt:notImplemented', { promptId: id });
+    const prompt = prompts.find((p) => p.id === id);
+    if (prompt) {
+      setEditingPrompt(prompt);
+      setEditDialogOpen(true);
+    }
+  }
+
+  async function handleSaveEditedPrompt(id: string, newText: string) {
+    try {
+      log.ui.action('handleSaveEditedPrompt', { promptId: id, newTextLength: newText.length });
+      await chrome.runtime.sendMessage({
+        action: 'promptAction',
+        data: { type: 'edit', promptId: id, newText }
+      });
+      await loadData();
+      log.ui.action('handleSaveEditedPrompt:success', { promptId: id });
+    } catch (error) {
+      log.ui.error('handleSaveEditedPrompt', error);
+      throw error; // Re-throw to let dialog handle error display
+    }
   }
 
   async function handleDuplicatePrompt(id: string) {
@@ -409,6 +465,16 @@ function IndexPopup() {
             onClose={() => setSettingsDialogOpen(false)}
             onSave={handleSaveSettings}
           />
+
+          <EditPromptDialog
+            prompt={editingPrompt}
+            isOpen={editDialogOpen}
+            onClose={() => {
+              setEditDialogOpen(false);
+              setEditingPrompt(null);
+            }}
+            onSave={handleSaveEditedPrompt}
+          />
         </>
       )}
     </div>
@@ -418,5 +484,9 @@ function IndexPopup() {
 // Mount the React app
 const root = document.getElementById('root');
 if (root) {
-  ReactDOM.createRoot(root).render(<IndexPopup />);
+  ReactDOM.createRoot(root).render(
+    <ErrorBoundary>
+      <IndexPopup />
+    </ErrorBoundary>
+  );
 }

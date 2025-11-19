@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release Please
+        uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          # Configuration
+          release-type: node
+          package-name: sora-auto-queue-prompts
+
+          # Bump strategy
+          bump-minor-pre-major: true
+          bump-patch-for-minor-pre-major: true
+
+          # Additional paths to version
+          extra-files: |
+            assets/manifest.json
+
+      # Build and upload extension artifact when a release is created
+      - name: Checkout code
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        if: ${{ steps.release.outputs.release_created }}
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        if: ${{ steps.release.outputs.release_created }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build extension
+        if: ${{ steps.release.outputs.release_created }}
+        run: pnpm run build
+
+      - name: Create extension ZIP
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          cd dist
+          zip -r ../sora-auto-queue-prompts-${{ steps.release.outputs.tag_name }}.zip .
+          cd ..
+
+      - name: Upload Release Artifact
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload ${{ steps.release.outputs.tag_name }} \
+            sora-auto-queue-prompts-${{ steps.release.outputs.tag_name }}.zip \
+            --clobber

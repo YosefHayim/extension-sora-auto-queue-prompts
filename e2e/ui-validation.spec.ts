@@ -28,17 +28,51 @@ test.describe('UI Validation', () => {
   });
 
   test('should display loading state correctly', async ({ page }) => {
-    // TODO: Trigger loading state
-    // Check for loading spinner or skeleton
-    const loadingIndicator = page.getByText(/loading/i);
-    await expect(loadingIndicator).toBeVisible();
+    // Trigger loading by clicking Generate button
+    await page.getByRole('button', { name: /generate/i }).first().click();
+
+    // Fill in minimal form data
+    const contextInput = page.getByPlaceholder(/describe what you want to create/i);
+    await contextInput.fill('Test prompt for loading state');
+
+    // Click generate to trigger loading
+    const generateButton = page.getByRole('button', { name: /generate prompts/i });
+    await generateButton.click();
+
+    // Check for loading indicator (Loader2 icon with spin animation)
+    const loadingIcon = page.locator('svg.animate-spin');
+    await expect(loadingIcon).toBeVisible({ timeout: 2000 });
+
+    // Or check for "Generating..." text
+    const loadingText = page.getByText(/generating/i);
+    await expect(loadingText).toBeVisible({ timeout: 2000 });
   });
 
   test('should handle errors gracefully', async ({ page }) => {
-    // TODO: Simulate an error condition
-    // Should show error message
-    const errorMessage = page.locator('[class*="error"], [role="alert"]');
-    // Error messages should be visible and descriptive
+    // Open settings dialog
+    await page.getByRole('button', { name: /settings/i }).click();
+
+    // Clear API key to trigger error
+    const apiKeyInput = page.getByLabel(/openai api key/i);
+    await apiKeyInput.clear();
+
+    // Save settings
+    await page.getByRole('button', { name: /save/i }).click();
+
+    // Try to generate prompts without API key
+    await page.getByRole('button', { name: /generate/i }).first().click();
+    const contextInput = page.getByPlaceholder(/describe what you want to create/i);
+    await contextInput.fill('Test error handling');
+    await page.getByRole('button', { name: /generate prompts/i }).click();
+
+    // Should show error message with destructive styling
+    const errorMessage = page.locator('[class*="destructive"], [role="alert"], .text-destructive');
+    await expect(errorMessage).toBeVisible({ timeout: 5000 });
+
+    // Error message should be descriptive
+    const errorText = await errorMessage.textContent();
+    expect(errorText).toBeTruthy();
+    expect(errorText!.length).toBeGreaterThan(10); // Should have meaningful error text
   });
 
   test('should validate prompt card actions', async ({ page }) => {

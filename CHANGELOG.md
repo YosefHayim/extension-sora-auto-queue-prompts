@@ -8,13 +8,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Task Master integration for project tracking
-- Consolidated documentation structure in `/docs`
-- Product Requirements Document (PRD) for future features
+- React Error Boundaries for graceful error handling
+- API retry mechanism with exponential backoff for transient failures
+- Queue recovery mechanism on extension startup to reset stale prompts
+- E2E tests integrated into CI pipeline with Playwright
+- Automated versioning and release workflow with release-please
+
+## [2.1.0] - 2025-11-19
+
+### Added
+- Drag-and-drop queue reordering with @dnd-kit library
+- Enhanced component logging system with categorized output
+- DebugPanel tab for comprehensive diagnostics and log viewing
+- Real-time log export functionality
+- Component-level logging with context awareness
 
 ### Changed
-- Reorganized documentation from root-level files to structured `/docs` folder
-- Migrated from npm to pnpm for package management
+- Improved queue management UX with 8px drag activation distance
+- Optimistic UI updates for queue reordering before storage persistence
+
+## [2.0.0] - 2025-11-18
+
+### Added
+- Complete UI/UX redesign with Shadcn UI components
+- Modular component architecture (10 specialized components)
+- E2E testing framework with Playwright
+- Tailwind CSS integration for styling
+- StatusBar, QueueControls, PromptCard, EmptyState components
+- SortablePromptCard wrapper for drag-and-drop support
+- DebugPanel, GenerateDialog, CSVImportDialog, ManualAddDialog, SettingsDialog
+
+### Changed
+- Refactored from monolithic 804-line component to 10 modular components
+- Improved maintainability and testability through component separation
+- Better code reuse and single-responsibility principle
+
+### Breaking Changes
+- Complete UI redesign may affect users familiar with previous interface
+- Component architecture changes (internal, no API changes)
 
 ## [1.0.1] - 2025-11-18
 
@@ -122,10 +153,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 |---------|------|------|--------------|
 | 1.0.0 | 2025-11-18 | Major | Initial release with core features |
 | 1.0.1 | 2025-11-18 | Patch | pnpm migration |
+| 2.0.0 | 2025-11-18 | Major | Shadcn UI redesign, modular components, E2E testing |
+| 2.1.0 | 2025-11-19 | Minor | Drag-and-drop reordering, enhanced logging, DebugPanel |
 | 1.1.0 | Planned | Minor | Templates & Workspaces |
 | 1.2.0 | Planned | Minor | Asset Management & Analytics |
 | 1.3.0 | Planned | Minor | Workflows & Scheduling |
-| 2.0.0 | Planned | Major | Collaboration & Advanced AI |
+| 3.0.0 | Planned | Major | Collaboration & Advanced AI |
 
 ---
 

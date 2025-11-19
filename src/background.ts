@@ -5,6 +5,39 @@ import { PromptActions } from './utils/promptActions';
 import { logger, log } from './utils/logger';
 import type { GeneratedPrompt, PromptEditAction, AspectRatio, PresetType } from './types';
 
+/**
+ * Queue Recovery Mechanism
+ * Resets any stale 'processing' prompts back to 'pending' on extension startup.
+ * This handles cases where the extension was closed/crashed while processing prompts.
+ */
+async function recoverStalePrompts() {
+  try {
+    const prompts = await storage.getPrompts();
+    const stalePrompts = prompts.filter((p) => p.status === 'processing');
+
+    if (stalePrompts.length > 0) {
+      logger.info('queue', `Recovering ${stalePrompts.length} stale prompts`);
+
+      // Reset all processing prompts to pending
+      for (const prompt of stalePrompts) {
+        await storage.updatePrompt(prompt.id, { status: 'pending' });
+      }
+
+      logger.info('queue', `Successfully recovered ${stalePrompts.length} prompts to pending status`);
+    } else {
+      logger.debug('queue', 'No stale prompts found - queue is clean');
+    }
+  } catch (error) {
+    log.extension.error('recoverStalePrompts', error instanceof Error ? error : new Error('Unknown error'));
+  }
+}
+
+// Listen for extension startup
+chrome.runtime.onStartup.addListener(() => {
+  logger.info('extension', 'Service worker started');
+  recoverStalePrompts();
+});
+
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
@@ -12,6 +45,9 @@ chrome.runtime.onInstalled.addListener((details) => {
   } else if (details.reason === 'update') {
     log.extension.updated(chrome.runtime.getManifest().version);
   }
+
+  // Recover stale prompts on install/update
+  recoverStalePrompts();
 });
 
 // Handle messages from popup and content scripts
@@ -68,11 +104,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           return { success: true };
 
         case 'contentLog':
-          // Log from content script to background console
+          // Log from content script - store in logger AND console
           const prefix = '[Content Script]';
-          if (request.level === 'error') {
+          const logLevel = request.level || 'info';
+
+          // Store in logger for Debug tab visibility
+          log.content.log(logLevel, request.message, request.data);
+
+          // Also log to console for real-time debugging
+          if (logLevel === 'error') {
             console.error(prefix, request.message, request.data || '');
-          } else if (request.level === 'warn') {
+          } else if (logLevel === 'warn') {
             console.warn(prefix, request.message, request.data || '');
           } else {
             console.log(prefix, request.message, request.data || '');

@@ -112,9 +112,14 @@ export class QueueProcessor {
 
   private async processPrompt(prompt: GeneratedPrompt): Promise<void> {
     try {
-      // Find the Sora tab
+      // Find the Sora tab (supports both sora.com and sora.chatgpt.com)
       logger.info('queueProcessor', 'Looking for Sora tab...');
-      const tabs = await chrome.tabs.query({ url: '*://sora.com/*' });
+      let tabs = await chrome.tabs.query({ url: '*://sora.com/*' });
+
+      // If not found, try sora.chatgpt.com
+      if (tabs.length === 0) {
+        tabs = await chrome.tabs.query({ url: '*://sora.chatgpt.com/*' });
+      }
 
       logger.info('queueProcessor', `Found ${tabs.length} matching tabs`);
 

@@ -42,11 +42,11 @@ export function DebugPanel() {
 
   async function handleClearLogs() {
     try {
-      log.ui.action('DebugPanel:ClearLogs');
+      // Don't log during clear operation to avoid creating new logs
       await chrome.runtime.sendMessage({ action: 'clearLogs' });
       setLogs([]);
-      log.ui.action('DebugPanel:ClearLogs:Success');
     } catch (error) {
+      // Only log errors, which is acceptable as user should see failures
       log.ui.error('DebugPanel:ClearLogs', error);
     }
   }

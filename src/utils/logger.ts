@@ -181,8 +181,8 @@ class Logger {
 
   async clearLogs(): Promise<void> {
     try {
+      // Don't log the clear action itself to avoid creating new logs
       await chrome.storage.local.set({ logs: [] });
-      this.info('logger', 'Logs cleared');
     } catch (error) {
       console.error('Failed to clear logs:', error);
     }

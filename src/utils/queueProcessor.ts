@@ -81,10 +81,19 @@ export class QueueProcessor {
     } catch (error) {
       // Mark as failed
       await storage.updatePrompt(nextPrompt.id, { status: 'failed' });
-      logger.error('queueProcessor', `Prompt failed: ${nextPrompt.text.substring(0, 50)}...`, { error });
+
+      // Properly log the error
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
+      logger.error('queueProcessor', `Prompt failed: ${nextPrompt.text.substring(0, 50)}...`, {
+        errorMessage: errorMsg,
+        errorStack: errorStack,
+        errorType: error?.constructor?.name,
+      });
 
       // Don't stop the queue, just log and continue
-      console.error('[Sora Auto Queue] Failed to process prompt:', error);
+      console.error('[Sora Auto Queue] Failed to process prompt:', errorMsg, errorStack);
     }
 
     // Update processed count (count both completed and failed)
@@ -104,34 +113,61 @@ export class QueueProcessor {
   private async processPrompt(prompt: GeneratedPrompt): Promise<void> {
     try {
       // Find the Sora tab
+      logger.info('queueProcessor', 'Looking for Sora tab...');
       const tabs = await chrome.tabs.query({ url: '*://sora.com/*' });
 
+      logger.info('queueProcessor', `Found ${tabs.length} matching tabs`);
+
       if (tabs.length === 0) {
-        throw new Error('No Sora tab found. Please open sora.com');
+        const errorMsg = 'No Sora tab found. Please open sora.com in a browser tab.';
+        logger.error('queueProcessor', errorMsg);
+        throw new Error(errorMsg);
       }
 
       const soraTab = tabs[0];
+      logger.info('queueProcessor', 'Sora tab found', {
+        tabId: soraTab.id,
+        url: soraTab.url,
+        title: soraTab.title?.substring(0, 50),
+      });
 
       if (!soraTab.id) {
-        throw new Error('Invalid Sora tab');
+        throw new Error('Invalid Sora tab - no tab ID');
       }
 
       // Send prompt to content script
-      logger.info('queueProcessor', `Submitting prompt to Sora: ${prompt.text.substring(0, 50)}...`);
+      logger.info('queueProcessor', `Submitting prompt to tab ${soraTab.id}: ${prompt.text.substring(0, 50)}...`);
 
       const response = await chrome.tabs.sendMessage(soraTab.id, {
         action: 'submitPrompt',
         prompt: prompt,
       });
 
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to submit prompt');
+      logger.info('queueProcessor', 'Received response from content script', {
+        success: response?.success,
+        hasError: !!response?.error,
+      });
+
+      if (!response || !response.success) {
+        const errorMsg = response?.error || 'Content script did not respond or failed';
+        logger.error('queueProcessor', 'Content script error', { errorMsg });
+        throw new Error(errorMsg);
       }
 
       logger.info('queueProcessor', 'Prompt submitted successfully');
     } catch (error) {
-      logger.error('queueProcessor', 'Failed to process prompt', { error });
-      throw error;
+      // Properly serialize error for logging
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
+      logger.error('queueProcessor', 'Failed to process prompt', {
+        errorMessage: errorMsg,
+        errorStack: errorStack,
+        errorType: error?.constructor?.name,
+      });
+
+      // Re-throw with proper error message
+      throw new Error(errorMsg);
     }
   }
 

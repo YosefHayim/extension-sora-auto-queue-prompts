@@ -37,10 +37,13 @@ test.describe('Prompt Generation', () => {
     const generateButton = page.getByRole('button', { name: /generate/i }).first();
     await generateButton.click();
 
-    // Assert
-    // TODO: Update selector based on actual modal implementation
+    // Assert - Check for Generate dialog with heading
     const modal = page.getByRole('dialog');
     await expect(modal).toBeVisible();
+
+    // Verify modal content
+    const modalHeading = page.getByRole('heading', { name: /generate prompts/i });
+    await expect(modalHeading).toBeVisible();
   });
 
   test('should validate required fields in generate form', async ({ page }) => {

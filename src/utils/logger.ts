@@ -309,4 +309,33 @@ export const log = {
     error: (context: string, error: any) =>
       logger.error('extension', `Extension error: ${context}`, { error }),
   },
+
+  // Content script / DOM operations
+  content: {
+    init: (url: string) =>
+      logger.info('content', `Content script initialized on: ${url}`),
+    domSnapshot: (data: any) =>
+      logger.debug('content', 'DOM snapshot captured', data),
+    elementSearch: (selector: string, found: boolean, details?: any) =>
+      logger.info('content', `Element search: ${selector}`, { found, ...details }),
+    elementClick: (elementType: string, success: boolean, details?: any) =>
+      logger.info('content', `Element click: ${elementType}`, { success, ...details }),
+    inputSet: (elementType: string, value: string, success: boolean, details?: any) =>
+      logger.info('content', `Input set: ${elementType}`, {
+        valueLength: value.length,
+        valuePreview: value.substring(0, 50),
+        success,
+        ...details
+      }),
+    submitAttempt: (method: string, success: boolean, details?: any) =>
+      logger.info('content', `Submit attempt: ${method}`, { success, ...details }),
+    generationStatus: (status: string, details?: any) =>
+      logger.info('content', `Generation status: ${status}`, details),
+    error: (context: string, error: any, domSnapshot?: any) =>
+      logger.error('content', `Content script error: ${context}`, { error, domSnapshot }),
+    log: (level: 'debug' | 'info' | 'warn' | 'error', message: string, data?: any) => {
+      // Generic content script logging
+      logger[level]('content', message, data);
+    },
+  },
 };

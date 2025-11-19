@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Chrome extension (Manifest V3) that automates prompt generation and queue management for Sora AI video/image generation. Built with React 18 + TypeScript 5, featuring AI-powered prompt generation via OpenAI GPT-4, automated submission to sora.com with anti-bot protection, and comprehensive queue management.
+Chrome extension (Manifest V3) that automates prompt generation and queue management for Sora AI video/image generation. Built with React 18 + TypeScript 5 + Shadcn UI, featuring AI-powered prompt generation via OpenAI GPT-4, drag-and-drop queue reordering, automated submission to sora.com with anti-bot protection, and comprehensive queue management with debug panel.
 
-**Current Version:** 1.0.1
+**Current Version:** 2.1.0
 **Test Coverage:** 93.82%
 **Package Manager:** pnpm (migrated from npm in v1.0.1)
+**Architecture:** Component-based (10 modular components)
 
 ## Common Commands
 
@@ -43,12 +44,24 @@ pnpm exec tsc --noEmit    # Type check without emitting files
 
 ## Architecture
 
-### Three-Component System
+### Three-Layer System
 
-**Popup UI (popup.tsx)** - 804-line monolithic React component
-- Single root component with six tabs: Generate, Manual, CSV, Queue, Settings, Debug
-- Polls Chrome storage every 2 seconds for real-time updates
-- All state managed via React hooks (useState)
+**Popup UI (popup.tsx)** - 422-line orchestrator component with modular architecture
+- Main coordinator managing state and component communication
+- Two tabs: Queue (with drag-and-drop reordering) and Debug
+- Real-time updates via Chrome storage change listeners with 100ms debouncing
+- State managed via React hooks (useState)
+- **10 Specialized Components:**
+  - `StatusBar` - Display pending/processing/completed counts
+  - `QueueControls` - Start/pause/resume/stop queue buttons
+  - `PromptCard` - Individual prompt display with actions menu
+  - `SortablePromptCard` - Drag-and-drop wrapper for PromptCard
+  - `EmptyState` - Call-to-action when queue is empty
+  - `DebugPanel` - Comprehensive logging and diagnostics
+  - `GenerateDialog` - AI prompt generation modal
+  - `CSVImportDialog` - CSV file import modal
+  - `ManualAddDialog` - Manual prompt entry modal
+  - `SettingsDialog` - Configuration management modal
 
 **Background Service Worker (background.ts)**
 - Central orchestration hub for all operations
@@ -80,10 +93,23 @@ All communication uses async/await with Chrome's message passing API.
 
 ```
 src/
-├── popup.tsx              # Main UI (804 lines, monolithic)
+├── popup.tsx              # Main UI orchestrator (422 lines)
 ├── background.ts          # Service worker coordinator
 ├── content.ts             # Sora page automation
+├── components/            # 10 modular UI components
+│   ├── StatusBar.tsx      # Status display
+│   ├── QueueControls.tsx  # Queue control buttons
+│   ├── PromptCard.tsx     # Prompt display card
+│   ├── SortablePromptCard.tsx  # Drag-and-drop wrapper
+│   ├── EmptyState.tsx     # Empty queue state
+│   ├── DebugPanel.tsx     # Debug logging UI
+│   ├── GenerateDialog.tsx # AI generation modal
+│   ├── CSVImportDialog.tsx # CSV import modal
+│   ├── ManualAddDialog.tsx # Manual add modal
+│   ├── SettingsDialog.tsx # Settings modal
+│   └── ui/               # Shadcn UI components (button, dialog, tabs, etc.)
 ├── types/index.ts         # TypeScript type definitions
+├── styles/               # Tailwind CSS
 └── utils/
     ├── storage.ts         # Chrome storage abstraction
     ├── promptGenerator.ts # OpenAI API integration
@@ -95,14 +121,19 @@ src/
 tests/
 ├── setup.ts              # Jest + Chrome API mocks
 └── utils/                # Unit tests (mirrors src/utils)
+
+e2e/
+├── prompt-generation.spec.ts  # E2E tests for generation flow
+└── ui-validation.spec.ts      # E2E tests for UI components
 ```
 
 ### Key Files You'll Work With Most
-1. **src/popup.tsx** - All UI changes
-2. **src/background.ts** - Adding new actions/message handlers
-3. **src/types/index.ts** - Defining new data structures
-4. **src/utils/storage.ts** - Storage schema changes
-5. **.github/workflows/ci.yml** - CI/CD pipeline
+1. **src/components/** - UI component changes (StatusBar, QueueControls, DebugPanel, etc.)
+2. **src/popup.tsx** - State management and component orchestration
+3. **src/background.ts** - Adding new actions/message handlers
+4. **src/types/index.ts** - Defining new data structures
+5. **src/utils/storage.ts** - Storage schema changes
+6. **.github/workflows/ci.yml** - CI/CD pipeline
 
 ## Build System
 
@@ -178,6 +209,30 @@ log.ui.info('Tab switched to Queue');
 ### Async/Await
 All Chrome API calls and network requests use async/await, NOT callbacks.
 
+## Key Features
+
+### Drag-and-Drop Queue Reordering (v2.1.0)
+- Uses `@dnd-kit` library for smooth, accessible drag-and-drop
+- 8px activation distance prevents accidental drags
+- Optimistically updates UI before persisting to storage
+- Wrapped in `SortablePromptCard` component
+- See implementation: `src/popup.tsx:250-272`
+
+### Debug Panel (v2.1.0)
+- Comprehensive logging with categorized output (queue, api, ui, content)
+- Real-time log viewing during queue processing
+- Export logs functionality for troubleshooting
+- Clear logs option
+- Component-level logging with context
+- See implementation: `src/components/DebugPanel.tsx`
+
+### AI-Powered Prompt Generation
+- OpenAI GPT-4 integration with temperature control
+- Batch generation (up to 100 prompts)
+- Context-aware prompts
+- Enhanced mode adds technical details (camera angles, lighting, etc.)
+- Refinement and variation generation
+
 ## Important Implementation Details
 
 ### Queue Processor Singleton
@@ -249,20 +304,24 @@ Pre-push hook (Husky) runs tests locally before pushing.
 
 ## Common Pitfalls
 
-### Popup State Polling
-Popup polls storage every 2 seconds. This can cause:
-- Slight delays in UI updates
-- Unnecessary re-renders
+### Real-Time Storage Updates (Implemented v2.1.0+)
+Popup now uses Chrome storage change listeners instead of polling:
+- ✅ Instant UI updates when storage changes
+- ✅ Reduced CPU usage (no polling overhead)
+- ✅ 100ms debouncing for batch operations
+- ✅ Only listens to relevant keys (config, prompts, queueState)
 
-**Future improvement:** Use Chrome storage change listeners.
+Previously polled storage every 2 seconds, which caused delays and unnecessary re-renders.
 
-### Monolithic Popup Component
-`popup.tsx` is a single 804-line component with no sub-components. This makes:
-- Unit testing difficult
-- Code reuse impossible
-- Mental model complex
+### Component-Based Architecture
+`popup.tsx` was refactored in v2.0.0 from a monolithic 804-line component into 10 modular components:
+- ✅ Improved maintainability and testability
+- ✅ Better code reuse and separation of concerns
+- ✅ Each component has a single responsibility
 
-**Future improvement:** Break into smaller components.
+**Recent additions (v2.1.0):**
+- Drag-and-drop queue reordering with `@dnd-kit`
+- Component-level logging with categorized debug output
 
 ### IIFE Bundle Format
 All bundles use IIFE (not ES modules). This means:
@@ -280,19 +339,36 @@ import type { GeneratedPrompt, PromptConfig } from './types';
 
 1. **Define types** in `src/types/index.ts`
 2. **Add business logic** in `src/utils/` or `src/background.ts`
-3. **Add UI** in `src/popup.tsx` (or create new component)
-4. **Add message handler** in `src/background.ts` if needed
-5. **Write tests** in `tests/` directory
-6. **Ensure coverage** with `pnpm run test:coverage` (90%+ required)
-7. **Update documentation** if user-facing
+3. **Create UI component** in `src/components/` (follow existing component patterns)
+4. **Integrate component** in `src/popup.tsx` orchestrator
+5. **Add message handler** in `src/background.ts` if needed
+6. **Write tests** in `tests/` directory (unit + E2E)
+7. **Ensure coverage** with `pnpm run test:coverage` (90%+ required)
+8. **Update documentation** if user-facing
+
+**Component Guidelines:**
+- Use Shadcn UI components for consistency
+- Follow logging pattern with `log.[category].[level]`
+- Implement loading states and error handling
+- Use TypeScript strict mode (no `any` types)
+- Prefer controlled components with props over internal state
 
 ## Debugging
 
-### Enable Debug Logging
+### Enable Debug Logging (v2.1.0)
 1. Click extension icon
-2. Go to Debug tab
-3. Enable logging categories
-4. Export logs for analysis
+2. Switch to **Debug** tab (adjacent to Queue tab)
+3. View real-time categorized logs (queue, api, ui, content)
+4. Use **Export Logs** button to download for analysis
+5. Use **Clear Logs** button to reset log history
+
+**Log Categories:**
+- `queue` - Queue processor operations
+- `api` - OpenAI API calls and responses
+- `ui` - User interface interactions
+- `content` - Content script DOM operations
+
+**Component:** `src/components/DebugPanel.tsx`
 
 ### Chrome DevTools
 - **Popup:** Right-click popup → Inspect
@@ -371,7 +447,20 @@ Never access directly - use `storage.ts` abstraction.
 
 ## Version History
 
-### v1.0.1 (Current)
+### v2.1.0 (Current)
+- Added drag-and-drop queue reordering with `@dnd-kit`
+- Enhanced component logging system
+- Added DebugPanel tab for comprehensive diagnostics
+- Improved queue management UX
+
+### v2.0.0
+- Complete UI/UX redesign with Shadcn UI components
+- Refactored from monolithic 804-line component to 10 modular components
+- Added E2E testing with Playwright
+- Component-based architecture for better maintainability
+- Tailwind CSS integration
+
+### v1.0.1
 - Migrated from npm to pnpm
 - Updated CI/CD to use pnpm
 - Updated Husky to 9.1.7

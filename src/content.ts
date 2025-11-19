@@ -18,14 +18,18 @@ class SoraAutomation {
   /**
    * Log to both console and background (for visibility)
    */
-  private log(level: 'log' | 'error' | 'warn', message: string, data?: any): void {
+  private log(level: 'log' | 'error' | 'warn' | 'info' | 'debug', message: string, data?: any): void {
     const fullMessage = `[Sora Content] ${message}`;
-    console[level](fullMessage, data || '');
+    const consoleLevel = level === 'log' || level === 'debug' ? 'log' : level;
+    console[consoleLevel](fullMessage, data || '');
 
-    // Also send to background for visibility in service worker console
+    // Map to logger levels
+    const loggerLevel = level === 'log' ? 'info' : level === 'debug' ? 'debug' : level;
+
+    // Also send to background for storage in logger
     chrome.runtime.sendMessage({
       action: 'contentLog',
-      level,
+      level: loggerLevel,
       message,
       data,
     }).catch(() => {
@@ -37,28 +41,44 @@ class SoraAutomation {
     // Listen for messages from background script
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       if (request.action === 'submitPrompt') {
+        this.log('info', '📥 Received submitPrompt request', {
+          promptLength: request.prompt?.text?.length,
+          promptPreview: request.prompt?.text?.substring(0, 50),
+        });
         this.submitPrompt(request.prompt)
-          .then(() => sendResponse({ success: true }))
-          .catch((error) => sendResponse({ success: false, error: error.message }));
+          .then(() => {
+            this.log('info', '✅ submitPrompt completed successfully');
+            sendResponse({ success: true });
+          })
+          .catch((error) => {
+            this.log('error', '❌ submitPrompt failed', {
+              error: error.message,
+              stack: error.stack,
+              domSnapshot: this.getDomSnapshot(),
+            });
+            sendResponse({ success: false, error: error.message });
+          });
         return true; // Keep channel open for async response
       }
 
       if (request.action === 'checkReady') {
         const isReady = this.checkIfReady();
+        this.log('debug', 'checkReady request', { isReady });
         sendResponse({ ready: isReady });
         return true;
       }
 
       if (request.action === 'getDomSnapshot') {
         const snapshot = this.getDomSnapshot();
+        this.log('debug', 'getDomSnapshot request');
         sendResponse({ snapshot });
         return true;
       }
     });
 
-    this.log('log', 'Content script loaded');
+    this.log('info', `🚀 Content script initialized on ${window.location.href}`);
     if (this.debugMode) {
-      this.log('log', 'Debug mode enabled');
+      this.log('info', '🐛 Debug mode enabled');
       this.logDomState();
     }
   }
@@ -138,64 +158,63 @@ class SoraAutomation {
    */
   private async submitPrompt(prompt: GeneratedPrompt): Promise<void> {
     if (this.isProcessing) {
+      this.log('warn', 'Already processing a prompt, rejecting new request');
       throw new Error('Already processing a prompt');
     }
 
     this.isProcessing = true;
     this.currentPrompt = prompt;
-    this.generationStarted = false; // Reset generation state
+    this.generationStarted = false;
+
+    this.log('info', '═══ SUBMIT PROMPT START ═══');
+    this.log('info', 'Prompt details', {
+      text: prompt.text,
+      length: prompt.text.length,
+      type: prompt.type,
+      aspectRatio: prompt.aspectRatio,
+    });
 
     try {
-      console.log('[Sora Auto Queue] === SUBMIT PROMPT START ===');
-      console.log('[Sora Auto Queue] Prompt text:', prompt.text);
-      console.log('[Sora Auto Queue] Prompt length:', prompt.text.length);
-
-      // Find the textarea
-      console.log('[Sora Auto Queue] Step 1: Finding textarea...');
+      // Step 1: Find textarea
+      this.log('info', '📍 Step 1: Finding textarea...');
       const textarea = this.findTextarea();
       if (!textarea) {
-        console.error('[Sora Auto Queue] ERROR: Could not find textarea');
-        this.logDomState(); // Log DOM state on error
+        this.log('error', '❌ Step 1 FAILED: Could not find textarea');
+        this.logDomState();
         throw new Error('Could not find Sora textarea input');
       }
+      this.log('info', '✅ Step 1 SUCCESS: Textarea found');
 
-      console.log('[Sora Auto Queue] Textarea found:', {
-        placeholder: textarea.placeholder,
-        currentValue: textarea.value,
-        className: textarea.className,
-        tagName: textarea.tagName,
-      });
-
-      // Clear existing text
-      console.log('[Sora Auto Queue] Step 2: Clearing existing text...');
-      textarea.value = '';
-      console.log('[Sora Auto Queue] Value after clear:', textarea.value);
-
-      // Type the prompt text (simulate human typing)
-      console.log('[Sora Auto Queue] Step 3: Typing prompt...');
+      // Step 2: Type prompt
+      this.log('info', '📍 Step 2: Typing prompt text...');
       await this.typeText(textarea, prompt.text);
-      console.log('[Sora Auto Queue] Value after typing:', textarea.value);
-      console.log('[Sora Auto Queue] Value length:', textarea.value.length);
+      this.log('info', '✅ Step 2 SUCCESS: Text typed');
 
-      // Wait a bit before submitting
-      console.log('[Sora Auto Queue] Step 4: Waiting 500ms before submit...');
+      // Step 3: Wait before submit
+      this.log('info', '📍 Step 3: Waiting 500ms before submit...');
       await this.delay(500);
+      this.log('info', '✅ Step 3 SUCCESS: Wait completed');
 
-      // Submit the prompt
-      console.log('[Sora Auto Queue] Step 5: Submitting form...');
+      // Step 4: Submit form
+      this.log('info', '📍 Step 4: Submitting form...');
       await this.submitForm(textarea);
+      this.log('info', '✅ Step 4 SUCCESS: Form submitted');
 
-      // Wait for processing to complete
-      console.log('[Sora Auto Queue] Step 6: Waiting for completion...');
+      // Step 5: Wait for completion
+      this.log('info', '📍 Step 5: Waiting for generation completion...');
       await this.waitForCompletion();
+      this.log('info', '✅ Step 5 SUCCESS: Generation completed');
 
-      console.log('[Sora Auto Queue] === SUBMIT PROMPT SUCCESS ===');
+      this.log('info', '═══ SUBMIT PROMPT SUCCESS ═══');
       this.isProcessing = false;
       this.currentPrompt = null;
       this.generationStarted = false;
     } catch (error) {
-      console.error('[Sora Auto Queue] === SUBMIT PROMPT ERROR ===');
-      console.error('[Sora Auto Queue] Error:', error);
+      this.log('error', '═══ SUBMIT PROMPT FAILED ═══', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        currentStep: this.isProcessing ? 'unknown' : 'cleanup',
+      });
       this.isProcessing = false;
       this.currentPrompt = null;
       this.generationStarted = false;
@@ -207,6 +226,8 @@ class SoraAutomation {
    * Find the Sora textarea input
    */
   private findTextarea(): HTMLTextAreaElement | null {
+    this.log('info', '🔍 Starting textarea search...');
+
     // Try multiple selectors
     const selectors = [
       'textarea[placeholder*="Describe your image"]',
@@ -216,12 +237,36 @@ class SoraAutomation {
     ];
 
     for (const selector of selectors) {
+      this.log('debug', `Trying selector: ${selector}`);
       const element = document.querySelector<HTMLTextAreaElement>(selector);
-      if (element && element.offsetParent !== null) {
-        // Element is visible
-        return element;
+
+      if (element) {
+        const isVisible = element.offsetParent !== null;
+        this.log('info', `Element found with selector: ${selector}`, {
+          found: true,
+          visible: isVisible,
+          placeholder: element.placeholder,
+          className: element.className,
+          disabled: element.disabled,
+          readOnly: element.readOnly,
+          currentValue: element.value,
+        });
+
+        if (isVisible) {
+          this.log('info', `✅ Textarea found and visible: ${selector}`);
+          return element;
+        } else {
+          this.log('warn', `⚠️ Element found but not visible: ${selector}`);
+        }
+      } else {
+        this.log('debug', `❌ No element found for selector: ${selector}`);
       }
     }
+
+    this.log('error', '❌ Failed to find any visible textarea', {
+      totalSelectors: selectors.length,
+      domSnapshot: this.getDomSnapshot(),
+    });
 
     return null;
   }
@@ -230,91 +275,142 @@ class SoraAutomation {
    * Simulate human typing
    */
   private async typeText(element: HTMLTextAreaElement, text: string): Promise<void> {
-    console.log('[Sora Auto Queue] typeText: Starting to type', text.length, 'characters');
+    this.log('info', `⌨️ Starting to type ${text.length} characters`);
 
-    // Focus the element
+    // Focus the element first
     element.focus();
-    console.log('[Sora Auto Queue] typeText: Element focused');
+    this.log('debug', 'Element focused');
+    await this.delay(100); // Give React time to register focus
 
     // Try to get React's internal instance
     const reactKey = Object.keys(element).find(key => key.startsWith('__react'));
-    console.log('[Sora Auto Queue] typeText: React key found:', reactKey);
+    this.log('debug', 'React key detection', { reactKeyFound: !!reactKey, reactKey });
 
-    // Clear first
-    element.value = '';
+    // Use React's native setter pattern - this is CRITICAL for React to detect changes
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLTextAreaElement.prototype,
+      'value'
+    )?.set;
 
-    // Create and dispatch proper InputEvent (React expects this)
-    const clearInputEvent = new InputEvent('input', {
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-      data: null,
-      inputType: 'deleteContentBackward',
+    if (nativeInputValueSetter) {
+      this.log('info', '✅ Using native React setter pattern');
+      // Call the native setter (bypasses React's controlled input)
+      nativeInputValueSetter.call(element, text);
+    } else {
+      this.log('warn', '⚠️ Native setter not found, falling back to direct assignment');
+      element.value = text;
+    }
+
+    this.log('info', 'Set input value', {
+      valueLength: text.length,
+      valuePreview: text.substring(0, 50),
+      actualValue: element.value.substring(0, 50),
+      valueStuck: element.value === text,
     });
-    element.dispatchEvent(clearInputEvent);
-    console.log('[Sora Auto Queue] typeText: Cleared with InputEvent');
 
-    // Set the full value at once (more reliable for React)
-    element.value = text;
-    console.log('[Sora Auto Queue] typeText: Set full value:', text.substring(0, 50), '...');
-
-    // Dispatch proper InputEvent that React expects
+    // Dispatch the critical input event that React listens for
     const inputEvent = new InputEvent('input', {
       bubbles: true,
       cancelable: true,
       composed: true,
-      data: text,
-      inputType: 'insertText',
     });
     element.dispatchEvent(inputEvent);
-    console.log('[Sora Auto Queue] typeText: Dispatched InputEvent');
+    this.log('debug', 'Dispatched InputEvent');
 
-    // Also dispatch change event
-    const changeEvent = new Event('change', { bubbles: true });
+    // Give React time to process the input event
+    await this.delay(100);
+
+    // Also dispatch change event for good measure
+    const changeEvent = new Event('change', { bubbles: true, cancelable: true });
     element.dispatchEvent(changeEvent);
-    console.log('[Sora Auto Queue] typeText: Dispatched change event');
+    this.log('debug', 'Dispatched change event');
 
-    // Trigger React's onChange handler directly if possible
-    if (reactKey) {
-      const reactProps = (element as any)[reactKey];
-      console.log('[Sora Auto Queue] typeText: React props:', reactProps);
+    // Trigger keydown/keyup events to simulate typing (some apps check for this)
+    element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true }));
+    element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true }));
+    this.log('debug', 'Dispatched keyboard events');
 
-      if (reactProps?.onChange) {
-        console.log('[Sora Auto Queue] typeText: Calling React onChange directly');
-        reactProps.onChange({ target: element, currentTarget: element });
-      }
-    }
+    // Re-focus to ensure React sees the element as active
+    element.focus();
+    this.log('debug', 'Re-focused element');
 
-    // Final blur to trigger any onBlur handlers
-    element.dispatchEvent(new Event('blur', { bubbles: true }));
-    console.log('[Sora Auto Queue] typeText: Completed');
+    // Small delay to let React update its state
+    await this.delay(200);
 
     // Verify the value stuck
-    console.log('[Sora Auto Queue] typeText: Final value check:', element.value.substring(0, 50), '...');
-    console.log('[Sora Auto Queue] typeText: Final value length:', element.value.length);
+    const finalValueCheck = element.value === text;
+    this.log('info', `✅ Input set ${finalValueCheck ? 'successfully' : 'FAILED'}`, {
+      expectedLength: text.length,
+      actualLength: element.value.length,
+      valuePreview: element.value.substring(0, 50),
+      success: finalValueCheck,
+    });
+
+    if (!finalValueCheck) {
+      this.log('error', '❌ Input value did not stick!', {
+        expected: text.substring(0, 100),
+        actual: element.value.substring(0, 100),
+      });
+    }
+
+    // Log submit button state for debugging
+    const submitButton = this.findSubmitButton();
+    if (submitButton) {
+      this.log('info', '🔍 Submit button state after input', {
+        disabled: submitButton.disabled,
+        text: submitButton.textContent?.trim(),
+      });
+    }
   }
 
   /**
    * Submit the form
    */
   private async submitForm(textarea: HTMLTextAreaElement): Promise<void> {
-    console.log('[Sora Auto Queue] submitForm: Attempting to submit...');
+    this.log('info', '📤 Attempting to submit form...');
 
-    // Try to find submit button
-    const submitButton = this.findSubmitButton();
+    // Wait a bit for React to process the input and enable the button
+    await this.delay(300);
+
+    // Try to find submit button with retries
+    let submitButton = this.findSubmitButton();
+    let retries = 0;
+    const maxRetries = 5;
+
+    // Retry finding enabled button (React might take time to update)
+    while (retries < maxRetries && (!submitButton || submitButton.disabled)) {
+      this.log('info', `⏳ Retry ${retries + 1}/${maxRetries}: Waiting for submit button to be enabled...`);
+      await this.delay(500);
+      submitButton = this.findSubmitButton();
+      retries++;
+    }
 
     if (submitButton && !submitButton.disabled) {
-      console.log('[Sora Auto Queue] submitForm: Found submit button:', {
+      this.log('info', '✅ Found enabled submit button', {
         text: submitButton.textContent?.trim(),
         disabled: submitButton.disabled,
         className: submitButton.className,
+        ariaLabel: submitButton.getAttribute('aria-label'),
+        retriesNeeded: retries,
       });
       submitButton.click();
-      console.log('[Sora Auto Queue] submitForm: Button clicked');
+      this.log('info', '🖱️ Submit button clicked');
       return;
     }
 
-    console.log('[Sora Auto Queue] submitForm: No valid submit button found, trying Enter key...');
+    if (submitButton && submitButton.disabled) {
+      this.log('error', '❌ Submit button still disabled after retries', {
+        text: submitButton.textContent?.trim(),
+        className: submitButton.className,
+        textareaValue: textarea.value.substring(0, 50),
+        textareaValueLength: textarea.value.length,
+      });
+      throw new Error('Submit button remained disabled - React may not have detected the input change');
+    } else {
+      this.log('warn', '⚠️ No submit button found after retries');
+    }
+
+    this.log('info', 'Trying alternative: Enter key...');
 
     // Alternative: trigger Enter key
     const enterEvent = new KeyboardEvent('keydown', {
@@ -326,15 +422,15 @@ class SoraAutomation {
       cancelable: true,
     });
     textarea.dispatchEvent(enterEvent);
-    console.log('[Sora Auto Queue] submitForm: Enter key dispatched');
+    this.log('debug', 'Enter key event dispatched');
 
     // Also try form submission
     const form = textarea.closest('form');
     if (form) {
-      console.log('[Sora Auto Queue] submitForm: Found form, dispatching submit event');
+      this.log('info', '📝 Found form element, dispatching submit event');
       form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     } else {
-      console.log('[Sora Auto Queue] submitForm: No form found');
+      this.log('warn', '⚠️ No form element found');
     }
   }
 
@@ -342,24 +438,44 @@ class SoraAutomation {
    * Find the submit button
    */
   private findSubmitButton(): HTMLButtonElement | null {
-    // Look for buttons near the textarea
+    this.log('info', '🔍 Searching for submit button...');
     const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('button'));
+    this.log('debug', `Found ${buttons.length} total buttons on page`);
 
     // Look for submit-like buttons
-    for (const button of buttons) {
+    for (let i = 0; i < buttons.length; i++) {
+      const button = buttons[i];
       const text = button.textContent?.toLowerCase() || '';
       const ariaLabel = button.getAttribute('aria-label')?.toLowerCase() || '';
 
-      if (
+      const isSubmitButton =
         text.includes('generate') ||
         text.includes('create') ||
         text.includes('submit') ||
         ariaLabel.includes('generate') ||
-        ariaLabel.includes('create')
-      ) {
+        ariaLabel.includes('create');
+
+      if (isSubmitButton) {
+        this.log('info', `✅ Found submit button (index ${i})`, {
+          text: button.textContent?.trim(),
+          ariaLabel: button.getAttribute('aria-label'),
+          disabled: button.disabled,
+          className: button.className.substring(0, 100),
+          isVisible: button.offsetParent !== null,
+        });
         return button;
       }
     }
+
+    this.log('warn', '❌ No submit button found', {
+      totalButtons: buttons.length,
+      buttonSample: buttons.slice(0, 5).map((btn, i) => ({
+        index: i,
+        text: btn.textContent?.trim().substring(0, 50),
+        ariaLabel: btn.getAttribute('aria-label'),
+        disabled: btn.disabled,
+      })),
+    });
 
     return null;
   }

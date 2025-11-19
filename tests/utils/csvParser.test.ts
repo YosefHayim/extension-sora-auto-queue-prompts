@@ -110,6 +110,27 @@ describe('CSVParser', () => {
         { prompt: 'Test prompt', type: 'video', aspectRatio: '16:9', variations: 4 },
       ]);
     });
+
+    it('should skip rows with empty prompts', () => {
+      const content = 'prompt\nFirst prompt\n""\nSecond prompt\n   \nThird prompt';
+      const rows = CSVParser.parseContent(content);
+
+      expect(rows).toEqual([
+        { prompt: 'First prompt' },
+        { prompt: 'Second prompt' },
+        { prompt: 'Third prompt' },
+      ]);
+    });
+
+    it('should skip rows with whitespace-only prompts', () => {
+      const content = 'prompt,type\n"First",video\n"   ",image\n"Second",video';
+      const rows = CSVParser.parseContent(content);
+
+      expect(rows).toEqual([
+        { prompt: 'First', type: 'video' },
+        { prompt: 'Second', type: 'video' },
+      ]);
+    });
   });
 
   describe('parseFile', () => {
@@ -153,6 +174,38 @@ describe('CSVParser', () => {
       expect(result.error).toBe('Failed to read file');
 
       fileReaderSpy.mockRestore();
+    });
+
+    it('should handle parse errors during file reading', async () => {
+      const file = new File(['prompt\nTest prompt'], 'test.csv', { type: 'text/csv' });
+      const parseContentSpy = jest.spyOn(CSVParser, 'parseContent');
+
+      parseContentSpy.mockImplementation(() => {
+        throw new Error('Parse error');
+      });
+
+      const result = await CSVParser.parseFile(file);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Parse error');
+
+      parseContentSpy.mockRestore();
+    });
+
+    it('should handle non-Error exceptions during parsing', async () => {
+      const file = new File(['prompt\nTest prompt'], 'test.csv', { type: 'text/csv' });
+      const parseContentSpy = jest.spyOn(CSVParser, 'parseContent');
+
+      parseContentSpy.mockImplementation(() => {
+        throw 'String error';
+      });
+
+      const result = await CSVParser.parseFile(file);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Failed to parse CSV');
+
+      parseContentSpy.mockRestore();
     });
 
     it('should parse CSV file with multiple columns', async () => {

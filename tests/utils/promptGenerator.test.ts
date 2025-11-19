@@ -511,4 +511,198 @@ describe('PromptGenerator', () => {
       expect(result.prompts).toEqual(['Variation 1', 'Variation 2']);
     });
   });
+
+  describe('retry and rate limit handling', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should handle rate limit (429) with retry-after header', async () => {
+      let attemptCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(async () => {
+        attemptCount++;
+        if (attemptCount === 1) {
+          // First attempt: rate limited with Retry-After header
+          return {
+            status: 429,
+            headers: {
+              get: (name: string) => (name === 'Retry-After' ? '2' : null),
+            },
+          };
+        }
+        // Second attempt: success
+        return {
+          ok: true,
+          json: async () => ({
+            choices: [{ message: { content: 'Success prompt' } }],
+          }),
+        };
+      });
+
+      const generator = new PromptGenerator('sk-test-key-1234567890abcdefg');
+      const promise = generator.generatePrompts({
+        context: 'test',
+        count: 1,
+        mediaType: 'video',
+      });
+
+      // Fast-forward through the retry delay
+      await jest.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result.success).toBe(true);
+      expect(result.prompts).toEqual(['Success prompt']);
+      expect(attemptCount).toBe(2);
+    });
+
+    it('should handle rate limit (429) without retry-after header', async () => {
+      let attemptCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(async () => {
+        attemptCount++;
+        if (attemptCount === 1) {
+          // First attempt: rate limited without Retry-After header
+          return {
+            status: 429,
+            headers: {
+              get: () => null,
+            },
+          };
+        }
+        // Second attempt: success
+        return {
+          ok: true,
+          json: async () => ({
+            choices: [{ message: { content: 'Success prompt' } }],
+          }),
+        };
+      });
+
+      const generator = new PromptGenerator('sk-test-key-1234567890abcdefg');
+      const promise = generator.generatePrompts({
+        context: 'test',
+        count: 1,
+        mediaType: 'video',
+      });
+
+      await jest.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result.success).toBe(true);
+      expect(attemptCount).toBe(2);
+    });
+
+    it('should throw error after max retries on rate limit', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        status: 429,
+        headers: {
+          get: () => null,
+        },
+      });
+
+      const generator = new PromptGenerator('sk-test-key-1234567890abcdefg');
+      const promise = generator.generatePrompts({
+        context: 'test',
+        count: 1,
+        mediaType: 'video',
+      });
+
+      await jest.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Rate limit exceeded');
+    });
+
+    it('should retry on 500 server errors', async () => {
+      let attemptCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(async () => {
+        attemptCount++;
+        if (attemptCount === 1) {
+          // First attempt: server error
+          return {
+            ok: false,
+            status: 500,
+          };
+        }
+        // Second attempt: success
+        return {
+          ok: true,
+          json: async () => ({
+            choices: [{ message: { content: 'Success after retry' } }],
+          }),
+        };
+      });
+
+      const generator = new PromptGenerator('sk-test-key-1234567890abcdefg');
+      const promise = generator.generatePrompts({
+        context: 'test',
+        count: 1,
+        mediaType: 'video',
+      });
+
+      await jest.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result.success).toBe(true);
+      expect(result.prompts).toEqual(['Success after retry']);
+      expect(attemptCount).toBe(2);
+    });
+
+    it('should retry on 503 service unavailable', async () => {
+      let attemptCount = 0;
+      (global.fetch as jest.Mock).mockImplementation(async () => {
+        attemptCount++;
+        if (attemptCount === 1) {
+          return {
+            ok: false,
+            status: 503,
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            choices: [{ message: { content: 'Recovered' } }],
+          }),
+        };
+      });
+
+      const generator = new PromptGenerator('sk-test-key-1234567890abcdefg');
+      const promise = generator.generatePrompts({
+        context: 'test',
+        count: 1,
+        mediaType: 'video',
+      });
+
+      await jest.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result.success).toBe(true);
+      expect(attemptCount).toBe(2);
+    });
+
+    it('should return response after max retries on server errors', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: { message: 'Server error' } }),
+      });
+
+      const generator = new PromptGenerator('sk-test-key-1234567890abcdefg');
+      const promise = generator.generatePrompts({
+        context: 'test',
+        count: 1,
+        mediaType: 'video',
+      });
+
+      await jest.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Server error');
+    });
+  });
 });

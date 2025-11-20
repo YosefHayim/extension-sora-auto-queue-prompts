@@ -62,6 +62,11 @@ export const storage = {
 
   async clearPrompts(): Promise<void> {
     await chrome.storage.local.set({ prompts: [] });
+    // Reset queue state when clearing all prompts
+    await this.setQueueState({
+      processedCount: 0,
+      currentPromptId: null,
+    });
   },
 
   async getHistory(): Promise<GeneratedPrompt[]> {
@@ -80,6 +85,14 @@ export const storage = {
     const prompts = await this.getPrompts();
     const filtered = prompts.filter((p) => p.id !== id);
     await chrome.storage.local.set({ prompts: filtered });
+
+    // Reset queue state if all prompts are now deleted
+    if (filtered.length === 0) {
+      await this.setQueueState({
+        processedCount: 0,
+        currentPromptId: null,
+      });
+    }
   },
 
   async getQueueState(): Promise<QueueState> {
@@ -107,6 +120,7 @@ export const storage = {
       isRunning: false,
       isPaused: false,
       currentPromptId: null,
+      processedCount: 0, // Reset counter when stopping queue
     });
   },
 };

@@ -24,7 +24,7 @@ export class QueueProcessor {
   async pauseQueue(): Promise<void> {
     await storage.pauseQueue();
     if (this.currentTimeoutId !== null) {
-      clearTimeout(this.currentTimeoutId);
+      clearTimeout(this.currentTimeoutId as unknown as number);
       this.currentTimeoutId = null;
     }
   }
@@ -38,7 +38,7 @@ export class QueueProcessor {
     this.isProcessing = false;
     await storage.stopQueue();
     if (this.currentTimeoutId !== null) {
-      clearTimeout(this.currentTimeoutId);
+      clearTimeout(this.currentTimeoutId as unknown as number);
       this.currentTimeoutId = null;
     }
   }
@@ -105,9 +105,9 @@ export class QueueProcessor {
     const delay = this.getRandomDelay(config.minDelayMs, config.maxDelayMs);
 
     // Schedule next prompt with random delay
-    this.currentTimeoutId = window.setTimeout(async () => {
+    this.currentTimeoutId = setTimeout(async () => {
       await this.processNext();
-    }, delay);
+    }, delay) as unknown as number;
   }
 
   private async processPrompt(prompt: GeneratedPrompt): Promise<void> {

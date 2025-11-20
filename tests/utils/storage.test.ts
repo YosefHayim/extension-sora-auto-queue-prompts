@@ -432,6 +432,7 @@ describe('Storage Utility', () => {
           isRunning: false,
           isPaused: false,
           currentPromptId: null,
+          processedCount: 0, // Reset counter when stopping queue
         },
       });
     });

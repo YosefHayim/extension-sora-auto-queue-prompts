@@ -218,6 +218,18 @@ async function handlePromptAction(action: PromptEditAction) {
   logger.info('background', `Prompt action: ${action.type}`, { promptId: action.promptId });
 
   const config = await storage.getConfig();
+
+  // Check if API key is required for this action type
+  const apiKeyRequired = ['refine', 'generate-similar'].includes(action.type);
+  if (apiKeyRequired && !config.apiKey) {
+    const errorMsg = 'OpenAI API key is required for this action. Please configure it in Settings.';
+    logger.error('background', `Prompt action ${action.type} failed - no API key`, { promptId: action.promptId });
+    return {
+      success: false,
+      error: errorMsg,
+    };
+  }
+
   const promptActions = new PromptActions(config.apiKey);
 
   const result = await promptActions.executeAction(action);

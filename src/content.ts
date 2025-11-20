@@ -481,14 +481,69 @@ class SoraAutomation {
   }
 
   /**
-   * Wait for the generation to complete
+   * Wait for the generation to complete using network monitoring
    */
   private async waitForCompletion(): Promise<void> {
+    this.log('info', '⏳ Starting completion detection...');
+
+    // Start network monitoring in background
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'startNetworkMonitoring',
+      });
+
+      if (!response || !response.success) {
+        this.log('warn', 'Failed to start network monitoring, falling back to DOM detection');
+        return this.waitForCompletionDOMFallback();
+      }
+
+      this.log('info', '✅ Network monitoring started - waiting for DataDog requests to stop...');
+
+      // Wait for the generationComplete message from background
+      return new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          this.log('error', '❌ Network monitoring timed out after 10 minutes');
+          reject(new Error('Network monitoring timed out after 10 minutes'));
+        }, 10 * 60 * 1000); // 10 minutes max
+
+        const messageListener = (
+          message: any,
+          sender: chrome.runtime.MessageSender,
+          sendResponse: (response?: any) => void
+        ) => {
+          if (message.action === 'generationComplete') {
+            this.log('info', '✅ Generation completed (detected via network monitoring - 30s silence)');
+            clearTimeout(timeout);
+            chrome.runtime.onMessage.removeListener(messageListener);
+
+            // Stop monitoring in background
+            chrome.runtime.sendMessage({ action: 'stopNetworkMonitoring' }).catch(() => {
+              // Ignore errors
+            });
+
+            resolve();
+          }
+        };
+
+        chrome.runtime.onMessage.addListener(messageListener);
+      });
+    } catch (error) {
+      this.log('error', 'Network monitoring error, falling back to DOM detection', {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return this.waitForCompletionDOMFallback();
+    }
+  }
+
+  /**
+   * Fallback completion detection using DOM (old method)
+   */
+  private async waitForCompletionDOMFallback(): Promise<void> {
     const maxWaitTime = 300000; // 5 minutes max
     const checkInterval = 1000; // Check every second
     let elapsedTime = 0;
 
-    console.log('[Sora Auto Queue] Waiting for generation to complete...');
+    this.log('info', '⏳ Using DOM-based completion detection (fallback mode)...');
 
     // Phase 1: Wait for generation to START (loader appears)
     const startWaitTime = 10000; // Wait up to 10 seconds for generation to start
@@ -497,7 +552,7 @@ class SoraAutomation {
     while (startElapsed < startWaitTime && !this.generationStarted) {
       if (this.checkIfGenerationStarted()) {
         this.generationStarted = true;
-        console.log('[Sora Auto Queue] Generation started, waiting for completion...');
+        this.log('info', '✅ Generation started (DOM detected)');
         break;
       }
       await this.delay(checkInterval);
@@ -516,7 +571,7 @@ class SoraAutomation {
     }
 
     // Phase 2: Wait for generation to COMPLETE (loader disappears)
-    this.log('info', '⏳ Phase 2: Waiting for generation to complete...', {
+    this.log('info', '⏳ Phase 2: Waiting for DOM completion...', {
       maxWaitTime: maxWaitTime / 1000 + 's',
       checkInterval: checkInterval / 1000 + 's',
     });
@@ -530,7 +585,7 @@ class SoraAutomation {
       }
 
       if (isReady) {
-        this.log('info', '✅ Generation completed!', {
+        this.log('info', '✅ Generation completed (DOM detected)!', {
           totalTime: elapsedTime / 1000 + 's',
         });
         // Wait a bit more to ensure it's fully done

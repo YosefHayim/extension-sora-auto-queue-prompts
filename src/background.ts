@@ -6,6 +6,97 @@ import { logger, log } from './utils/logger';
 import type { GeneratedPrompt, PromptEditAction, AspectRatio, PresetType } from './types';
 
 /**
+ * Network Activity Monitor
+ * Tracks requests to DataDog RUM endpoint to detect when generation is complete
+ */
+class NetworkMonitor {
+  private monitoredTabs: Map<number, {
+    lastRequestTime: number;
+    checkInterval: number | null;
+    onComplete: () => void;
+  }> = new Map();
+
+  private readonly DATADOG_PATTERN = 'https://browser-intake-datadoghq.com/api/v2/rum';
+  private readonly SILENCE_THRESHOLD = 30000; // 30 seconds
+  private readonly CHECK_INTERVAL = 5000; // Check every 5 seconds
+
+  constructor() {
+    this.setupWebRequestListener();
+  }
+
+  private setupWebRequestListener() {
+    chrome.webRequest.onCompleted.addListener(
+      (details) => {
+        if (details.url.startsWith(this.DATADOG_PATTERN)) {
+          this.handleRequest(details.tabId);
+        }
+      },
+      { urls: ['https://browser-intake-datadoghq.com/*'] }
+    );
+  }
+
+  private handleRequest(tabId: number) {
+    const monitored = this.monitoredTabs.get(tabId);
+    if (monitored) {
+      monitored.lastRequestTime = Date.now();
+      logger.debug('networkMonitor', `DataDog request detected for tab ${tabId}`, {
+        lastRequestTime: new Date(monitored.lastRequestTime).toISOString(),
+      });
+    }
+  }
+
+  startMonitoring(tabId: number, onComplete: () => void) {
+    logger.info('networkMonitor', `Starting network monitoring for tab ${tabId}`);
+
+    // Clear any existing monitoring for this tab
+    this.stopMonitoring(tabId);
+
+    // Set initial request time to now
+    const checkInterval = setInterval(() => {
+      this.checkForCompletion(tabId);
+    }, this.CHECK_INTERVAL) as unknown as number;
+
+    this.monitoredTabs.set(tabId, {
+      lastRequestTime: Date.now(),
+      checkInterval,
+      onComplete,
+    });
+  }
+
+  private checkForCompletion(tabId: number) {
+    const monitored = this.monitoredTabs.get(tabId);
+    if (!monitored) return;
+
+    const timeSinceLastRequest = Date.now() - monitored.lastRequestTime;
+
+    logger.debug('networkMonitor', `Checking completion for tab ${tabId}`, {
+      timeSinceLastRequest: `${timeSinceLastRequest / 1000}s`,
+      threshold: `${this.SILENCE_THRESHOLD / 1000}s`,
+    });
+
+    if (timeSinceLastRequest >= this.SILENCE_THRESHOLD) {
+      logger.info('networkMonitor', `Generation completed for tab ${tabId} - no requests for 30s`);
+      this.stopMonitoring(tabId);
+      monitored.onComplete();
+    }
+  }
+
+  stopMonitoring(tabId: number) {
+    const monitored = this.monitoredTabs.get(tabId);
+    if (monitored) {
+      logger.info('networkMonitor', `Stopping network monitoring for tab ${tabId}`);
+      if (monitored.checkInterval !== null) {
+        clearInterval(monitored.checkInterval as unknown as number);
+      }
+      this.monitoredTabs.delete(tabId);
+    }
+  }
+}
+
+// Initialize network monitor
+const networkMonitor = new NetworkMonitor();
+
+/**
  * Queue Recovery Mechanism
  * Resets any stale 'processing' prompts back to 'pending' on extension startup.
  * This handles cases where the extension was closed/crashed while processing prompts.
@@ -121,6 +212,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }
           return { success: true };
 
+        case 'startNetworkMonitoring':
+          return await handleStartNetworkMonitoring(request.tabId, sender.tab?.id);
+
+        case 'stopNetworkMonitoring':
+          networkMonitor.stopMonitoring(request.tabId || sender.tab?.id || 0);
+          return { success: true };
+
         default:
           logger.warn('background', `Unknown action: ${request.action}`);
           return { success: false, error: 'Unknown action' };
@@ -138,6 +236,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   handler().then(sendResponse);
   return true; // Will respond asynchronously
 });
+
+async function handleStartNetworkMonitoring(requestTabId: number | undefined, senderTabId: number | undefined) {
+  const tabId = requestTabId || senderTabId;
+
+  if (!tabId) {
+    logger.error('background', 'Cannot start network monitoring - no tab ID');
+    return { success: false, error: 'No tab ID provided' };
+  }
+
+  return new Promise<{ success: boolean }>((resolve) => {
+    networkMonitor.startMonitoring(tabId, async () => {
+      // Generation completed - notify the content script
+      try {
+        await chrome.tabs.sendMessage(tabId, {
+          action: 'generationComplete',
+        });
+        logger.info('background', `Notified tab ${tabId} that generation is complete`);
+        resolve({ success: true });
+      } catch (error) {
+        logger.error('background', `Failed to notify tab ${tabId} of completion`, { error });
+        resolve({ success: false });
+      }
+    });
+
+    // Immediately return success for starting monitoring
+    resolve({ success: true });
+  });
+}
 
 async function handleGeneratePrompts(data: {
   context: string;

@@ -6,102 +6,52 @@
 ## What Was Fixed
 
 ### 1. Icon Configuration
-- **Issue**: Plasmo couldn't find icons in the expected location
-- **Fix**: 
-  - Copied icons from `icons/` to `assets/` directory
-  - Created `assets/icon.png` as base icon (Plasmo auto-generates all sizes from this)
-  - Plasmo now automatically generates optimized icons (16, 32, 48, 64, 128)
+- **Issue**: Plasmo was looking for auto-generated icons in `gen-assets/` that didn't exist
+- **Fix**: Added `assets/icon.png` - Plasmo automatically generates all required sizes (16, 32, 48, 64, 128) from this single file
 
 ### 2. File Structure
-- ✅ `popup.tsx` - Root-level popup (Plasmo auto-mounts)
-- ✅ `background/index.ts` - Background service worker
-- ✅ `content/index.ts` - Content script
-- ✅ `assets/icon*.png` - Icons in correct location
+The project now follows Plasmo conventions:
+```
+├── popup.tsx              # Popup UI (auto-detected by Plasmo)
+├── background/
+│   └── index.ts          # Background service worker
+├── content/
+│   ├── index.ts          # Content script
+│   └── index.ts.matches  # Content script URL matches
+├── assets/
+│   └── icon.png          # Main icon (Plasmo auto-resizes)
+└── src/                   # Shared code
+```
 
 ### 3. Configuration
-- ✅ `plasmo.config.ts` - Properly configured (no type errors)
-- ✅ Icons automatically detected and generated
+- `plasmo.config.ts` - Main configuration file
+- Content script matches configured via `content/index.ts.matches`
+- Icons auto-generated from `assets/icon.png`
 
-## Build Output
+## Build Commands
 
-The extension builds to: `build/chrome-mv3-prod/`
-
-**Files generated:**
-- `popup.html` - Popup entry point
-- `popup.*.js` - Bundled popup code
-- `content.*.js` - Content script bundle
-- `static/background/index.js` - Background service worker
-- `icon*.plasmo.png` - Auto-generated optimized icons
-- `manifest.json` - Generated manifest
-
-## Usage
-
-### Development
 ```bash
+# Development with hot reload
 pnpm dev
-```
-- Hot reloading enabled
-- Auto-rebuilds on file changes
 
-### Production Build
-```bash
+# Production build
 pnpm build
-```
-- Output: `build/chrome-mv3-prod/`
-- Optimized and minified bundles
 
-### Package Extension
-```bash
+# Package extension
 pnpm package
 ```
-- Creates a zip file ready for Chrome Web Store
 
-## Content Script Matches
-
-**Note**: The content script currently matches `<all_urls>`. To restrict it to Sora domains only, you can:
-
-1. **Option 1**: Manually edit `build/chrome-mv3-prod/manifest.json` after build:
-   ```json
-   "content_scripts": [{
-     "matches": [
-       "*://sora.com/*",
-       "*://*.sora.com/*", 
-       "*://sora.chatgpt.com/*"
-     ],
-     "js": ["content.*.js"]
-   }]
-   ```
-
-2. **Option 2**: Use a post-build script to update the manifest
-
-3. **Option 3**: Wait for Plasmo to support `.matches` files (may be version-dependent)
+## Build Output
+The built extension is located in: `build/chrome-mv3-prod/`
 
 ## Next Steps
+1. Test the extension by loading `build/chrome-mv3-prod/` in Chrome
+2. Verify all functionality works as expected
+3. The extension is now using Plasmo's optimized build system
 
-1. ✅ Build is working
-2. ⚠️ Content script matches need manual adjustment (or post-build script)
-3. ✅ Icons are properly configured
-4. ✅ All entry points are correctly set up
-
-## Testing
-
-1. Load the extension:
-   - Open Chrome → `chrome://extensions/`
-   - Enable "Developer mode"
-   - Click "Load unpacked"
-   - Select `build/chrome-mv3-prod/` directory
-
-2. Verify functionality:
-   - Popup opens correctly
-   - Background worker is active
-   - Content script loads on Sora pages
-
-## Migration Complete! 🎉
-
-The extension is now fully migrated to Plasmo framework with:
-- ✅ Zero-config build system
-- ✅ Hot reloading in development
+## Benefits
+- ✅ Hot module reloading in development
 - ✅ Optimized production builds
 - ✅ Automatic icon generation
-- ✅ Modern tooling and better DX
-
+- ✅ Better TypeScript support
+- ✅ Zero-config setup

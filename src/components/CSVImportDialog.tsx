@@ -86,9 +86,21 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
     fileInputRef.current?.click();
   }
 
+  function handleBackdropClick(e: React.MouseEvent) {
+    if (e.target === e.currentTarget && !loading) {
+      onClose();
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <Card className="w-full max-w-md p-6 space-y-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={handleBackdropClick}
+    >
+      <Card
+        className="w-full max-w-md p-6 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

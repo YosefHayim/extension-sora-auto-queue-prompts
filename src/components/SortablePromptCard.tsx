@@ -26,11 +26,42 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    cursor: 'grab',
   };
 
+  // Filter out drag events from interactive elements
+  // The PointerSensor with activationConstraint should handle most cases,
+  // but we add an extra check here for safety
+  const filteredListeners = React.useMemo(() => {
+    if (!listeners?.onPointerDown) return listeners;
+
+    const originalHandler = listeners.onPointerDown;
+    return {
+      ...listeners,
+      onPointerDown: (event: PointerEvent) => {
+        const target = event.target as HTMLElement;
+        // Don't start drag if clicking on interactive elements
+        if (
+          target.closest('button') ||
+          target.closest('input') ||
+          target.closest('[role="button"]') ||
+          target.closest('[data-no-drag]')
+        ) {
+          event.stopPropagation();
+          return;
+        }
+        originalHandler(event);
+      },
+    };
+  }, [listeners]);
+
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...filteredListeners}
+      className="relative"
+    >
       <PromptCard {...props} />
     </div>
   );

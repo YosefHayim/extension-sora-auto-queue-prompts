@@ -25,19 +25,18 @@
     "image-generation"
   ],
   "scripts": {
-    "dev": "pnpm run clean && pnpm run build:css && pnpm run bundle -- --watch",
-    "build": "pnpm run clean && pnpm run build:css && pnpm run bundle && pnpm run copy-assets",
-    "build:css": "pnpm exec tailwindcss -i src/styles/globals.css -o dist/popup.css --minify",
-    "dev:css": "pnpm exec tailwindcss -i src/styles/globals.css -o dist/popup.css --watch",
-    "bundle": "esbuild src/background.ts --bundle --outfile=dist/background.js --format=iife --target=chrome90 && esbuild src/popup.tsx --bundle --outfile=dist/popup.js --format=iife --target=chrome90 --external:*.css && esbuild src/content.ts --bundle --outfile=dist/content.js --format=iife --target=chrome90",
-    "copy-assets": "cpy icons dist --parents && cpy \"assets/*.{json,html}\" dist --flat",
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "build:css": "pnpm exec tailwindcss -i src/styles/globals.css -o .plasmo/static/popup.css --minify",
+    "dev:css": "pnpm exec tailwindcss -i src/styles/globals.css -o .plasmo/static/popup.css --watch",
+    "package": "plasmo package",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "clean": "del-cli dist *.zip",
+    "clean": "del-cli .plasmo build dist *.zip",
     "prepare": "husky",
     "lint": "prettier --check \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
@@ -59,7 +58,6 @@
     "clsx": "^2.1.1",
     "cpy-cli": "^5.0.0",
     "del-cli": "^5.1.0",
-    "esbuild": "^0.19.11",
     "husky": "^9.0.11",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
@@ -72,7 +70,8 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^3.4.18",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "plasmo": "^0.90.5"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

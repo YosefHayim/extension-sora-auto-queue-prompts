@@ -49,18 +49,18 @@ export function PromptCard({
     onDelete(prompt.id);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'secondary';
       case 'processing':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'default';
       case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'default';
       case 'failed':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'destructive';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'outline';
     }
   };
 
@@ -98,7 +98,7 @@ export function PromptCard({
             </Badge>
           )}
         </div>
-        <Badge className={cn('text-xs', getStatusColor(prompt.status))}>
+        <Badge variant={getStatusVariant(prompt.status)} className="text-xs">
           {capitalizeFirst(prompt.status)}
         </Badge>
       </CardHeader>
@@ -112,12 +112,14 @@ export function PromptCard({
         )}
       </CardContent>
 
-      <CardFooter className="gap-2">
+      <CardFooter className="gap-2" data-no-drag>
         <Button
           variant="ghost"
           size="icon"
           onClick={handleEdit}
           title="Edit prompt"
+          type="button"
+          data-no-drag
         >
           <Pencil className="h-4 w-4" />
         </Button>
@@ -126,6 +128,8 @@ export function PromptCard({
           size="icon"
           onClick={handleDuplicate}
           title="Duplicate"
+          type="button"
+          data-no-drag
         >
           <Copy className="h-4 w-4" />
         </Button>
@@ -134,24 +138,27 @@ export function PromptCard({
           size="icon"
           onClick={handleRefine}
           title="Refine with AI"
+          type="button"
+          data-no-drag
         >
           <Sparkles className="h-4 w-4" />
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" type="button" data-no-drag>
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleGenerateSimilar}>
+            <DropdownMenuItem onSelect={handleGenerateSimilar}>
+              <Sparkles className="h-4 w-4 mr-2" />
               Generate Similar
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={handleDelete}
-              className="text-destructive"
+              onSelect={handleDelete}
+              className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete

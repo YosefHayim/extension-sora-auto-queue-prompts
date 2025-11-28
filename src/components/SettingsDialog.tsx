@@ -78,9 +78,21 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
     }
   }
 
+  function handleBackdropClick(e: React.MouseEvent) {
+    if (e.target === e.currentTarget && !loading) {
+      onClose();
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto p-4">
-      <Card className="w-full max-w-2xl p-6 space-y-4 my-8">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4"
+      onClick={handleBackdropClick}
+    >
+      <Card
+        className="w-full max-w-2xl p-6 space-y-4 my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

@@ -1,12 +1,12 @@
 import * as React from "react";
 
+import type { DetectedSettings, PromptConfig } from "../types";
 import { Loader2, Save, Settings, X } from "lucide-react";
 
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import type { PromptConfig } from "../types";
 import { Textarea } from "./ui/textarea";
 import { log } from "../utils/logger";
 
@@ -15,13 +15,35 @@ interface SettingsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (updates: Partial<PromptConfig>) => Promise<void>;
+  detectedSettings?: DetectedSettings | null;
 }
 
-export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDialogProps) {
+export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettings }: SettingsDialogProps) {
   const [formData, setFormData] = React.useState<PromptConfig>(config);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
+
+  // Update form data when dialog opens or detected settings change
+  React.useEffect(() => {
+    if (isOpen) {
+      const initialData = { ...config };
+
+      // Apply detected settings if available
+      if (detectedSettings?.success) {
+        if (detectedSettings.mediaType) {
+          initialData.mediaType = detectedSettings.mediaType;
+        }
+        if (detectedSettings.variations) {
+          initialData.variationCount = detectedSettings.variations as 2 | 4;
+        }
+      }
+
+      setFormData(initialData);
+      setError("");
+      setSuccess("");
+    }
+  }, [isOpen, config, detectedSettings]);
 
   if (!isOpen) return null;
 
@@ -112,12 +134,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
               />
               <div className="flex flex-col gap-1">
                 <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
-                <a
-                  href="https://platform.openai.com/api-keys"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-primary hover:underline"
-                >
+                <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
                   Get your API key from OpenAI →
                 </a>
               </div>
@@ -139,7 +156,12 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
 
           {/* Generation Settings */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">Generation Settings</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">Generation Settings</h3>
+              {detectedSettings?.success && (detectedSettings.mediaType || detectedSettings.variations) && (
+                <span className="text-xs text-muted-foreground">Using detected settings from Sora page</span>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -156,13 +178,19 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="mediaType">Media Type</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="mediaType">Media Type</Label>
+                  {detectedSettings?.mediaType && <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Detected)</span>}
+                </div>
                 <select
                   id="mediaType"
                   value={formData.mediaType}
                   onChange={(e) => handleChange("mediaType", e.target.value as "video" | "image")}
                   disabled={loading}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`
+                    flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
+                    ${detectedSettings?.mediaType ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20" : "border-input bg-background"}
+                  `}
                 >
                   <option value="video">Video</option>
                   <option value="image">Image</option>
@@ -170,13 +198,19 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="variationCount">Variations</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="variationCount">Variations</Label>
+                  {detectedSettings?.variations && <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Detected)</span>}
+                </div>
                 <select
                   id="variationCount"
                   value={formData.variationCount}
                   onChange={(e) => handleChange("variationCount", parseInt(e.target.value) as 2 | 4)}
                   disabled={loading}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`
+                    flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
+                    ${detectedSettings?.variations ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20" : "border-input bg-background"}
+                  `}
                 >
                   <option value="2">2</option>
                   <option value="4">4</option>

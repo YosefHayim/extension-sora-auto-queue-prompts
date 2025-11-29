@@ -1,4 +1,15 @@
-import { Filter, X } from "lucide-react";
+import {
+  Filter,
+  X,
+  List,
+  Clock,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Grid3x3,
+  Video,
+  Image as ImageIcon,
+} from "lucide-react";
 
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -17,6 +28,44 @@ interface FilterBarProps {
   filteredCount: number;
   className?: string;
 }
+
+const statusConfig = {
+  all: { icon: List, label: "All", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
+  pending: {
+    icon: Clock,
+    label: "Pending",
+    color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300",
+  },
+  processing: {
+    icon: Loader2,
+    label: "Processing",
+    color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
+  },
+  completed: {
+    icon: CheckCircle2,
+    label: "Completed",
+    color: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
+  },
+  failed: {
+    icon: XCircle,
+    label: "Failed",
+    color: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+  },
+};
+
+const mediaTypeConfig = {
+  all: { icon: Grid3x3, label: "All Types", color: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300" },
+  video: {
+    icon: Video,
+    label: "Video",
+    color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
+  },
+  image: {
+    icon: ImageIcon,
+    label: "Image",
+    color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
+  },
+};
 
 export function FilterBar({
   statusFilter,
@@ -42,43 +91,74 @@ export function FilterBar({
       </div>
 
       <div className="flex gap-1">
-        {(["all", "pending", "processing", "completed", "failed"] as StatusFilter[]).map((status) => (
-          <Button
-            key={status}
-            variant={statusFilter === status ? "default" : "outline"}
-            size="sm"
-            onClick={() => onStatusFilterChange(status)}
-            className="h-7 text-xs"
-          >
-            {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
-          </Button>
-        ))}
+        {(["all", "pending", "processing", "completed", "failed"] as StatusFilter[]).map((status) => {
+          const config = statusConfig[status];
+          const Icon = config.icon;
+          const isActive = statusFilter === status;
+
+          return (
+            <Button
+              key={status}
+              variant="outline"
+              size="sm"
+              onClick={() => onStatusFilterChange(status)}
+              className={cn(
+                "h-7 text-xs gap-1.5 transition-colors border",
+                isActive
+                  ? config.color + " border-transparent"
+                  : "bg-background hover:bg-accent hover:text-accent-foreground border-input"
+              )}
+            >
+              <Icon
+                className={cn(
+                  "h-3.5 w-3.5",
+                  status === "processing" && isActive && "animate-spin"
+                )}
+              />
+              {config.label}
+            </Button>
+          );
+        })}
       </div>
 
       <div className="flex gap-1 ml-2">
-        {(["all", "video", "image"] as MediaTypeFilter[]).map((type) => (
-          <Button
-            key={type}
-            variant={mediaTypeFilter === type ? "default" : "outline"}
-            size="sm"
-            onClick={() => onMediaTypeFilterChange(type)}
-            className="h-7 text-xs"
-          >
-            {type === "all" ? "All Types" : type.charAt(0).toUpperCase() + type.slice(1)}
-          </Button>
-        ))}
+        {(["all", "video", "image"] as MediaTypeFilter[]).map((type) => {
+          const config = mediaTypeConfig[type];
+          const Icon = config.icon;
+          const isActive = mediaTypeFilter === type;
+
+          return (
+            <Button
+              key={type}
+              variant="outline"
+              size="sm"
+              onClick={() => onMediaTypeFilterChange(type)}
+              className={cn(
+                "h-7 text-xs gap-1.5 transition-colors border",
+                isActive
+                  ? config.color + " border-transparent"
+                  : "bg-background hover:bg-accent hover:text-accent-foreground border-input"
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {config.label}
+            </Button>
+          );
+        })}
       </div>
 
+      <Badge
+        variant="secondary"
+        className="text-xs bg-muted text-muted-foreground border border-border ml-auto"
+      >
+        {filteredCount === 1 ? "1 prompt" : `${filteredCount} prompts`}
+      </Badge>
+
       {hasActiveFilters && (
-        <>
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-            <X className="h-3 w-3" />
-            Clear
-          </Button>
-          <Badge variant="secondary" className="text-xs">
-            {filteredCount} of {promptCount}
-          </Badge>
-        </>
+        <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
+          <X className="h-3 w-3" />
+          Clear
+        </Button>
       )}
     </div>
   );

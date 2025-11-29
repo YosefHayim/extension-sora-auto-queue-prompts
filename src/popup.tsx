@@ -650,7 +650,13 @@ function IndexPopup() {
 
           <ManualAddDialog config={config} isOpen={manualDialogOpen} onClose={() => setManualDialogOpen(false)} onAdd={handleManualAdd} />
 
-          <SettingsDialog config={config} isOpen={settingsDialogOpen} onClose={() => setSettingsDialogOpen(false)} onSave={handleSaveSettings} />
+          <SettingsDialog
+            config={config}
+            isOpen={settingsDialogOpen}
+            onClose={() => setSettingsDialogOpen(false)}
+            onSave={handleSaveSettings}
+            detectedSettings={detectedSettings}
+          />
 
           <EditPromptDialog
             prompt={editingPrompt}

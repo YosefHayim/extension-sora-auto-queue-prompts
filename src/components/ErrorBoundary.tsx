@@ -1,8 +1,8 @@
-import { Component, type ReactNode, type ErrorInfo } from 'react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { log } from '../utils/logger';
+import { Component, type ReactNode, type ErrorInfo } from "react";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { log } from "../utils/logger";
 
 interface Props {
   children: ReactNode;
@@ -40,10 +40,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error details to debug panel
-    log.ui.error('ErrorBoundary', error);
+    log.ui.error("ErrorBoundary", error);
 
     // Also log component stack separately for debugging
-    console.error('Component stack:', errorInfo.componentStack);
+    console.error("Component stack:", errorInfo.componentStack);
 
     // Update state with error info for display
     this.setState({
@@ -65,11 +65,11 @@ export class ErrorBoundary extends Component<Props, State> {
       this.props.onReset();
     }
 
-    log.ui.action('ErrorBoundary:Reset');
+    log.ui.action("ErrorBoundary:Reset");
   };
 
   handleReload = () => {
-    log.ui.action('ErrorBoundary:Reload');
+    log.ui.action("ErrorBoundary:Reload");
     window.location.reload();
   };
 
@@ -89,9 +89,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <AlertTriangle className="h-8 w-8 text-destructive" />
               <div>
                 <h2 className="text-xl font-semibold">Something went wrong</h2>
-                <p className="text-sm text-muted-foreground">
-                  The application encountered an unexpected error
-                </p>
+                <p className="text-sm text-muted-foreground">The application encountered an unexpected error</p>
               </div>
             </div>
 
@@ -99,19 +97,13 @@ export class ErrorBoundary extends Component<Props, State> {
             {this.state.error && (
               <div className="space-y-2">
                 <div className="p-3 bg-destructive/10 rounded-md">
-                  <p className="text-sm font-mono text-destructive">
-                    {this.state.error.toString()}
-                  </p>
+                  <p className="text-sm font-mono text-destructive">{this.state.error.toString()}</p>
                 </div>
 
                 {this.state.errorInfo?.componentStack && (
                   <details className="text-xs">
-                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                      Component Stack
-                    </summary>
-                    <pre className="mt-2 p-3 bg-muted rounded-md overflow-x-auto">
-                      {this.state.errorInfo.componentStack}
-                    </pre>
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Component Stack</summary>
+                    <pre className="mt-2 p-3 bg-muted rounded-md overflow-x-auto">{this.state.errorInfo.componentStack}</pre>
                   </details>
                 )}
               </div>
@@ -130,8 +122,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {/* Help Text */}
             <p className="text-xs text-muted-foreground text-center">
-              If this error persists, try reloading the extension or check the Debug tab for
-              more details.
+              If this error persists, try reloading the extension or check the Debug tab for more details.
             </p>
           </Card>
         </div>

@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { PromptCard } from './PromptCard';
-import type { GeneratedPrompt } from '@/types';
+import { CSS } from "@dnd-kit/utilities";
+import type { GeneratedPrompt } from "@/types";
+import { PromptCard } from "./PromptCard";
+import { useMemo } from "react";
+import { useSortable } from "@dnd-kit/sortable";
 
 interface SortablePromptCardProps {
   prompt: GeneratedPrompt;
@@ -14,14 +14,7 @@ interface SortablePromptCardProps {
 }
 
 export function SortablePromptCard(props: SortablePromptCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: props.prompt.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.prompt.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -41,12 +34,7 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
       onPointerDown: (event: PointerEvent) => {
         const target = event.target as HTMLElement;
         // Don't start drag if clicking on interactive elements
-        if (
-          target.closest('button') ||
-          target.closest('input') ||
-          target.closest('[role="button"]') ||
-          target.closest('[data-no-drag]')
-        ) {
+        if (target.closest("button") || target.closest("input") || target.closest('[role="button"]') || target.closest("[data-no-drag]")) {
           event.stopPropagation();
           return;
         }
@@ -56,13 +44,7 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
   }, [listeners]);
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...filteredListeners}
-      className="relative"
-    >
+    <div ref={setNodeRef} style={style} {...attributes} {...filteredListeners} className="relative">
       <PromptCard {...props} />
     </div>
   );

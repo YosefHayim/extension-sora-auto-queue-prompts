@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent, type MouseEvent } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Label } from './ui/label';
@@ -32,7 +32,7 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
   const hasChanges = editedText.trim() !== prompt.text.trim();
   const isValid = editedText.trim().length > 0;
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
     const trimmedText = editedText.trim();
@@ -77,7 +77,7 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
     onClose();
   }
 
-  function handleBackdropClick(e: React.MouseEvent) {
+  function handleBackdropClick(e: MouseEvent) {
     if (e.target === e.currentTarget && !loading) {
       handleCancel();
     }

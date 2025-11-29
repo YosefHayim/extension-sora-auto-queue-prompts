@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, type FormEvent, type MouseEvent } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Input } from './ui/input';
@@ -27,7 +27,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -78,7 +78,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
     }
   }
 
-  function handleBackdropClick(e: React.MouseEvent) {
+  function handleBackdropClick(e: MouseEvent) {
     if (e.target === e.currentTarget && !loading) {
       onClose();
     }

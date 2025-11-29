@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef, type ChangeEvent, type MouseEvent } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { X, Upload, FileText, Download, Loader2 } from 'lucide-react';
@@ -21,7 +21,7 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
 
   if (!isOpen) return null;
 
-  async function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileSelect(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -86,7 +86,7 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
     fileInputRef.current?.click();
   }
 
-  function handleBackdropClick(e: React.MouseEvent) {
+  function handleBackdropClick(e: MouseEvent) {
     if (e.target === e.currentTarget && !loading) {
       onClose();
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, type FormEvent, type MouseEvent } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Input } from './ui/input';
@@ -23,7 +23,7 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate }: Generate
 
   if (!isOpen) return null;
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
     if (!context.trim()) {
@@ -53,7 +53,7 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate }: Generate
     }
   }
 
-  function handleBackdropClick(e: React.MouseEvent) {
+  function handleBackdropClick(e: MouseEvent) {
     if (e.target === e.currentTarget && !loading) {
       onClose();
     }

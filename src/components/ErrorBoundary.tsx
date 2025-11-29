@@ -1,4 +1,4 @@
-import React, { Component, ReactNode } from 'react';
+import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
@@ -13,7 +13,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
-  errorInfo: React.ErrorInfo | null;
+  errorInfo: ErrorInfo | null;
 }
 
 /**
@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error details to debug panel
     log.ui.error('ErrorBoundary', error);
 

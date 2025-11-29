@@ -1,4 +1,5 @@
 import * as React from "react";
+import "./styles/globals.css";
 
 import { Bug, List, Settings, Sparkles } from "lucide-react";
 import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";

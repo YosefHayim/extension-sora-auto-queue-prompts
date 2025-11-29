@@ -26,7 +26,7 @@
   ],
   "scripts": {
     "dev": "plasmo dev",
-    "build": "pnpm clean:dist && plasmo build && pnpm copy:dist",
+    "build": "pnpm clean:dist && pnpm build:css && plasmo build && pnpm copy:dist",
     "build:css": "pnpm exec tailwindcss -i src/styles/globals.css -o .plasmo/static/popup.css --minify",
     "dev:css": "pnpm exec tailwindcss -i src/styles/globals.css -o .plasmo/static/popup.css --watch",
     "copy:dist": "node scripts/copy-to-dist.js",

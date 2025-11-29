@@ -7,6 +7,10 @@ import { useSortable } from "@dnd-kit/sortable";
 
 interface SortablePromptCardProps {
   prompt: GeneratedPrompt;
+  isSelected?: boolean;
+  onToggleSelection?: (id: string) => void;
+  onProcess?: (id: string) => void;
+  onNavigateToPrompt?: (id: string, text: string) => void;
   onEdit: (id: string) => void;
   onDuplicate: (id: string) => void;
   onRefine: (id: string) => void;
@@ -46,7 +50,18 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...filteredListeners} className="relative">
-      <PromptCard {...props} />
+      <PromptCard
+        prompt={props.prompt}
+        isSelected={props.isSelected}
+        onToggleSelection={props.onToggleSelection}
+        onProcess={props.onProcess}
+        onNavigateToPrompt={props.onNavigateToPrompt}
+        onEdit={props.onEdit}
+        onDuplicate={props.onDuplicate}
+        onRefine={props.onRefine}
+        onGenerateSimilar={props.onGenerateSimilar}
+        onDelete={props.onDelete}
+      />
     </div>
   );
 }

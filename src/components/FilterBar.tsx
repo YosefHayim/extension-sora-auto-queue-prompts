@@ -13,6 +13,7 @@ import {
 
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import type { GeneratedPrompt } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -97,26 +98,41 @@ export function FilterBar({
           const isActive = statusFilter === status;
 
           return (
-            <Button
-              key={status}
-              variant="outline"
-              size="sm"
-              onClick={() => onStatusFilterChange(status)}
-              className={cn(
-                "h-7 text-xs gap-1.5 transition-colors border",
-                isActive
-                  ? config.color + " border-transparent"
-                  : "bg-background hover:bg-accent hover:text-accent-foreground border-input"
-              )}
-            >
-              <Icon
-                className={cn(
-                  "h-3.5 w-3.5",
-                  status === "processing" && isActive && "animate-spin"
-                )}
-              />
-              {config.label}
-            </Button>
+            <HoverCard key={status}>
+              <HoverCardTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onStatusFilterChange(status)}
+                  className={cn(
+                    "h-7 text-xs gap-1.5 transition-colors border",
+                    isActive
+                      ? config.color + " border-transparent"
+                      : "bg-background hover:bg-accent hover:text-accent-foreground border-input"
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      "h-3.5 w-3.5",
+                      status === "processing" && isActive && "animate-spin"
+                    )}
+                  />
+                  {config.label}
+                </Button>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-56">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-semibold">Filter: {config.label}</h4>
+                  <p className="text-xs text-muted-foreground">
+                    {status === "all" && "Show all prompts regardless of status"}
+                    {status === "pending" && "Show prompts waiting to be processed"}
+                    {status === "processing" && "Show prompts currently being generated"}
+                    {status === "completed" && "Show successfully completed prompts"}
+                    {status === "failed" && "Show prompts that failed during processing"}
+                  </p>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
           );
         })}
       </div>
@@ -128,21 +144,34 @@ export function FilterBar({
           const isActive = mediaTypeFilter === type;
 
           return (
-            <Button
-              key={type}
-              variant="outline"
-              size="sm"
-              onClick={() => onMediaTypeFilterChange(type)}
-              className={cn(
-                "h-7 text-xs gap-1.5 transition-colors border",
-                isActive
-                  ? config.color + " border-transparent"
-                  : "bg-background hover:bg-accent hover:text-accent-foreground border-input"
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {config.label}
-            </Button>
+            <HoverCard key={type}>
+              <HoverCardTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onMediaTypeFilterChange(type)}
+                  className={cn(
+                    "h-7 text-xs gap-1.5 transition-colors border",
+                    isActive
+                      ? config.color + " border-transparent"
+                      : "bg-background hover:bg-accent hover:text-accent-foreground border-input"
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {config.label}
+                </Button>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-56">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-semibold">Filter: {config.label}</h4>
+                  <p className="text-xs text-muted-foreground">
+                    {type === "all" && "Show all prompts regardless of media type"}
+                    {type === "video" && "Show only video generation prompts"}
+                    {type === "image" && "Show only image generation prompts"}
+                  </p>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
           );
         })}
       </div>

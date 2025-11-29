@@ -66,10 +66,14 @@ describe('ManualAddDialog', () => {
 
   it('should show error when no prompts entered', async () => {
     render(<ManualAddDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onAdd={mockOnAdd} />);
-    fireEvent.click(screen.getByText('Add Prompts'));
+    const submitButton = screen.getByText(/Add.*Prompt/i);
+    fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Please enter at least one prompt')).toBeInTheDocument();
+      const errorElement = screen.queryByText((content, element) => {
+        return element?.textContent?.includes('Please enter at least one prompt') || false;
+      });
+      expect(errorElement).toBeInTheDocument();
     });
   });
 
@@ -103,8 +107,12 @@ describe('ManualAddDialog', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockOnAdd).toHaveBeenCalled();
     });
+
+    await waitFor(() => {
+      expect(mockOnClose).toHaveBeenCalled();
+    }, { timeout: 2000 });
   });
 
   it('should filter empty lines', () => {

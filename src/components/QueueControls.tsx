@@ -1,11 +1,25 @@
+import * as React from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, Square } from 'lucide-react';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Play, Pause, Square, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { log } from '@/utils/logger';
 import type { QueueState } from '@/types';
+
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  const seconds = Math.floor(ms / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (minutes < 60) return `${minutes}m ${remainingSeconds}s`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+}
 
 interface QueueControlsProps {
   queueState: QueueState;
@@ -25,6 +39,25 @@ export function QueueControls({
   onStop,
 }: QueueControlsProps) {
   const progress = totalCount > 0 ? (queueState.processedCount / totalCount) * 100 : 0;
+  const [elapsedTime, setElapsedTime] = React.useState<number>(0);
+
+  // Calculate elapsed time from queue start
+  React.useEffect(() => {
+    if (!queueState.queueStartTime || !queueState.isRunning || queueState.isPaused) {
+      setElapsedTime(0);
+      return;
+    }
+
+    const updateTimer = () => {
+      const elapsed = Date.now() - queueState.queueStartTime!;
+      setElapsedTime(elapsed);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [queueState.queueStartTime, queueState.isRunning, queueState.isPaused]);
 
   const handleStartClick = () => {
     log.ui.action('QueueControls:Start', { totalCount });
@@ -70,38 +103,117 @@ export function QueueControls({
               <span className="text-sm font-medium text-foreground">
                 {queueState.processedCount} / {totalCount} prompts
               </span>
-              {totalCount > 0 && (
-                <span className="text-xs text-muted-foreground">
-                  {Math.round(progress)}% complete
-                </span>
-              )}
+              <div className="flex items-center gap-3">
+                {totalCount > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {Math.round(progress)}% complete
+                  </span>
+                )}
+                {queueState.isRunning && queueState.queueStartTime && !queueState.isPaused && (
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <Badge variant="outline" className="text-xs gap-1.5 cursor-help">
+                        <Timer className="h-3 w-3" />
+                        {formatDuration(elapsedTime)}
+                      </Badge>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-64">
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-semibold">Queue Timer</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Total elapsed time since the queue started. This timer resets when the queue stops or finishes.
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Started: {new Date(queueState.queueStartTime).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="flex gap-2">
             {!queueState.isRunning && (
-              <Button onClick={handleStartClick} size="sm" className="w-28">
-                <Play className="h-4 w-4 mr-2" />
-                Start
-              </Button>
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button onClick={handleStartClick} size="sm" className="w-28">
+                    <Play className="h-4 w-4 mr-2" />
+                    Start
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-64">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold">Start Queue</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Begin processing all pending prompts in the queue. Prompts will be processed sequentially with configurable delays.
+                    </p>
+                    {totalCount > 0 && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {totalCount} prompt{totalCount !== 1 ? 's' : ''} ready to process
+                      </p>
+                    )}
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
             )}
             {queueState.isRunning && !queueState.isPaused && (
-              <Button variant="secondary" onClick={handlePauseClick} size="sm">
-                <Pause className="h-4 w-4 mr-2" />
-                Pause
-              </Button>
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button variant="secondary" onClick={handlePauseClick} size="sm">
+                    <Pause className="h-4 w-4 mr-2" />
+                    Pause
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-64">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold">Pause Queue</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Temporarily pause the queue. The current prompt will finish, but no new prompts will be processed until resumed.
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
             )}
             {queueState.isRunning && queueState.isPaused && (
-              <Button onClick={handleResumeClick} size="sm">
-                <Play className="h-4 w-4 mr-2" />
-                Resume
-              </Button>
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button onClick={handleResumeClick} size="sm">
+                    <Play className="h-4 w-4 mr-2" />
+                    Resume
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-64">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold">Resume Queue</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Continue processing prompts from where you left off. The queue will resume with the next pending prompt.
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
             )}
             {queueState.isRunning && (
-              <Button variant="destructive" onClick={handleStopClick} size="sm">
-                <Square className="h-4 w-4 mr-2" />
-                Stop
-              </Button>
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button variant="destructive" onClick={handleStopClick} size="sm">
+                    <Square className="h-4 w-4 mr-2" />
+                    Stop
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-64">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold">Stop Queue</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Stop the queue completely. The current prompt will finish, but the queue will not process any more prompts.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Timer will reset when stopped.
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
             )}
           </div>
         </div>

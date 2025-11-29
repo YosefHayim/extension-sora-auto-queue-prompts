@@ -116,13 +116,13 @@ describe('SettingsDialog', () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
     const minDelayInput = screen.getByLabelText('Min Delay (seconds)');
     fireEvent.change(minDelayInput, { target: { value: '1' } });
-    fireEvent.click(screen.getByText('Save Settings'));
+    const form = minDelayInput.closest('form');
+    if (form) {
+      fireEvent.submit(form);
+    }
 
     await waitFor(() => {
-      const errorElement = screen.queryByText((content, element) => {
-        return element?.textContent?.includes('Min delay must be between 2-60 seconds') || false;
-      });
-      expect(errorElement).toBeInTheDocument();
+      expect(screen.getByText(/Min delay must be between 2-60 seconds/i)).toBeInTheDocument();
     }, { timeout: 2000 });
   });
 
@@ -130,13 +130,13 @@ describe('SettingsDialog', () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
     const maxDelayInput = screen.getByLabelText('Max Delay (seconds)');
     fireEvent.change(maxDelayInput, { target: { value: '1' } });
-    fireEvent.click(screen.getByText('Save Settings'));
+    const form = maxDelayInput.closest('form');
+    if (form) {
+      fireEvent.submit(form);
+    }
 
     await waitFor(() => {
-      const errorElement = screen.queryByText((content, element) => {
-        return element?.textContent?.includes('Max delay must be') || false;
-      });
-      expect(errorElement).toBeInTheDocument();
+      expect(screen.getByText(/Max delay must be/i)).toBeInTheDocument();
     }, { timeout: 2000 });
   });
 
@@ -144,13 +144,13 @@ describe('SettingsDialog', () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
     const batchSizeInput = screen.getByLabelText('Batch Size');
     fireEvent.change(batchSizeInput, { target: { value: '101' } });
-    fireEvent.click(screen.getByText('Save Settings'));
+    const form = batchSizeInput.closest('form');
+    if (form) {
+      fireEvent.submit(form);
+    }
 
     await waitFor(() => {
-      const errorElement = screen.queryByText((content, element) => {
-        return element?.textContent?.includes('Batch size must be between 1-100') || false;
-      });
-      expect(errorElement).toBeInTheDocument();
+      expect(screen.getByText(/Batch size must be between 1-100/i)).toBeInTheDocument();
     }, { timeout: 2000 });
   });
 
@@ -205,6 +205,34 @@ describe('SettingsDialog', () => {
     const checkbox = screen.getByLabelText(/Enhanced Prompts/);
     fireEvent.click(checkbox);
     expect((checkbox as HTMLInputElement).checked).toBe(true);
+  });
+
+  it('should handle autoRun checkbox', () => {
+    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    const checkbox = screen.getByLabelText(/Auto-start Queue/);
+    fireEvent.click(checkbox);
+    expect((checkbox as HTMLInputElement).checked).toBe(true);
+  });
+
+  it('should handle autoGenerateOnEmpty checkbox', () => {
+    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    const checkbox = screen.getByLabelText(/Auto-generate on Empty Queue/);
+    fireEvent.click(checkbox);
+    expect((checkbox as HTMLInputElement).checked).toBe(true);
+  });
+
+  it('should handle autoGenerateOnReceived checkbox', () => {
+    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    const checkbox = screen.getByLabelText(/Auto-generate on Prompt Received/);
+    fireEvent.click(checkbox);
+    expect((checkbox as HTMLInputElement).checked).toBe(true);
+  });
+
+  it('should display section headers correctly', () => {
+    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    expect(screen.getByText('OpenAI Configuration')).toBeInTheDocument();
+    expect(screen.getByText('Sora Generation Settings')).toBeInTheDocument();
+    expect(screen.getByText('Queue Processing Settings')).toBeInTheDocument();
   });
 });
 

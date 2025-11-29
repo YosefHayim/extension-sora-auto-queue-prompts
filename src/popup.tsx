@@ -2,7 +2,7 @@ import "./styles/globals.css";
 
 import * as React from "react";
 
-import { Bug, Download, List, Moon, Settings, Sparkles, Sun, Trash2 } from "lucide-react";
+import { Bug, Download, List, Moon, Play, Settings, Sparkles, Sun, Trash2, CheckSquare, Square } from "lucide-react";
 import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import type { GeneratedPrompt, PromptConfig, QueueState } from "./types";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Button } from "./components/ui/button";
 import { CSVImportDialog } from "./components/CSVImportDialog";
 import { DebugPanel } from "./components/DebugPanel";
-import { DetectedSettings } from "./components/DetectedSettings";
 import type { DetectedSettings as DetectedSettingsType } from "./types";
 import { EditPromptDialog } from "./components/EditPromptDialog";
 import { EmptyState } from "./components/EmptyState";
@@ -47,6 +46,7 @@ function IndexPopup() {
   const [darkMode, setDarkMode] = React.useState(false);
   const [detectedSettings, setDetectedSettings] = React.useState<DetectedSettingsType | null>(null);
   const [detectingSettings, setDetectingSettings] = React.useState(false);
+  const [selectedPrompts, setSelectedPrompts] = React.useState<Set<string>>(new Set());
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -342,6 +342,72 @@ function IndexPopup() {
     }
   }
 
+  async function handleNavigateToPrompt(id: string, text: string) {
+    try {
+      log.ui.action("handleNavigateToPrompt:clicked", { promptId: id });
+      await chrome.runtime.sendMessage({
+        action: "navigateToPrompt",
+        data: { promptId: id, promptText: text },
+      });
+      log.ui.action("handleNavigateToPrompt:success", { promptId: id });
+    } catch (error) {
+      log.ui.error("handleNavigateToPrompt", error);
+    }
+  }
+
+  async function handleProcessPrompt(promptId: string) {
+    try {
+      log.ui.action("handleProcessPrompt:clicked", { promptId });
+      await chrome.runtime.sendMessage({
+        action: "processSelectedPrompts",
+        data: { promptIds: [promptId] },
+      });
+      await loadData();
+      log.ui.action("handleProcessPrompt:success", { promptId });
+    } catch (error) {
+      log.ui.error("handleProcessPrompt", error);
+    }
+  }
+
+  async function handleProcessSelectedPrompts() {
+    if (selectedPrompts.size === 0) {
+      return;
+    }
+
+    try {
+      log.ui.action("handleProcessSelectedPrompts:clicked", { count: selectedPrompts.size });
+      await chrome.runtime.sendMessage({
+        action: "processSelectedPrompts",
+        data: { promptIds: Array.from(selectedPrompts) },
+      });
+      setSelectedPrompts(new Set());
+      await loadData();
+      log.ui.action("handleProcessSelectedPrompts:success", { count: selectedPrompts.size });
+    } catch (error) {
+      log.ui.error("handleProcessSelectedPrompts", error);
+    }
+  }
+
+  function handleTogglePromptSelection(promptId: string) {
+    setSelectedPrompts((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(promptId)) {
+        newSet.delete(promptId);
+      } else {
+        newSet.add(promptId);
+      }
+      return newSet;
+    });
+  }
+
+  function handleSelectAll() {
+    if (selectedPrompts.size === filteredPrompts.length) {
+      setSelectedPrompts(new Set());
+    } else {
+      setSelectedPrompts(new Set(filteredPrompts.map((p) => p.id)));
+    }
+  }
+
   async function handleDeleteAllPrompts() {
     if (prompts.length === 0) {
       return;
@@ -535,9 +601,6 @@ function IndexPopup() {
 
         {/* Queue Tab Content */}
         <TabsContent value="queue" className="space-y-4">
-          {/* Detected Settings */}
-          <DetectedSettings settings={detectedSettings} onSync={detectSettingsFromSora} loading={detectingSettings} />
-
           {/* Queue Controls */}
           <QueueControls
             queueState={queueState}
@@ -566,15 +629,42 @@ function IndexPopup() {
           {/* Bulk Actions */}
           {prompts.length > 0 && (
             <div className="flex justify-between items-center">
-              <div className="text-sm text-muted-foreground">
-                {filteredPrompts.length === prompts.length ?
-                  <span>
-                    {prompts.length} prompt{prompts.length !== 1 ? "s" : ""}
-                  </span>
-                : <span>
-                    Showing {filteredPrompts.length} of {prompts.length} prompt{prompts.length !== 1 ? "s" : ""}
-                  </span>
-                }
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="gap-2"
+                  title={selectedPrompts.size === filteredPrompts.length ? "Deselect all" : "Select all"}
+                >
+                  {selectedPrompts.size === filteredPrompts.length ? (
+                    <CheckSquare className="h-4 w-4" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
+                  {selectedPrompts.size > 0 ? `${selectedPrompts.size} selected` : "Select"}
+                </Button>
+                {selectedPrompts.size > 0 && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleProcessSelectedPrompts}
+                    className="gap-2"
+                  >
+                    <Play className="h-4 w-4" />
+                    Process Selected ({selectedPrompts.size})
+                  </Button>
+                )}
+                <div className="text-sm text-muted-foreground">
+                  {filteredPrompts.length === prompts.length ?
+                    <span>
+                      {prompts.length} prompt{prompts.length !== 1 ? "s" : ""}
+                    </span>
+                  : <span>
+                      Showing {filteredPrompts.length} of {prompts.length} prompt{prompts.length !== 1 ? "s" : ""}
+                    </span>
+                  }
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setExportDialogOpen(true)} className="gap-2">
@@ -615,6 +705,10 @@ function IndexPopup() {
                       <SortablePromptCard
                         key={prompt.id}
                         prompt={prompt}
+                        isSelected={selectedPrompts.has(prompt.id)}
+                        onToggleSelection={handleTogglePromptSelection}
+                        onProcess={handleProcessPrompt}
+                        onNavigateToPrompt={handleNavigateToPrompt}
                         onEdit={handleEditPrompt}
                         onDuplicate={handleDuplicatePrompt}
                         onRefine={handleRefinePrompt}

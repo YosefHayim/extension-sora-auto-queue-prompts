@@ -94,6 +94,18 @@ class SoraAutomation {
         sendResponse(settings);
         return true;
       }
+
+      if (request.action === 'navigateToPrompt') {
+        this.navigateToPrompt(request.promptText)
+          .then(() => {
+            sendResponse({ success: true });
+          })
+          .catch((error) => {
+            this.log('error', 'Failed to navigate to prompt', { error: error.message });
+            sendResponse({ success: false, error: error.message });
+          });
+        return true;
+      }
     });
 
     this.log('info', `🚀 Content script initialized on ${window.location.href}`);
@@ -902,6 +914,184 @@ class SoraAutomation {
     this.isProcessing = false;
     this.currentPrompt = null;
     this.generationStarted = false;
+  }
+
+  /**
+   * Navigate to a specific prompt in the DOM and highlight generated images
+   */
+  private async navigateToPrompt(promptText: string): Promise<void> {
+    this.log('info', '🔍 Navigating to prompt in DOM', { promptLength: promptText.length });
+
+    // Find textarea with matching text
+    const textareas = Array.from(document.querySelectorAll<HTMLTextAreaElement>('textarea'));
+    let targetTextarea: HTMLTextAreaElement | null = null;
+
+    for (const textarea of textareas) {
+      // Check if textarea contains the prompt text (exact match or contains)
+      const textareaValue = textarea.value.trim();
+      const searchText = promptText.trim();
+      
+      if (textareaValue === searchText || textareaValue.includes(searchText) || searchText.includes(textareaValue)) {
+        targetTextarea = textarea;
+        this.log('info', '✅ Found matching textarea', {
+          valueLength: textareaValue.length,
+          matchType: textareaValue === searchText ? 'exact' : 'partial'
+        });
+        break;
+      }
+    }
+
+    if (!targetTextarea) {
+      // Try to find by scrolling through page and checking all textareas
+      this.log('info', 'Textarea not found in current view, searching page...');
+      
+      // Scroll to top first
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      await this.delay(500);
+
+      for (const textarea of textareas) {
+        // Scroll to textarea
+        textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        await this.delay(300);
+
+        const textareaValue = textarea.value.trim();
+        const searchText = promptText.trim();
+        
+        if (textareaValue === searchText || textareaValue.includes(searchText) || searchText.includes(textareaValue)) {
+          targetTextarea = textarea;
+          this.log('info', '✅ Found matching textarea after scroll');
+          break;
+        }
+      }
+    }
+
+    if (targetTextarea) {
+      // Scroll to textarea and highlight it
+      targetTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      await this.delay(300);
+      
+      // Highlight textarea temporarily
+      const originalBorder = targetTextarea.style.border;
+      const originalBoxShadow = targetTextarea.style.boxShadow;
+      targetTextarea.style.border = '3px solid #10b981';
+      targetTextarea.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.5)';
+      targetTextarea.focus();
+
+      // Remove highlight after 3 seconds
+      setTimeout(() => {
+        if (targetTextarea) {
+          targetTextarea.style.border = originalBorder;
+          targetTextarea.style.boxShadow = originalBoxShadow;
+        }
+      }, 3000);
+
+      this.log('info', '✅ Textarea highlighted');
+    } else {
+      this.log('warn', '⚠️ Could not find textarea with matching prompt text');
+    }
+
+    // Find and highlight generated images/videos
+    await this.highlightGeneratedMedia(promptText);
+  }
+
+  /**
+   * Highlight generated images/videos that match the prompt
+   */
+  private async highlightGeneratedMedia(promptText: string): Promise<void> {
+    this.log('info', '🎨 Highlighting generated media...');
+
+    // Find all images and videos on the page
+    const images = Array.from(document.querySelectorAll<HTMLImageElement>('img'));
+    const videos = Array.from(document.querySelectorAll<HTMLVideoElement>('video'));
+    const allMedia = [...images, ...videos];
+
+    this.log('info', `Found ${allMedia.length} media elements on page`);
+
+    let highlightedCount = 0;
+    const highlightStyle = {
+      border: '4px solid #10b981',
+      borderRadius: '8px',
+      boxShadow: '0 0 20px rgba(16, 185, 129, 0.6)',
+      transition: 'all 0.3s ease',
+    };
+
+    // Find the textarea position
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+      const textareaRect = textarea.getBoundingClientRect();
+      const textareaBottom = textareaRect.bottom + window.scrollY;
+
+      // Highlight images/videos that appear after the textarea (likely generated from it)
+      for (const media of allMedia) {
+        const mediaRect = media.getBoundingClientRect();
+        const mediaTop = mediaRect.top + window.scrollY;
+
+        // If media is below the textarea and within reasonable distance
+        if (mediaTop > textareaBottom && mediaTop < textareaBottom + 2000) {
+          const container = media.closest('div, article, section') as HTMLElement;
+          if (container && !container.hasAttribute('data-sora-highlighted')) {
+            // Store original styles
+            const originalBorder = container.style.border;
+            const originalBoxShadow = container.style.boxShadow;
+            const originalBorderRadius = container.style.borderRadius;
+            const originalTransition = container.style.transition;
+
+            // Apply green highlight
+            Object.assign(container.style, highlightStyle);
+            container.setAttribute('data-sora-highlighted', 'true');
+
+            // Scroll to first highlighted media
+            if (highlightedCount === 0) {
+              container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              await this.delay(500);
+            }
+
+            // Remove highlight after 5 seconds
+            setTimeout(() => {
+              container.style.border = originalBorder;
+              container.style.boxShadow = originalBoxShadow;
+              container.style.borderRadius = originalBorderRadius;
+              container.style.transition = originalTransition;
+              container.removeAttribute('data-sora-highlighted');
+            }, 5000);
+
+            highlightedCount++;
+          }
+        }
+      }
+    } else {
+      // Fallback: Highlight recent media elements (last 4-8 items)
+      const recentMedia = allMedia.slice(-8);
+      for (const media of recentMedia) {
+        const container = media.closest('div, article, section') as HTMLElement;
+        if (container && !container.hasAttribute('data-sora-highlighted')) {
+          const originalBorder = container.style.border;
+          const originalBoxShadow = container.style.boxShadow;
+          const originalBorderRadius = container.style.borderRadius;
+          const originalTransition = container.style.transition;
+
+          Object.assign(container.style, highlightStyle);
+          container.setAttribute('data-sora-highlighted', 'true');
+
+          if (highlightedCount === 0) {
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            await this.delay(500);
+          }
+
+          setTimeout(() => {
+            container.style.border = originalBorder;
+            container.style.boxShadow = originalBoxShadow;
+            container.style.borderRadius = originalBorderRadius;
+            container.style.transition = originalTransition;
+            container.removeAttribute('data-sora-highlighted');
+          }, 5000);
+
+          highlightedCount++;
+        }
+      }
+    }
+
+    this.log('info', `✅ Highlighted ${highlightedCount} media elements`);
   }
 
   /**

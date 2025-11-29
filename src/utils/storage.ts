@@ -116,11 +116,12 @@ export const storage = {
   },
 
   async stopQueue(): Promise<void> {
+    // Don't reset processedCount - keep it so user knows how many were processed
     await this.setQueueState({
       isRunning: false,
       isPaused: false,
       currentPromptId: null,
-      processedCount: 0, // Reset counter when stopping queue
+      // Keep processedCount and totalCount to show progress
     });
   },
 };

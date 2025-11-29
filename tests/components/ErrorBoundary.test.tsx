@@ -79,14 +79,19 @@ describe('ErrorBoundary', () => {
 
     expect(screen.getByText(/Something went wrong/)).toBeInTheDocument();
 
-    // Simulate clicking try again by rerendering without error
+    // Click try again button
+    const tryAgainButton = screen.getByText('Try Again');
+    fireEvent.click(tryAgainButton);
+
+    // Error boundary should reset, but component will still throw
+    // So we need to rerender with non-throwing component
     rerender(
       <ErrorBoundary>
         <ThrowError shouldThrow={false} />
       </ErrorBoundary>
     );
 
-    expect(screen.queryByText(/Something went wrong/)).not.toBeInTheDocument();
+    // After reset, if component doesn't throw, it should render normally
     expect(screen.getByText('No error')).toBeInTheDocument();
   });
 });

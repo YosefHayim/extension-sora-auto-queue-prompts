@@ -75,16 +75,20 @@ describe('ExportDialog', () => {
   it('should display prompt count', () => {
     render(<ExportDialog isOpen={true} onClose={mockOnClose} prompts={mockPrompts} />);
     expect(screen.getByText('Exporting')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('prompts')).toBeInTheDocument();
+    const countText = screen.getByText((content, element) => {
+      return element?.textContent?.includes('2') && element?.textContent?.includes('prompts') || false;
+    });
+    expect(countText).toBeInTheDocument();
   });
 
   it('should display singular prompt count', () => {
     const singlePrompt = [mockPrompts[0]];
     render(<ExportDialog isOpen={true} onClose={mockOnClose} prompts={singlePrompt} />);
     expect(screen.getByText('Exporting')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText('prompt')).toBeInTheDocument();
+    const countText = screen.getByText((content, element) => {
+      return element?.textContent?.includes('1') && element?.textContent?.includes('prompt') || false;
+    });
+    expect(countText).toBeInTheDocument();
   });
 
   it('should have CSV as default format', () => {
@@ -151,8 +155,10 @@ describe('ExportDialog', () => {
   it('should handle empty prompts array', () => {
     render(<ExportDialog isOpen={true} onClose={mockOnClose} prompts={[]} />);
     expect(screen.getByText('Exporting')).toBeInTheDocument();
-    expect(screen.getByText('0')).toBeInTheDocument();
-    expect(screen.getByText('prompts')).toBeInTheDocument();
+    const countText = screen.getByText((content, element) => {
+      return element?.textContent?.includes('0') && element?.textContent?.includes('prompts') || false;
+    });
+    expect(countText).toBeInTheDocument();
   });
 });
 

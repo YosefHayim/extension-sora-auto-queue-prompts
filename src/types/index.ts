@@ -28,6 +28,9 @@ export interface GeneratedPrompt {
   variations?: number; // Per-prompt override
   preset?: PresetType;
   enhanced?: boolean; // Was secret prompt applied
+  startTime?: number; // When processing started
+  completedTime?: number; // When processing completed
+  duration?: number; // Duration in milliseconds
 }
 
 export interface QueueState {
@@ -36,6 +39,7 @@ export interface QueueState {
   currentPromptId: string | null;
   processedCount: number;
   totalCount: number;
+  queueStartTime?: number; // When queue started
 }
 
 export interface StorageData {

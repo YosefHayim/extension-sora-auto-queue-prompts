@@ -17,7 +17,20 @@ export class QueueProcessor {
     }
 
     this.isProcessing = true;
-    await storage.setQueueState({ isRunning: true, isPaused: false });
+    const queueStartTime = Date.now();
+    
+    // Recalculate processed count based on actual prompt statuses
+    const processedCount = await this.recalculateProcessedCount();
+    const prompts = await storage.getPrompts();
+    const totalCount = prompts.length;
+    
+    await storage.setQueueState({ 
+      isRunning: true, 
+      isPaused: false, 
+      queueStartTime,
+      processedCount,
+      totalCount
+    });
     await this.processNext();
   }
 
@@ -30,17 +43,37 @@ export class QueueProcessor {
   }
 
   async resumeQueue(): Promise<void> {
-    await storage.resumeQueue();
+    // Recalculate processed count based on actual prompt statuses before resuming
+    const processedCount = await this.recalculateProcessedCount();
+    await storage.setQueueState({ 
+      isPaused: false,
+      processedCount 
+    });
     await this.processNext();
   }
 
   async stopQueue(): Promise<void> {
     this.isProcessing = false;
     await storage.stopQueue();
+    // Reset queue start time when stopping
+    await storage.setQueueState({ queueStartTime: undefined });
     if (this.currentTimeoutId !== null) {
       clearTimeout(this.currentTimeoutId as unknown as number);
       this.currentTimeoutId = null;
     }
+  }
+
+  /**
+   * Recalculate processed count based on actual prompt statuses
+   * This ensures accuracy when resuming after pause
+   */
+  private async recalculateProcessedCount(): Promise<number> {
+    const prompts = await storage.getPrompts();
+    // Count completed and failed prompts as processed
+    const processed = prompts.filter(
+      (p) => p.status === 'completed' || p.status === 'failed'
+    ).length;
+    return processed;
   }
 
   async processNext(): Promise<void> {
@@ -57,6 +90,7 @@ export class QueueProcessor {
     }
 
     const prompts = await storage.getPrompts();
+    // Only find prompts that are pending (skip completed, processing, and failed)
     const nextPrompt = prompts.find((p) => p.status === 'pending');
 
     // No more pending prompts
@@ -65,8 +99,9 @@ export class QueueProcessor {
       return;
     }
 
-    // Update prompt status
-    await storage.updatePrompt(nextPrompt.id, { status: 'processing' });
+    // Update prompt status and track start time
+    const startTime = Date.now();
+    await storage.updatePrompt(nextPrompt.id, { status: 'processing', startTime });
     await storage.setQueueState({ currentPromptId: nextPrompt.id });
 
     try {
@@ -94,8 +129,8 @@ export class QueueProcessor {
       // Don't stop the queue, just log and continue
       console.error('[Sora Auto Queue] Failed to process prompt:', errorMsg, errorStack);
 
-      // Update processed count for failed prompt
-      const newProcessedCount = queueState.processedCount + 1;
+      // Recalculate processed count based on actual statuses
+      const newProcessedCount = await this.recalculateProcessedCount();
       await storage.setQueueState({ processedCount: newProcessedCount });
 
       // Get random delay before next prompt
@@ -323,6 +358,11 @@ export class QueueProcessor {
 
   private async handleEmptyQueue(): Promise<void> {
     const config = await storage.getConfig();
+    const prompts = await storage.getPrompts();
+    
+    // Recalculate final processed count
+    const finalProcessedCount = await this.recalculateProcessedCount();
+    await storage.setQueueState({ processedCount: finalProcessedCount, totalCount: prompts.length });
 
     // Check if auto-generate on empty is enabled
     if (config.autoGenerateOnEmpty && config.contextPrompt && config.apiKey) {
@@ -332,7 +372,7 @@ export class QueueProcessor {
       // Process the newly generated prompts
       await this.processNext();
     } else {
-      // Stop the queue
+      // Stop the queue and reset timer
       await this.stopQueue();
     }
   }
@@ -375,6 +415,64 @@ export class QueueProcessor {
     if (config.autoGenerateOnReceived && config.contextPrompt && config.apiKey) {
       console.log('Prompts received, auto-generating additional prompts...');
       await this.autoGeneratePrompts(config);
+    }
+  }
+
+  /**
+   * Process specific prompts by their IDs
+   * This allows manual processing of selected prompts
+   */
+  async processSelectedPrompts(promptIds: string[]): Promise<void> {
+    if (promptIds.length === 0) {
+      return;
+    }
+
+    const prompts = await storage.getPrompts();
+    const selectedPrompts = prompts.filter((p) => promptIds.includes(p.id) && p.status === 'pending');
+
+    if (selectedPrompts.length === 0) {
+      logger.warn('queueProcessor', 'No pending prompts found in selection');
+      return;
+    }
+
+    logger.info('queueProcessor', `Processing ${selectedPrompts.length} selected prompt(s)`);
+
+    // Process prompts sequentially with delays
+    for (let i = 0; i < selectedPrompts.length; i++) {
+      const prompt = selectedPrompts[i];
+      
+      try {
+        // Update prompt status and track start time
+        const startTime = Date.now();
+        await storage.updatePrompt(prompt.id, { status: 'processing', startTime });
+        await storage.setQueueState({ currentPromptId: prompt.id });
+
+        // Process the prompt
+        await this.processPrompt(prompt);
+        logger.info('queueProcessor', `Prompt submitted: ${prompt.text.substring(0, 50)}...`);
+
+        // Add delay between prompts (except for the last one)
+        if (i < selectedPrompts.length - 1) {
+          const config = await storage.getConfig();
+          const delay = this.getRandomDelay(config.minDelayMs || 2000, config.maxDelayMs || 5000);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      } catch (error) {
+        // Mark as failed
+        await storage.updatePrompt(prompt.id, { status: 'failed' });
+
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
+
+        logger.error('queueProcessor', `Prompt failed: ${prompt.text.substring(0, 50)}...`, {
+          errorMessage: errorMsg,
+          errorStack: errorStack,
+          errorType: error?.constructor?.name,
+        });
+
+        // Continue with next prompt even if one fails
+        console.error('[Sora Auto Queue] Failed to process prompt:', errorMsg, errorStack);
+      }
     }
   }
 }

@@ -65,7 +65,8 @@ describe('EditPromptDialog', () => {
     render(<EditPromptDialog prompt={mockPrompt} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
     const textarea = screen.getByLabelText('Prompt Text');
     fireEvent.change(textarea, { target: { value: '   ' } }); // Whitespace only
-    fireEvent.click(screen.getByText('Save'));
+    const saveButton = screen.getByText('Save Changes');
+    fireEvent.click(saveButton);
 
     await waitFor(() => {
       const errorElement = screen.queryByText((content, element) => {
@@ -79,7 +80,7 @@ describe('EditPromptDialog', () => {
     render(<EditPromptDialog prompt={mockPrompt} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
     const textarea = screen.getByLabelText('Prompt Text');
     fireEvent.change(textarea, { target: { value: 'Updated text' } });
-    const saveButton = screen.getByText('Save');
+    const saveButton = screen.getByText('Save Changes');
     fireEvent.click(saveButton);
 
     await waitFor(() => {
@@ -89,13 +90,9 @@ describe('EditPromptDialog', () => {
 
   it('should call onClose when no changes are made', async () => {
     render(<EditPromptDialog prompt={mockPrompt} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    const saveButton = screen.getByText('Save');
-    fireEvent.click(saveButton);
-    
-    await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-    expect(mockOnSave).not.toHaveBeenCalled();
+    // Button should be disabled when no changes
+    const saveButton = screen.getByText('Save Changes');
+    expect(saveButton).toBeDisabled();
   });
 
   it('should call onClose when cancel is clicked', () => {
@@ -109,7 +106,7 @@ describe('EditPromptDialog', () => {
     render(<EditPromptDialog prompt={mockPrompt} isOpen={true} onClose={mockOnClose} onSave={slowSave} />);
     const textarea = screen.getByLabelText('Prompt Text');
     fireEvent.change(textarea, { target: { value: 'Updated text' } });
-    const saveButton = screen.getByText('Save');
+    const saveButton = screen.getByText('Save Changes');
     fireEvent.click(saveButton);
 
     await waitFor(() => {
@@ -122,7 +119,7 @@ describe('EditPromptDialog', () => {
     render(<EditPromptDialog prompt={mockPrompt} isOpen={true} onClose={mockOnClose} onSave={errorSave} />);
     const textarea = screen.getByLabelText('Prompt Text');
     fireEvent.change(textarea, { target: { value: 'Updated text' } });
-    const saveButton = screen.getByText('Save');
+    const saveButton = screen.getByText('Save Changes');
     fireEvent.click(saveButton);
 
     await waitFor(() => {

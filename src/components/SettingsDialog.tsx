@@ -1,10 +1,10 @@
 import * as React from "react";
 
 import type { DetectedSettings, PromptConfig } from "../types";
-import { Loader2, Save, Settings, X } from "lucide-react";
+import { Loader2, Save, Settings, X, Key, Sparkles, PlayCircle } from "lucide-react";
 
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
@@ -104,9 +104,9 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4" onClick={handleBackdropClick}>
-      <Card className="w-full max-w-2xl p-6 space-y-4 my-8" onClick={(e) => e.stopPropagation()}>
+      <Card className="w-full max-w-2xl p-6 my-8" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Settings</h2>
@@ -118,157 +118,225 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* API Configuration */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">API Configuration</h3>
-
-            <div className="space-y-2">
-              <Label htmlFor="apiKey">OpenAI API Key (Optional)</Label>
-              <Input
-                id="apiKey"
-                type="password"
-                placeholder="sk-..."
-                value={formData.apiKey || ""}
-                onChange={(e) => handleChange("apiKey", e.target.value)}
-                disabled={loading}
-              />
-              <div className="flex flex-col gap-1">
-                <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
-                <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                  Get your API key from OpenAI →
-                </a>
+          {/* OpenAI Configuration */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Key className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base">OpenAI Configuration</CardTitle>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contextPrompt">Default Context Prompt</Label>
-              <Textarea
-                id="contextPrompt"
-                placeholder="e.g., Create cinematic shots of nature landscapes"
-                value={formData.contextPrompt}
-                onChange={(e) => handleChange("contextPrompt", e.target.value)}
-                disabled={loading}
-                rows={3}
-                className="resize-none"
-              />
-            </div>
-          </div>
-
-          {/* Generation Settings */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">Generation Settings</h3>
-              {detectedSettings?.success && (detectedSettings.mediaType || detectedSettings.variations) && (
-                <span className="text-xs text-muted-foreground">Using detected settings from Sora page</span>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+              <CardDescription>Configure your OpenAI API settings for prompt generation</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="batchSize">Batch Size</Label>
+                <Label htmlFor="apiKey">API Key (Optional)</Label>
                 <Input
-                  id="batchSize"
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={formData.batchSize}
-                  onChange={(e) => handleChange("batchSize", parseInt(e.target.value) || 1)}
+                  id="apiKey"
+                  type="password"
+                  placeholder="sk-..."
+                  value={formData.apiKey || ""}
+                  onChange={(e) => handleChange("apiKey", e.target.value)}
                   disabled={loading}
                 />
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
+                  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                    Get your API key from OpenAI →
+                  </a>
+                </div>
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="contextPrompt">Default Context Prompt</Label>
+                <Textarea
+                  id="contextPrompt"
+                  placeholder="e.g., Create cinematic shots of nature landscapes"
+                  value={formData.contextPrompt}
+                  onChange={(e) => handleChange("contextPrompt", e.target.value)}
+                  disabled={loading}
+                  rows={3}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">This prompt will be used as the base context for all generated prompts</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Sora Generation Settings */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-base">Sora Generation Settings</CardTitle>
+                </div>
+                {detectedSettings?.success && (detectedSettings.mediaType || detectedSettings.variations) && (
+                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">Using detected settings from Sora page</span>
+                )}
+              </div>
+              <CardDescription>Configure how prompts are generated for Sora</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="mediaType">Media Type</Label>
-                  {detectedSettings?.mediaType && <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Detected)</span>}
-                </div>
-                <select
-                  id="mediaType"
-                  value={formData.mediaType}
-                  onChange={(e) => handleChange("mediaType", e.target.value as "video" | "image")}
-                  disabled={loading}
-                  className={`
-                    flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
-                    ${detectedSettings?.mediaType ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20" : "border-input bg-background"}
-                  `}
-                >
-                  <option value="video">Video</option>
-                  <option value="image">Image</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="variationCount">Variations</Label>
-                  {detectedSettings?.variations && <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Detected)</span>}
-                </div>
-                <select
-                  id="variationCount"
-                  value={formData.variationCount}
-                  onChange={(e) => handleChange("variationCount", parseInt(e.target.value) as 2 | 4)}
-                  disabled={loading}
-                  className={`
-                    flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
-                    ${detectedSettings?.variations ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20" : "border-input bg-background"}
-                  `}
-                >
-                  <option value="2">2</option>
-                  <option value="4">4</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.useSecretPrompt}
-                    onChange={(e) => handleChange("useSecretPrompt", e.target.checked)}
+                  <div className="flex items-center gap-2">
+                    {detectedSettings?.mediaType && <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Detected)</span>}
+                  </div>
+                  <select
+                    id="mediaType"
+                    value={formData.mediaType}
+                    onChange={(e) => handleChange("mediaType", e.target.value as "video" | "image")}
                     disabled={loading}
-                    className="h-4 w-4 rounded border-gray-300"
+                    className={`
+                      flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
+                      ${detectedSettings?.mediaType ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20" : "border-input bg-background"}
+                    `}
+                  >
+                    <option value="video">Video</option>
+                    <option value="image">Image</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="variationCount">Variations</Label>
+                  <div className="flex items-center gap-2">
+                    {detectedSettings?.variations && <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Detected)</span>}
+                  </div>
+                  <select
+                    id="variationCount"
+                    value={formData.variationCount}
+                    onChange={(e) => handleChange("variationCount", parseInt(e.target.value) as 2 | 4)}
+                    disabled={loading}
+                    className={`
+                      flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
+                      ${detectedSettings?.variations ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20" : "border-input bg-background"}
+                    `}
+                  >
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="batchSize">Batch Size</Label>
+                  <Input
+                    id="batchSize"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={formData.batchSize}
+                    onChange={(e) => handleChange("batchSize", parseInt(e.target.value) || 1)}
+                    disabled={loading}
                   />
-                  <span>Enhanced Prompts</span>
-                </Label>
-                <p className="text-xs text-muted-foreground">Add technical details to prompts</p>
+                  <p className="text-xs text-muted-foreground">Number of prompts to generate at once</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.useSecretPrompt}
+                      onChange={(e) => handleChange("useSecretPrompt", e.target.checked)}
+                      disabled={loading}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span>Enhanced Prompts</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Add technical details to prompts</p>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* Queue Settings */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">Queue Settings</h3>
+          {/* Queue Processing Settings */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <PlayCircle className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base">Queue Processing Settings</CardTitle>
+              </div>
+              <CardDescription>Configure how the queue processes and submits prompts to Sora</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="minDelayMs">Min Delay (seconds)</Label>
+                    <Input
+                      id="minDelayMs"
+                      type="number"
+                      min="2"
+                      max="60"
+                      value={formData.minDelayMs / 1000}
+                      onChange={(e) => handleChange("minDelayMs", (parseInt(e.target.value) || 2) * 1000)}
+                      disabled={loading}
+                    />
+                  </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="minDelayMs">Min Delay (seconds)</Label>
-                <Input
-                  id="minDelayMs"
-                  type="number"
-                  min="2"
-                  max="60"
-                  value={formData.minDelayMs / 1000}
-                  onChange={(e) => handleChange("minDelayMs", (parseInt(e.target.value) || 2) * 1000)}
-                  disabled={loading}
-                />
+                  <div className="space-y-2">
+                    <Label htmlFor="maxDelayMs">Max Delay (seconds)</Label>
+                    <Input
+                      id="maxDelayMs"
+                      type="number"
+                      min="2"
+                      max="60"
+                      value={formData.maxDelayMs / 1000}
+                      onChange={(e) => handleChange("maxDelayMs", (parseInt(e.target.value) || 5) * 1000)}
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Random delay between {formData.minDelayMs / 1000}-{formData.maxDelayMs / 1000} seconds helps avoid bot detection
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="maxDelayMs">Max Delay (seconds)</Label>
-                <Input
-                  id="maxDelayMs"
-                  type="number"
-                  min="2"
-                  max="60"
-                  value={formData.maxDelayMs / 1000}
-                  onChange={(e) => handleChange("maxDelayMs", (parseInt(e.target.value) || 5) * 1000)}
-                  disabled={loading}
-                />
-              </div>
-            </div>
+              <div className="border-t pt-4 space-y-3">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.autoRun}
+                      onChange={(e) => handleChange("autoRun", e.target.checked)}
+                      disabled={loading}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span>Auto-start Queue</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Automatically start processing the queue when prompts are added</p>
+                </div>
 
-            <p className="text-xs text-muted-foreground">
-              Random delay between {formData.minDelayMs / 1000}-{formData.maxDelayMs / 1000} seconds helps avoid bot detection
-            </p>
-          </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.autoGenerateOnEmpty}
+                      onChange={(e) => handleChange("autoGenerateOnEmpty", e.target.checked)}
+                      disabled={loading}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span>Auto-generate on Empty Queue</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Automatically generate new prompts when the queue becomes empty</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.autoGenerateOnReceived}
+                      onChange={(e) => handleChange("autoGenerateOnReceived", e.target.checked)}
+                      disabled={loading}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span>Auto-generate on Prompt Received</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Automatically generate new prompts when prompts are received from external sources</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
 

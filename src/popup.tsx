@@ -1,24 +1,26 @@
-import * as React from 'react';
-import ReactDOM from 'react-dom/client';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { StatusBar } from './components/StatusBar';
-import { QueueControls } from './components/QueueControls';
-import { SortablePromptCard } from './components/SortablePromptCard';
-import { EmptyState } from './components/EmptyState';
-import { DebugPanel } from './components/DebugPanel';
-import { GenerateDialog } from './components/GenerateDialog';
-import { CSVImportDialog } from './components/CSVImportDialog';
-import { SettingsDialog } from './components/SettingsDialog';
-import { ManualAddDialog } from './components/ManualAddDialog';
-import { EditPromptDialog } from './components/EditPromptDialog';
-import { Button } from './components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs';
-import { Sparkles, Settings, List, Bug } from 'lucide-react';
-import { storage } from './utils/storage';
-import { log } from './utils/logger';
-import type { PromptConfig, GeneratedPrompt, QueueState } from './types';
+import * as React from "react";
+
+import { Bug, List, Settings, Sparkles } from "lucide-react";
+import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import type { GeneratedPrompt, PromptConfig, QueueState } from "./types";
+import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+
+import { Button } from "./components/ui/button";
+import { CSVImportDialog } from "./components/CSVImportDialog";
+import { DebugPanel } from "./components/DebugPanel";
+import { EditPromptDialog } from "./components/EditPromptDialog";
+import { EmptyState } from "./components/EmptyState";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { GenerateDialog } from "./components/GenerateDialog";
+import { ManualAddDialog } from "./components/ManualAddDialog";
+import { QueueControls } from "./components/QueueControls";
+import ReactDOM from "react-dom/client";
+import { SettingsDialog } from "./components/SettingsDialog";
+import { SortablePromptCard } from "./components/SortablePromptCard";
+import { StatusBar } from "./components/StatusBar";
+import { log } from "./utils/logger";
+import { storage } from "./utils/storage";
 
 function IndexPopup() {
   const [config, setConfig] = React.useState<PromptConfig | null>(null);
@@ -47,19 +49,16 @@ function IndexPopup() {
     // Listen for storage changes for real-time updates (replaces 2-second polling)
     let debounceTimer: NodeJS.Timeout | null = null;
 
-    const handleStorageChange = (
-      changes: { [key: string]: chrome.storage.StorageChange },
-      areaName: chrome.storage.AreaName
-    ) => {
-      if (areaName !== 'local') return;
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: chrome.storage.AreaName) => {
+      if (areaName !== "local") return;
 
       // Check if relevant keys changed
-      const relevantKeys = ['config', 'prompts', 'queueState'];
+      const relevantKeys = ["config", "prompts", "queueState"];
       const hasRelevantChanges = relevantKeys.some((key) => key in changes);
 
       if (!hasRelevantChanges) return;
 
-      log.ui.info('Storage change detected', Object.keys(changes));
+      log.ui.info("Storage change detected", Object.keys(changes));
 
       // Debounce rapid changes (e.g., during batch operations)
       if (debounceTimer) {
@@ -84,73 +83,69 @@ function IndexPopup() {
 
   async function loadData() {
     try {
-      const [loadedConfig, loadedPrompts, loadedQueueState] = await Promise.all([
-        storage.getConfig(),
-        storage.getPrompts(),
-        storage.getQueueState(),
-      ]);
+      const [loadedConfig, loadedPrompts, loadedQueueState] = await Promise.all([storage.getConfig(), storage.getPrompts(), storage.getQueueState()]);
       setConfig(loadedConfig);
       setPrompts(loadedPrompts);
       setQueueState(loadedQueueState);
       setLoading(false);
     } catch (error) {
-      log.ui.error('loadData', error);
+      log.ui.error("loadData", error);
       setLoading(false);
     }
   }
 
   // Count prompts by status
-  const pendingCount = prompts.filter((p) => p.status === 'pending').length;
-  const processingCount = prompts.filter((p) => p.status === 'processing').length;
-  const completedCount = prompts.filter((p) => p.status === 'completed').length;
+  const pendingCount = prompts.filter((p) => p.status === "pending").length;
+  const processingCount = prompts.filter((p) => p.status === "processing").length;
+  const completedCount = prompts.filter((p) => p.status === "completed").length;
 
   // Handler functions
   async function handleStartQueue() {
     try {
-      log.ui.action('handleStartQueue:clicked', { promptCount: prompts.length });
-      await chrome.runtime.sendMessage({ action: 'startQueue' });
+      log.ui.action("handleStartQueue:clicked", { promptCount: prompts.length });
+      await chrome.runtime.sendMessage({ action: "startQueue" });
       await loadData();
-      log.ui.action('handleStartQueue:success');
+      log.ui.action("handleStartQueue:success");
     } catch (error) {
-      log.ui.error('handleStartQueue', error);
+      log.ui.error("handleStartQueue", error);
     }
   }
 
   async function handlePauseQueue() {
     try {
-      log.ui.action('handlePauseQueue:clicked');
-      await chrome.runtime.sendMessage({ action: 'pauseQueue' });
+      log.ui.action("handlePauseQueue:clicked");
+      await chrome.runtime.sendMessage({ action: "pauseQueue" });
       await loadData();
-      log.ui.action('handlePauseQueue:success');
+      log.ui.action("handlePauseQueue:success");
     } catch (error) {
-      log.ui.error('handlePauseQueue', error);
+      log.ui.error("handlePauseQueue", error);
     }
   }
 
   async function handleResumeQueue() {
     try {
-      log.ui.action('handleResumeQueue:clicked');
-      await chrome.runtime.sendMessage({ action: 'resumeQueue' });
+      log.ui.action("handleResumeQueue:clicked");
+      await chrome.runtime.sendMessage({ action: "resumeQueue" });
       await loadData();
-      log.ui.action('handleResumeQueue:success');
+      log.ui.action("handleResumeQueue:success");
     } catch (error) {
-      log.ui.error('handleResumeQueue', error);
+      log.ui.error("handleResumeQueue", error);
     }
   }
 
   async function handleStopQueue() {
     try {
-      log.ui.action('handleStopQueue:clicked');
-      await chrome.runtime.sendMessage({ action: 'stopQueue' });
+      log.ui.action("handleStopQueue:clicked");
+      await chrome.runtime.sendMessage({ action: "stopQueue" });
       await loadData();
-      log.ui.action('handleStopQueue:success');
+      log.ui.action("handleStopQueue:success");
     } catch (error) {
-      log.ui.error('handleStopQueue', error);
+      log.ui.error("handleStopQueue", error);
     }
   }
 
   async function handleEditPrompt(id: string) {
-    log.ui.action('handleEditPrompt:clicked', { promptId: id });
+    log.ui.action("handleEditPrompt:clicked", { promptId: id });
     const prompt = prompts.find((p) => p.id === id);
     if (prompt) {
       setEditingPrompt(prompt);
@@ -160,102 +155,102 @@ function IndexPopup() {
 
   async function handleSaveEditedPrompt(id: string, newText: string) {
     try {
-      log.ui.action('handleSaveEditedPrompt', { promptId: id, newTextLength: newText.length });
+      log.ui.action("handleSaveEditedPrompt", { promptId: id, newTextLength: newText.length });
       await chrome.runtime.sendMessage({
-        action: 'promptAction',
-        data: { type: 'edit', promptId: id, newText }
+        action: "promptAction",
+        data: { type: "edit", promptId: id, newText },
       });
       await loadData();
-      log.ui.action('handleSaveEditedPrompt:success', { promptId: id });
+      log.ui.action("handleSaveEditedPrompt:success", { promptId: id });
     } catch (error) {
-      log.ui.error('handleSaveEditedPrompt', error);
+      log.ui.error("handleSaveEditedPrompt", error);
       throw error; // Re-throw to let dialog handle error display
     }
   }
 
   async function handleDuplicatePrompt(id: string) {
     try {
-      log.ui.action('handleDuplicatePrompt:clicked', { promptId: id });
+      log.ui.action("handleDuplicatePrompt:clicked", { promptId: id });
       await chrome.runtime.sendMessage({
-        action: 'promptAction',
-        data: { type: 'duplicate', promptId: id }
+        action: "promptAction",
+        data: { type: "duplicate", promptId: id },
       });
       await loadData();
-      log.ui.action('handleDuplicatePrompt:success', { promptId: id });
+      log.ui.action("handleDuplicatePrompt:success", { promptId: id });
     } catch (error) {
-      log.ui.error('handleDuplicatePrompt', error);
+      log.ui.error("handleDuplicatePrompt", error);
     }
   }
 
   async function handleRefinePrompt(id: string) {
     try {
-      log.ui.action('handleRefinePrompt:clicked', { promptId: id });
+      log.ui.action("handleRefinePrompt:clicked", { promptId: id });
       await chrome.runtime.sendMessage({
-        action: 'promptAction',
-        data: { type: 'refine', promptId: id }
+        action: "promptAction",
+        data: { type: "refine", promptId: id },
       });
       await loadData();
-      log.ui.action('handleRefinePrompt:success', { promptId: id });
+      log.ui.action("handleRefinePrompt:success", { promptId: id });
     } catch (error) {
-      log.ui.error('handleRefinePrompt', error);
+      log.ui.error("handleRefinePrompt", error);
     }
   }
 
   async function handleGenerateSimilar(id: string) {
     try {
-      log.ui.action('handleGenerateSimilar:clicked', { promptId: id });
+      log.ui.action("handleGenerateSimilar:clicked", { promptId: id });
       await chrome.runtime.sendMessage({
-        action: 'promptAction',
-        data: { type: 'generate-similar', promptId: id }
+        action: "promptAction",
+        data: { type: "generate-similar", promptId: id },
       });
       await loadData();
-      log.ui.action('handleGenerateSimilar:success', { promptId: id });
+      log.ui.action("handleGenerateSimilar:success", { promptId: id });
     } catch (error) {
-      log.ui.error('handleGenerateSimilar', error);
+      log.ui.error("handleGenerateSimilar", error);
     }
   }
 
   async function handleDeletePrompt(id: string) {
     try {
-      log.ui.action('handleDeletePrompt:clicked', { promptId: id });
+      log.ui.action("handleDeletePrompt:clicked", { promptId: id });
       await chrome.runtime.sendMessage({
-        action: 'promptAction',
-        data: { type: 'delete', promptId: id }
+        action: "promptAction",
+        data: { type: "delete", promptId: id },
       });
       await loadData();
-      log.ui.action('handleDeletePrompt:success', { promptId: id });
+      log.ui.action("handleDeletePrompt:success", { promptId: id });
     } catch (error) {
-      log.ui.error('handleDeletePrompt', error);
+      log.ui.error("handleDeletePrompt", error);
     }
   }
 
   function handleGenerate() {
-    log.ui.action('handleGenerate:clicked');
+    log.ui.action("handleGenerate:clicked");
     setGenerateDialogOpen(true);
   }
 
   function handleImport() {
-    log.ui.action('handleImport:clicked');
+    log.ui.action("handleImport:clicked");
     setCsvDialogOpen(true);
   }
 
   function handleManual() {
-    log.ui.action('handleManual:clicked');
+    log.ui.action("handleManual:clicked");
     setManualDialogOpen(true);
   }
 
   function handleSettings() {
-    log.ui.action('handleSettings:clicked');
+    log.ui.action("handleSettings:clicked");
     setSettingsDialogOpen(true);
   }
 
   async function handleGeneratePrompts(count: number, context: string) {
     if (!config) return;
 
-    log.ui.action('handleGeneratePrompts', { count, contextLength: context.length });
+    log.ui.action("handleGeneratePrompts", { count, contextLength: context.length });
 
     const response = await chrome.runtime.sendMessage({
-      action: 'generatePrompts',
+      action: "generatePrompts",
       data: {
         context,
         count,
@@ -266,41 +261,41 @@ function IndexPopup() {
 
     if (response.success) {
       await loadData();
-      log.ui.action('handleGeneratePrompts:success', { count: response.count });
+      log.ui.action("handleGeneratePrompts:success", { count: response.count });
     } else {
-      log.ui.error('handleGeneratePrompts', response.error);
-      throw new Error(response.error || 'Failed to generate prompts');
+      log.ui.error("handleGeneratePrompts", response.error);
+      throw new Error(response.error || "Failed to generate prompts");
     }
   }
 
   async function handleImportCSV(newPrompts: GeneratedPrompt[]) {
-    log.ui.action('handleImportCSV', { count: newPrompts.length });
+    log.ui.action("handleImportCSV", { count: newPrompts.length });
 
     await storage.addPrompts(newPrompts);
     await loadData();
 
-    log.ui.action('handleImportCSV:success', { count: newPrompts.length });
+    log.ui.action("handleImportCSV:success", { count: newPrompts.length });
   }
 
   async function handleManualAdd(newPrompts: GeneratedPrompt[]) {
-    log.ui.action('handleManualAdd', { count: newPrompts.length });
+    log.ui.action("handleManualAdd", { count: newPrompts.length });
 
     await storage.addPrompts(newPrompts);
     await loadData();
 
-    log.ui.action('handleManualAdd:success', { count: newPrompts.length });
+    log.ui.action("handleManualAdd:success", { count: newPrompts.length });
   }
 
   async function handleSaveSettings(updates: Partial<PromptConfig>) {
     if (!config) return;
 
-    log.ui.action('handleSaveSettings');
+    log.ui.action("handleSaveSettings");
 
     const newConfig = { ...config, ...updates };
     await storage.setConfig(newConfig);
     setConfig(newConfig);
 
-    log.ui.action('handleSaveSettings:success');
+    log.ui.action("handleSaveSettings:success");
   }
 
   async function handleDragEnd(event: DragEndEvent) {
@@ -324,7 +319,7 @@ function IndexPopup() {
 
     // Save to storage
     await storage.setPrompts(reorderedPrompts);
-    log.ui.action('handleDragEnd', { from: oldIndex, to: newIndex });
+    log.ui.action("handleDragEnd", { from: oldIndex, to: newIndex });
   }
 
   if (loading) {
@@ -349,11 +344,7 @@ function IndexPopup() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-foreground">Sora Auto Queue</h1>
-          <StatusBar
-            pendingCount={pendingCount}
-            processingCount={processingCount}
-            completedCount={completedCount}
-          />
+          <StatusBar pendingCount={pendingCount} processingCount={processingCount} completedCount={completedCount} />
         </div>
 
         <div className="flex gap-2">
@@ -394,22 +385,10 @@ function IndexPopup() {
 
           {/* Prompt List */}
           <div className="space-y-3">
-            {prompts.length === 0 ? (
-              <EmptyState
-                onGenerate={handleGenerate}
-                onImport={handleImport}
-                onManual={handleManual}
-              />
-            ) : (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={prompts.map((p) => p.id)}
-                  strategy={verticalListSortingStrategy}
-                >
+            {prompts.length === 0 ?
+              <EmptyState onGenerate={handleGenerate} onImport={handleImport} onManual={handleManual} />
+            : <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={prompts.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-3">
                     {prompts.map((prompt) => (
                       <SortablePromptCard
@@ -425,7 +404,7 @@ function IndexPopup() {
                   </div>
                 </SortableContext>
               </DndContext>
-            )}
+            }
           </div>
         </TabsContent>
 
@@ -438,33 +417,13 @@ function IndexPopup() {
       {/* Dialogs */}
       {config && (
         <>
-          <GenerateDialog
-            config={config}
-            isOpen={generateDialogOpen}
-            onClose={() => setGenerateDialogOpen(false)}
-            onGenerate={handleGeneratePrompts}
-          />
+          <GenerateDialog config={config} isOpen={generateDialogOpen} onClose={() => setGenerateDialogOpen(false)} onGenerate={handleGeneratePrompts} />
 
-          <CSVImportDialog
-            config={config}
-            isOpen={csvDialogOpen}
-            onClose={() => setCsvDialogOpen(false)}
-            onImport={handleImportCSV}
-          />
+          <CSVImportDialog config={config} isOpen={csvDialogOpen} onClose={() => setCsvDialogOpen(false)} onImport={handleImportCSV} />
 
-          <ManualAddDialog
-            config={config}
-            isOpen={manualDialogOpen}
-            onClose={() => setManualDialogOpen(false)}
-            onAdd={handleManualAdd}
-          />
+          <ManualAddDialog config={config} isOpen={manualDialogOpen} onClose={() => setManualDialogOpen(false)} onAdd={handleManualAdd} />
 
-          <SettingsDialog
-            config={config}
-            isOpen={settingsDialogOpen}
-            onClose={() => setSettingsDialogOpen(false)}
-            onSave={handleSaveSettings}
-          />
+          <SettingsDialog config={config} isOpen={settingsDialogOpen} onClose={() => setSettingsDialogOpen(false)} onSave={handleSaveSettings} />
 
           <EditPromptDialog
             prompt={editingPrompt}
@@ -482,7 +441,7 @@ function IndexPopup() {
 }
 
 // Mount the React app
-const root = document.getElementById('root');
+const root = document.getElementById("root");
 if (root) {
   ReactDOM.createRoot(root).render(
     <ErrorBoundary>

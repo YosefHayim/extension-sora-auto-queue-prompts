@@ -26,9 +26,10 @@
   ],
   "scripts": {
     "dev": "plasmo dev",
-    "build": "plasmo build",
+    "build": "pnpm clean:dist && plasmo build && pnpm copy:dist",
     "build:css": "pnpm exec tailwindcss -i src/styles/globals.css -o .plasmo/static/popup.css --minify",
     "dev:css": "pnpm exec tailwindcss -i src/styles/globals.css -o .plasmo/static/popup.css --watch",
+    "copy:dist": "node scripts/copy-to-dist.js",
     "package": "plasmo package",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -37,6 +38,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "clean": "del-cli .plasmo build dist *.zip",
+    "clean:dist": "del-cli dist",
     "prepare": "husky",
     "lint": "prettier --check \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""

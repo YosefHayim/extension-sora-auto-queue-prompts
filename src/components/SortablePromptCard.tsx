@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import { CSS } from "@dnd-kit/utilities";
 import type { GeneratedPrompt } from "@/types";
 import { PromptCard } from "./PromptCard";

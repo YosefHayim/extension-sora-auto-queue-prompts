@@ -1,12 +1,14 @@
 import * as React from "react";
+
+import { Loader2, Sparkles, X } from "lucide-react";
+
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { X, Sparkles, Loader2 } from "lucide-react";
-import { log } from "../utils/logger";
 import type { PromptConfig } from "../types";
+import { Textarea } from "./ui/textarea";
+import { log } from "../utils/logger";
 
 interface GenerateDialogProps {
   config: PromptConfig;

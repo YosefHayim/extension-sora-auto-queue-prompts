@@ -1,11 +1,13 @@
 import * as React from "react";
+
+import { Edit3, Loader2, X } from "lucide-react";
+
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
+import type { GeneratedPrompt } from "../types";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { X, Edit3, Loader2 } from "lucide-react";
 import { log } from "../utils/logger";
-import type { GeneratedPrompt } from "../types";
 
 interface EditPromptDialogProps {
   prompt: GeneratedPrompt | null;

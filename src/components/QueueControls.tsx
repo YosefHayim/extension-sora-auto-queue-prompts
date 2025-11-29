@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { Play, Pause, Square, Timer } from 'lucide-react';
+import { FaPlay, FaPause, FaStop, FaClock } from 'react-icons/fa';
 import { cn } from '@/lib/utils';
 import { log } from '@/utils/logger';
 import type { QueueState } from '@/types';
@@ -113,7 +113,7 @@ export function QueueControls({
                   <HoverCard>
                     <HoverCardTrigger asChild>
                       <Badge variant="outline" className="text-xs gap-1.5 cursor-help">
-                        <Timer className="h-3 w-3" />
+                        <FaClock className="h-3 w-3" />
                         {formatDuration(elapsedTime)}
                       </Badge>
                     </HoverCardTrigger>
@@ -139,7 +139,7 @@ export function QueueControls({
               <HoverCard>
                 <HoverCardTrigger asChild>
                   <Button onClick={handleStartClick} size="sm" className="w-28">
-                    <Play className="h-4 w-4 mr-2" />
+                    <FaPlay className="h-4 w-4 mr-2" />
                     Start
                   </Button>
                 </HoverCardTrigger>
@@ -162,7 +162,7 @@ export function QueueControls({
               <HoverCard>
                 <HoverCardTrigger asChild>
                   <Button variant="secondary" onClick={handlePauseClick} size="sm">
-                    <Pause className="h-4 w-4 mr-2" />
+                    <FaPause className="h-4 w-4 mr-2" />
                     Pause
                   </Button>
                 </HoverCardTrigger>
@@ -180,7 +180,7 @@ export function QueueControls({
               <HoverCard>
                 <HoverCardTrigger asChild>
                   <Button onClick={handleResumeClick} size="sm">
-                    <Play className="h-4 w-4 mr-2" />
+                    <FaPlay className="h-4 w-4 mr-2" />
                     Resume
                   </Button>
                 </HoverCardTrigger>
@@ -198,7 +198,7 @@ export function QueueControls({
               <HoverCard>
                 <HoverCardTrigger asChild>
                   <Button variant="destructive" onClick={handleStopClick} size="sm">
-                    <Square className="h-4 w-4 mr-2" />
+                    <FaStop className="h-4 w-4 mr-2" />
                     Stop
                   </Button>
                 </HoverCardTrigger>

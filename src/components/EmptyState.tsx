@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Inbox, Sparkles, Upload, ListPlus } from 'lucide-react';
+import { FaInbox, FaMagic, FaUpload, FaPlus } from 'react-icons/fa';
 import { log } from '@/utils/logger';
 
 interface EmptyStateProps {
@@ -29,7 +29,7 @@ export function EmptyState({ onGenerate, onImport, onManual }: EmptyStateProps) 
     <Card className="border-dashed border-2">
       <CardContent className="flex flex-col items-center justify-center py-16">
         <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-6">
-          <Inbox className="h-8 w-8 text-primary" />
+          <FaInbox className="h-8 w-8 text-primary" />
         </div>
         <h3 className="text-xl font-bold mb-2">No prompts yet</h3>
         <p className="text-sm text-muted-foreground mb-8 text-center max-w-sm">
@@ -37,15 +37,15 @@ export function EmptyState({ onGenerate, onImport, onManual }: EmptyStateProps) 
         </p>
         <div className="flex gap-3 flex-wrap justify-center">
           <Button onClick={handleGenerate} size="lg" className="shadow-md">
-            <Sparkles className="mr-2 h-4 w-4" />
+            <FaMagic className="mr-2 h-4 w-4" />
             Generate Prompts
           </Button>
           <Button variant="outline" onClick={handleManual} size="lg">
-            <ListPlus className="mr-2 h-4 w-4" />
+            <FaPlus className="mr-2 h-4 w-4" />
             Manual Add
           </Button>
           <Button variant="outline" onClick={handleImport} size="lg">
-            <Upload className="mr-2 h-4 w-4" />
+            <FaUpload className="mr-2 h-4 w-4" />
             Import CSV
           </Button>
         </div>

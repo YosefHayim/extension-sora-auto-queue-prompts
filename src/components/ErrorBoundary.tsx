@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { FaExclamationTriangle, FaSync } from "react-icons/fa";
 
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -88,7 +88,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <Card className="w-full max-w-2xl p-6 space-y-4">
             {/* Error Icon and Title */}
             <div className="flex items-center gap-3">
-              <AlertTriangle className="h-8 w-8 text-destructive" />
+              <FaExclamationTriangle className="h-8 w-8 text-destructive" />
               <div>
                 <h2 className="text-xl font-semibold">Something went wrong</h2>
                 <p className="text-sm text-muted-foreground">The application encountered an unexpected error</p>
@@ -114,7 +114,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             {/* Action Buttons */}
             <div className="flex gap-2">
               <Button onClick={this.handleReset} variant="default" className="flex-1">
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <FaSync className="h-4 w-4 mr-2" />
                 Try Again
               </Button>
               <Button onClick={this.handleReload} variant="outline" className="flex-1">

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import { X, Upload, FileText, Download, Loader2 } from 'lucide-react';
+import { FaTimes, FaUpload, FaFileAlt, FaDownload, FaSpinner } from 'react-icons/fa';
 import { CSVParser } from '../utils/csvParser';
 import { log } from '../utils/logger';
 import type { GeneratedPrompt, PromptConfig } from '../types';
@@ -104,11 +104,11 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
+            <FaFileAlt className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Import CSV</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} disabled={loading}>
-            <X className="h-4 w-4" />
+            <FaTimes className="h-4 w-4" />
           </Button>
         </div>
 
@@ -154,12 +154,12 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
                   Importing...
                 </>
               ) : (
                 <>
-                  <Upload className="h-4 w-4 mr-2" />
+                  <FaUpload className="h-4 w-4 mr-2" />
                   Select CSV File
                 </>
               )}
@@ -171,7 +171,7 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
               className="w-full"
               disabled={loading}
             >
-              <Download className="h-4 w-4 mr-2" />
+              <FaDownload className="h-4 w-4 mr-2" />
               Download Template
             </Button>
           </div>

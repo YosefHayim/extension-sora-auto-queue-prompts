@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Download, X, FileText, FileSpreadsheet } from "lucide-react";
+import { FaDownload, FaTimes, FaFileAlt, FaFileExcel } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Label } from "./ui/label";
@@ -94,11 +94,11 @@ export function ExportDialog({ isOpen, onClose, prompts }: ExportDialogProps) {
       <Card className="w-full max-w-md p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Download className="h-5 w-5 text-primary" />
+            <FaDownload className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Export Prompts</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
+            <FaTimes className="h-4 w-4" />
           </Button>
         </div>
 
@@ -114,7 +114,7 @@ export function ExportDialog({ isOpen, onClose, prompts }: ExportDialogProps) {
                   ${exportFormat === "csv" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}
                 `}
               >
-                <FileSpreadsheet className="h-5 w-5" />
+                <FaFileExcel className="h-5 w-5" />
                 <span className="text-sm font-medium">CSV</span>
               </button>
               <button
@@ -125,7 +125,7 @@ export function ExportDialog({ isOpen, onClose, prompts }: ExportDialogProps) {
                   ${exportFormat === "json" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}
                 `}
               >
-                <FileText className="h-5 w-5" />
+                <FaFileAlt className="h-5 w-5" />
                 <span className="text-sm font-medium">JSON</span>
               </button>
               <button
@@ -136,7 +136,7 @@ export function ExportDialog({ isOpen, onClose, prompts }: ExportDialogProps) {
                   ${exportFormat === "txt" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}
                 `}
               >
-                <FileText className="h-5 w-5" />
+                <FaFileAlt className="h-5 w-5" />
                 <span className="text-sm font-medium">TXT</span>
               </button>
             </div>
@@ -150,7 +150,7 @@ export function ExportDialog({ isOpen, onClose, prompts }: ExportDialogProps) {
 
           <div className="flex gap-2">
             <Button onClick={handleExport} className="flex-1">
-              <Download className="h-4 w-4 mr-2" />
+              <FaDownload className="h-4 w-4 mr-2" />
               Export
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>

@@ -71,10 +71,19 @@ function IndexPopup() {
       }, 100); // 100ms debounce
     };
 
-    chrome.storage.onChanged.addListener(handleStorageChange);
+    // Check if chrome.storage API is available
+    if (chrome?.storage?.onChanged) {
+      chrome.storage.onChanged.addListener(handleStorageChange);
+
+      return () => {
+        chrome.storage.onChanged.removeListener(handleStorageChange);
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+      };
+    }
 
     return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
       if (debounceTimer) {
         clearTimeout(debounceTimer);
       }

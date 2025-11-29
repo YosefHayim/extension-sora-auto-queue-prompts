@@ -103,8 +103,8 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4" onClick={handleBackdropClick}>
-      <Card className="w-full max-w-2xl p-6 my-8" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4" onClick={handleBackdropClick}>
+      <Card className="w-full max-w-2xl p-6 my-auto max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">

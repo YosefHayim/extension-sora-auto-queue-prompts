@@ -1,11 +1,11 @@
-import { useState, useEffect, type FormEvent, type MouseEvent } from 'react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { X, Edit3, Loader2 } from 'lucide-react';
-import { log } from '../utils/logger';
-import type { GeneratedPrompt } from '../types';
+import * as React from "react";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { Label } from "./ui/label";
+import { Textarea } from "./ui/textarea";
+import { X, Edit3, Loader2 } from "lucide-react";
+import { log } from "../utils/logger";
+import type { GeneratedPrompt } from "../types";
 
 interface EditPromptDialogProps {
   prompt: GeneratedPrompt | null;
@@ -15,15 +15,15 @@ interface EditPromptDialogProps {
 }
 
 export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPromptDialogProps) {
-  const [editedText, setEditedText] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [editedText, setEditedText] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   // Initialize editedText when prompt changes
-  useEffect(() => {
+  React.useEffect(() => {
     if (prompt) {
       setEditedText(prompt.text);
-      setError('');
+      setError("");
     }
   }, [prompt]);
 
@@ -32,13 +32,13 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
   const hasChanges = editedText.trim() !== prompt.text.trim();
   const isValid = editedText.trim().length > 0;
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const trimmedText = editedText.trim();
 
     if (!trimmedText) {
-      setError('Prompt text cannot be empty');
+      setError("Prompt text cannot be empty");
       return;
     }
 
@@ -48,23 +48,23 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      log.ui.action('EditPromptDialog:Submit', {
-        promptId: prompt.id,
-        originalLength: prompt.text.length,
+      log.ui.action("EditPromptDialog:Submit", {
+        promptId: prompt?.id,
+        originalLength: prompt?.text.length,
         newLength: trimmedText.length,
       });
 
-      await onSave(prompt.id, trimmedText);
-      log.ui.action('EditPromptDialog:Success', { promptId: prompt.id });
+      await onSave(prompt?.id || "", trimmedText);
+      log.ui.action("EditPromptDialog:Success", { promptId: prompt?.id });
 
       onClose();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to edit prompt';
+      const errorMsg = err instanceof Error ? err.message : "Failed to edit prompt";
       setError(errorMsg);
-      log.ui.error('EditPromptDialog:Submit', err);
+      log.ui.error("EditPromptDialog:Submit", err);
     } finally {
       setLoading(false);
     }
@@ -72,26 +72,20 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
 
   function handleCancel() {
     if (loading) return;
-    setEditedText(prompt.text); // Reset to original
-    setError('');
+    setEditedText(prompt?.text || ""); // Reset to original
+    setError("");
     onClose();
   }
 
-  function handleBackdropClick(e: MouseEvent) {
+  function handleBackdropClick(e: React.MouseEvent) {
     if (e.target === e.currentTarget && !loading) {
       handleCancel();
     }
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={handleBackdropClick}
-    >
-      <Card
-        className="w-full max-w-2xl p-6 space-y-4"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={handleBackdropClick}>
+      <Card className="w-full max-w-2xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -134,39 +128,26 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>
-                {editedText.length} character{editedText.length === 1 ? '' : 's'}
+                {editedText.length} character{editedText.length === 1 ? "" : "s"}
               </span>
-              {hasChanges && (
-                <span className="text-amber-600 dark:text-amber-400">
-                  Unsaved changes
-                </span>
-              )}
+              {hasChanges && <span className="text-amber-600 dark:text-amber-400">Unsaved changes</span>}
             </div>
           </div>
 
-          {error && (
-            <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">
-              {error}
-            </div>
-          )}
+          {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
 
           <div className="flex gap-2">
-            <Button
-              type="submit"
-              className="flex-1"
-              disabled={loading || !isValid || !hasChanges}
-            >
-              {loading ? (
+            <Button type="submit" className="flex-1" disabled={loading || !isValid || !hasChanges}>
+              {loading ?
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Saving...
                 </>
-              ) : (
-                <>
+              : <>
                   <Edit3 className="h-4 w-4 mr-2" />
                   Save Changes
                 </>
-              )}
+              }
             </Button>
             <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
               Cancel

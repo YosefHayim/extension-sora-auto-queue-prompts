@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type MouseEvent } from 'react';
+import * as React from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Input } from './ui/input';
@@ -16,10 +16,10 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDialogProps) {
-  const [formData, setFormData] = useState<PromptConfig>(config);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [formData, setFormData] = React.useState<PromptConfig>(config);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [success, setSuccess] = React.useState('');
 
   if (!isOpen) return null;
 
@@ -27,7 +27,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -78,7 +78,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
     }
   }
 
-  function handleBackdropClick(e: MouseEvent) {
+  function handleBackdropClick(e: React.MouseEvent) {
     if (e.target === e.currentTarget && !loading) {
       onClose();
     }

@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type MouseEvent } from 'react';
+import * as React from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Label } from './ui/label';
@@ -15,10 +15,10 @@ interface ManualAddDialogProps {
 }
 
 export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDialogProps) {
-  const [input, setInput] = useState('');
-  const [delimiter, setDelimiter] = useState<'line' | 'comma'>('line');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [input, setInput] = React.useState('');
+  const [delimiter, setDelimiter] = React.useState<'line' | 'comma'>('line');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   if (!isOpen) return null;
 
@@ -37,7 +37,7 @@ export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDia
 
   const promptCount = parsePrompts().length;
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const prompts = parsePrompts();
@@ -77,7 +77,7 @@ export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDia
     }
   }
 
-  function handleBackdropClick(e: MouseEvent) {
+  function handleBackdropClick(e: React.MouseEvent) {
     if (e.target === e.currentTarget && !loading) {
       onClose();
     }

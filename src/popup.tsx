@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import * as React from 'react';
 import ReactDOM from 'react-dom/client';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
@@ -21,16 +21,16 @@ import { log } from './utils/logger';
 import type { PromptConfig, GeneratedPrompt, QueueState } from './types';
 
 function IndexPopup() {
-  const [config, setConfig] = useState<PromptConfig | null>(null);
-  const [prompts, setPrompts] = useState<GeneratedPrompt[]>([]);
-  const [queueState, setQueueState] = useState<QueueState | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
-  const [csvDialogOpen, setCsvDialogOpen] = useState(false);
-  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
-  const [manualDialogOpen, setManualDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingPrompt, setEditingPrompt] = useState<GeneratedPrompt | null>(null);
+  const [config, setConfig] = React.useState<PromptConfig | null>(null);
+  const [prompts, setPrompts] = React.useState<GeneratedPrompt[]>([]);
+  const [queueState, setQueueState] = React.useState<QueueState | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [generateDialogOpen, setGenerateDialogOpen] = React.useState(false);
+  const [csvDialogOpen, setCsvDialogOpen] = React.useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
+  const [manualDialogOpen, setManualDialogOpen] = React.useState(false);
+  const [editDialogOpen, setEditDialogOpen] = React.useState(false);
+  const [editingPrompt, setEditingPrompt] = React.useState<GeneratedPrompt | null>(null);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -41,7 +41,7 @@ function IndexPopup() {
     })
   );
 
-  useEffect(() => {
+  React.useEffect(() => {
     loadData();
 
     // Listen for storage changes for real-time updates (replaces 2-second polling)

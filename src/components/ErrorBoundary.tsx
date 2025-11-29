@@ -1,26 +1,26 @@
-import { Component, type ReactNode, type ErrorInfo } from "react";
+import * as React from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { log } from "../utils/logger";
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
   onReset?: () => void;
 }
 
 interface State {
   hasError: boolean;
   error: Error | null;
-  errorInfo: ErrorInfo | null;
+  errorInfo: React.ErrorInfo | null;
 }
 
 /**
  * Error Boundary component to catch unhandled errors in React component tree
  * Provides graceful degradation with user-friendly error UI
  */
-export class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error details to debug panel
     log.ui.error("ErrorBoundary", error);
 

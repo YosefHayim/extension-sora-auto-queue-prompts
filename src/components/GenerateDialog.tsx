@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type MouseEvent } from "react";
+import * as React from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -16,14 +16,14 @@ interface GenerateDialogProps {
 }
 
 export function GenerateDialog({ config, isOpen, onClose, onGenerate }: GenerateDialogProps) {
-  const [count, setCount] = useState(config.batchSize || 10);
-  const [context, setContext] = useState(config.contextPrompt || "");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [count, setCount] = React.useState(config.batchSize || 10);
+  const [context, setContext] = React.useState(config.contextPrompt || "");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   if (!isOpen) return null;
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (!context.trim()) {

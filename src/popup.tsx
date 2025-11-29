@@ -25,6 +25,7 @@ import { SearchBar } from "./components/SearchBar";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { SortablePromptCard } from "./components/SortablePromptCard";
 import { StatusBar } from "./components/StatusBar";
+import { Footer } from "./components/Footer";
 import { log } from "./utils/logger";
 import { storage } from "./utils/storage";
 
@@ -765,6 +766,9 @@ function IndexPopup() {
           <ExportDialog isOpen={exportDialogOpen} onClose={() => setExportDialogOpen(false)} prompts={filteredPrompts.length > 0 ? filteredPrompts : prompts} />
         </>
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

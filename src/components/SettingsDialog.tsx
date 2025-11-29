@@ -29,7 +29,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
     if (isOpen) {
       const initialData = { ...config };
 
-      // Apply detected settings if available
+      // Apply detected settings as defaults if available
       if (detectedSettings?.success) {
         if (detectedSettings.mediaType) {
           initialData.mediaType = detectedSettings.mediaType;
@@ -163,7 +163,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
           </Card>
 
           {/* Sora Generation Settings */}
-          <Card>
+          <Card className={detectedSettings?.success && (detectedSettings.mediaType || detectedSettings.variations) ? "border-green-500 border-2" : ""}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

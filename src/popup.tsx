@@ -441,7 +441,7 @@ function IndexPopup() {
 }
 
 // Mount the React app
-const root = document.getElementById("root");
+const root = document.getElementById("__plasmo");
 if (root) {
   ReactDOM.createRoot(root).render(
     <ErrorBoundary>

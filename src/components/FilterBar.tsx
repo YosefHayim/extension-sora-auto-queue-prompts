@@ -55,14 +55,14 @@ const statusConfig = {
 };
 
 const mediaTypeConfig = {
-  all: { icon: Grid3x3, label: "All Types", color: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300" },
+  all: { icon: FaTh, label: "All Types", color: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300" },
   video: {
-    icon: Video,
+    icon: FaVideo,
     label: "Video",
     color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
   },
   image: {
-    icon: ImageIcon,
+    icon: FaImage,
     label: "Image",
     color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
   },
@@ -87,7 +87,7 @@ export function FilterBar({
   return (
     <div className={cn("flex items-center gap-2 flex-wrap", className)}>
       <div className="flex items-center gap-2">
-        <Filter className="h-4 w-4 text-muted-foreground" />
+        <FaFilter className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground">Filter:</span>
       </div>
 
@@ -185,7 +185,7 @@ export function FilterBar({
 
       {hasActiveFilters && (
         <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-          <X className="h-3 w-3" />
+          <FaTimes className="h-3 w-3" />
           Clear
         </Button>
       )}

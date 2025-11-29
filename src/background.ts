@@ -190,6 +190,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           await logger.clearLogs();
           return { success: true };
 
+        case 'detectSettings':
+          return await handleDetectSettings();
+
         case 'exportLogs':
           await logger.exportLogs(request.filename);
           return { success: true };
@@ -337,6 +340,26 @@ async function handleMarkPromptComplete(promptId: string) {
     await storage.addToHistory([completedPrompt]);
   }
 
+  // Continue processing the next prompt in the queue
+  // Get the current queue state to check if we should continue
+  const queueState = await storage.getQueueState();
+  if (queueState.isRunning && !queueState.isPaused) {
+    // Update processed count
+    const newProcessedCount = queueState.processedCount + 1;
+    await storage.setQueueState({ processedCount: newProcessedCount });
+
+    // Get config for delay
+    const config = await storage.getConfig();
+    const minDelay = config.minDelayMs || 2000;
+    const maxDelay = config.maxDelayMs || 5000;
+    const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+
+    // Schedule next prompt processing
+    setTimeout(async () => {
+      await queueProcessor.processNext();
+    }, delay);
+  }
+
   return { success: true };
 }
 
@@ -384,4 +407,65 @@ async function handleEnhancePrompt(data: { text: string; mediaType: 'video' | 'i
   }
 
   return result;
+}
+
+async function handleDetectSettings() {
+  logger.info('background', 'Detecting settings from Sora page');
+
+  try {
+    // Find the Sora tab
+    let tabs = await chrome.tabs.query({ url: '*://sora.com/*' });
+    if (tabs.length === 0) {
+      tabs = await chrome.tabs.query({ url: '*://sora.chatgpt.com/*' });
+    }
+
+    if (tabs.length === 0) {
+      return {
+        mediaType: null,
+        aspectRatio: null,
+        variations: null,
+        success: false,
+        error: 'No Sora tab found. Please open sora.com in a browser tab.',
+      };
+    }
+
+    const soraTab = tabs[0];
+    if (!soraTab.id) {
+      return {
+        mediaType: null,
+        aspectRatio: null,
+        variations: null,
+        success: false,
+        error: 'Invalid Sora tab - no tab ID',
+      };
+    }
+
+    // Ensure content script is loaded
+    await queueProcessor['ensureContentScriptLoaded'](soraTab.id);
+
+    // Send detectSettings message
+    const response = await chrome.tabs.sendMessage(soraTab.id, { action: 'detectSettings' });
+
+    if (response && response.success !== undefined) {
+      logger.info('background', 'Settings detected', response);
+      return response;
+    }
+
+    return {
+      mediaType: null,
+      aspectRatio: null,
+      variations: null,
+      success: false,
+      error: 'Failed to detect settings from Sora page',
+    };
+  } catch (error) {
+    logger.error('background', 'Failed to detect settings', { error });
+    return {
+      mediaType: null,
+      aspectRatio: null,
+      variations: null,
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
 }

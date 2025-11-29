@@ -26,28 +26,33 @@ export function EmptyState({ onGenerate, onImport, onManual }: EmptyStateProps) 
   };
 
   return (
-    <Card className="border-dashed">
-      <CardContent className="flex flex-col items-center justify-center py-12">
-        <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-          <Inbox className="h-6 w-6 text-muted-foreground" />
+    <Card className="border-dashed border-2">
+      <CardContent className="flex flex-col items-center justify-center py-16">
+        <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-6">
+          <Inbox className="h-8 w-8 text-primary" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">No prompts yet</h3>
-        <p className="text-sm text-muted-foreground mb-6 text-center max-w-sm">
-          Generate AI prompts, add manually, or import from CSV to get started
+        <h3 className="text-xl font-bold mb-2">No prompts yet</h3>
+        <p className="text-sm text-muted-foreground mb-8 text-center max-w-sm">
+          Get started by generating AI prompts, adding them manually, or importing from a CSV file
         </p>
-        <div className="flex gap-3">
-          <Button onClick={handleGenerate}>
+        <div className="flex gap-3 flex-wrap justify-center">
+          <Button onClick={handleGenerate} size="lg" className="shadow-md">
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate
+            Generate Prompts
           </Button>
-          <Button variant="outline" onClick={handleManual}>
+          <Button variant="outline" onClick={handleManual} size="lg">
             <ListPlus className="mr-2 h-4 w-4" />
             Manual Add
           </Button>
-          <Button variant="outline" onClick={handleImport}>
+          <Button variant="outline" onClick={handleImport} size="lg">
             <Upload className="mr-2 h-4 w-4" />
             Import CSV
           </Button>
+        </div>
+        <div className="mt-8 pt-6 border-t w-full">
+          <p className="text-xs text-muted-foreground text-center">
+            💡 Tip: Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">⌘K</kbd> to search or <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">⌘N</kbd> to generate new prompts
+          </p>
         </div>
       </CardContent>
     </Card>

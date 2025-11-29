@@ -81,3 +81,11 @@ export interface LogEntry {
   data?: any;
   stack?: string;
 }
+
+export interface DetectedSettings {
+  mediaType: 'video' | 'image' | null;
+  aspectRatio: AspectRatio | null;
+  variations: number | null;
+  success: boolean;
+  error?: string;
+}

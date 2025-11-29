@@ -45,6 +45,12 @@ class SoraAutomation {
   private init() {
     // Listen for messages from background script
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === "ping") {
+        // Simple ping to check if content script is loaded
+        sendResponse({ success: true, loaded: true });
+        return true;
+      }
+
       if (request.action === "submitPrompt") {
         this.log("info", "📥 Received submitPrompt request", {
           promptLength: request.prompt?.text?.length,
@@ -245,23 +251,91 @@ class SoraAutomation {
     throw new Error(`Element not found: ${selector}`);
   }
 
+  /**
+   * Simulate human typing - works with React controlled inputs
+   */
   private async typeText(element: HTMLTextAreaElement, text: string): Promise<void> {
-    const chars = text.split("");
-    const baseDelay = 30; // Base delay between characters (ms)
-    const randomDelay = 50; // Random additional delay (ms)
+    this.log("info", `⌨️ Starting to type ${text.length} characters`);
 
-    for (let i = 0; i < chars.length; i++) {
-      const char = chars[i];
-      element.value += char;
-      element.dispatchEvent(new Event("input", { bubbles: true }));
+    // Focus the element first
+    element.focus();
+    this.log("debug", "Element focused");
+    await this.delay(100); // Give React time to register focus
 
-      // Human-like typing delay with randomness
-      const delay = baseDelay + Math.random() * randomDelay;
-      await new Promise((resolve) => setTimeout(resolve, delay));
+    // Use React's native setter pattern - this is CRITICAL for React to detect changes
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLTextAreaElement.prototype,
+      "value"
+    )?.set;
+
+    if (nativeInputValueSetter) {
+      this.log("info", "✅ Using native React setter pattern");
+      // Call the native setter (bypasses React's controlled input)
+      nativeInputValueSetter.call(element, text);
+    } else {
+      this.log("warn", "⚠️ Native setter not found, falling back to direct assignment");
+      element.value = text;
     }
 
-    // Trigger change event
-    element.dispatchEvent(new Event("change", { bubbles: true }));
+    this.log("info", "Set input value", {
+      valueLength: text.length,
+      valuePreview: text.substring(0, 50),
+      actualValue: element.value.substring(0, 50),
+      valueStuck: element.value === text,
+    });
+
+    // Dispatch the critical input event that React listens for
+    const inputEvent = new InputEvent("input", {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+    });
+    element.dispatchEvent(inputEvent);
+    this.log("debug", "Dispatched InputEvent");
+
+    // Give React time to process the input event
+    await this.delay(100);
+
+    // Also dispatch change event for good measure
+    const changeEvent = new Event("change", { bubbles: true, cancelable: true });
+    element.dispatchEvent(changeEvent);
+    this.log("debug", "Dispatched change event");
+
+    // Trigger keydown/keyup events to simulate typing (some apps check for this)
+    element.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true }));
+    element.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, cancelable: true }));
+    this.log("debug", "Dispatched keyboard events");
+
+    // Re-focus to ensure React sees the element as active
+    element.focus();
+    this.log("debug", "Re-focused element");
+
+    // Small delay to let React update its state
+    await this.delay(200);
+
+    // Verify the value stuck
+    const finalValueCheck = element.value === text;
+    this.log("info", `✅ Input set ${finalValueCheck ? "successfully" : "FAILED"}`, {
+      expectedLength: text.length,
+      actualLength: element.value.length,
+      valuePreview: element.value.substring(0, 50),
+      success: finalValueCheck,
+    });
+
+    if (!finalValueCheck) {
+      this.log("error", "❌ Input value did not stick!", {
+        expected: text.substring(0, 100),
+        actual: element.value.substring(0, 100),
+      });
+      throw new Error("Failed to set textarea value - React may not have detected the change");
+    }
+  }
+
+  /**
+   * Delay helper
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private async submitForm(textarea: HTMLTextAreaElement): Promise<void> {

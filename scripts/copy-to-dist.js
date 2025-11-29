@@ -42,5 +42,25 @@ if (fs.existsSync(destDir)) {
 
 // Copy files
 copyRecursiveSync(sourceDir, destDir);
+
+// Fix manifest.json to include permissions
+const manifestPath = path.join(destDir, 'manifest.json');
+if (fs.existsSync(manifestPath)) {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  
+  // Add permissions if missing
+  if (!manifest.permissions) {
+    manifest.permissions = ["activeTab", "storage", "scripting", "tabs", "downloads", "webRequest"];
+  }
+  
+  // Add host_permissions if missing
+  if (!manifest.host_permissions) {
+    manifest.host_permissions = ["https://*/*"];
+  }
+  
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  console.log(`✅ Fixed manifest.json with permissions`);
+}
+
 console.log(`✅ Successfully copied build to ${destDir}`);
 

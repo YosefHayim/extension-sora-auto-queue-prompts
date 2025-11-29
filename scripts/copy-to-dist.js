@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const sourceDir = path.join(__dirname, '..', 'build', 'chrome-mv3-prod');
-const destDir = path.join(__dirname, '..', 'dist');
+const sourceDir = path.join(__dirname, "..", "build", "chrome-mv3-prod");
+const destDir = path.join(__dirname, "..", "dist");
 
 function copyRecursiveSync(src, dest) {
   const exists = fs.existsSync(src);
@@ -16,10 +16,7 @@ function copyRecursiveSync(src, dest) {
       fs.mkdirSync(dest, { recursive: true });
     }
     fs.readdirSync(src).forEach((childItemName) => {
-      copyRecursiveSync(
-        path.join(src, childItemName),
-        path.join(dest, childItemName)
-      );
+      copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
     });
   } else {
     const destDir = path.dirname(dest);
@@ -44,23 +41,22 @@ if (fs.existsSync(destDir)) {
 copyRecursiveSync(sourceDir, destDir);
 
 // Fix manifest.json to include permissions
-const manifestPath = path.join(destDir, 'manifest.json');
+const manifestPath = path.join(destDir, "manifest.json");
 if (fs.existsSync(manifestPath)) {
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+
   // Add permissions if missing
   if (!manifest.permissions) {
     manifest.permissions = ["activeTab", "storage", "scripting", "tabs", "downloads", "webRequest"];
   }
-  
+
   // Add host_permissions if missing
   if (!manifest.host_permissions) {
     manifest.host_permissions = ["https://*/*"];
   }
-  
+
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
   console.log(`✅ Fixed manifest.json with permissions`);
 }
 
 console.log(`✅ Successfully copied build to ${destDir}`);
-

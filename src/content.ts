@@ -40,6 +40,12 @@ class SoraAutomation {
   private init() {
     // Listen for messages from background script
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === 'ping') {
+        // Simple ping to check if content script is loaded
+        sendResponse({ success: true, loaded: true });
+        return true;
+      }
+
       if (request.action === 'submitPrompt') {
         this.log('info', '📥 Received submitPrompt request', {
           promptLength: request.prompt?.text?.length,
@@ -72,6 +78,20 @@ class SoraAutomation {
         const snapshot = this.getDomSnapshot();
         this.log('debug', 'getDomSnapshot request');
         sendResponse({ snapshot });
+        return true;
+      }
+
+      if (request.action === 'generationComplete') {
+        this.log('info', '🎉 Generation completed notification received');
+        this.handleGenerationComplete();
+        sendResponse({ success: true });
+        return true;
+      }
+
+      if (request.action === 'detectSettings') {
+        const settings = this.detectCurrentSettings();
+        this.log('info', '🔍 Detected settings from Sora page', settings);
+        sendResponse(settings);
         return true;
       }
     });
@@ -720,6 +740,168 @@ class SoraAutomation {
 
     this.log('debug', '⏳ Still checking... loader visible but no percentage');
     return false;
+  }
+
+  /**
+   * Detect current settings from Sora interface
+   */
+  private detectCurrentSettings(): import('./types').DetectedSettings {
+    try {
+      this.log('info', '🔍 Detecting current settings from Sora page...');
+
+      // Find media type (Image/Video)
+      let mediaType: 'video' | 'image' | null = null;
+      const mediaTypeButtons = document.querySelectorAll('button[role="combobox"]');
+      for (const button of Array.from(mediaTypeButtons)) {
+        const text = button.textContent?.toLowerCase() || '';
+        const span = button.querySelector('span');
+        const buttonText = span?.textContent?.toLowerCase() || text;
+        
+        if (buttonText.includes('image') || buttonText.includes('img')) {
+          mediaType = 'image';
+          this.log('debug', 'Found Image media type');
+          break;
+        } else if (buttonText.includes('video') || buttonText.includes('vid')) {
+          mediaType = 'video';
+          this.log('debug', 'Found Video media type');
+          break;
+        }
+      }
+
+      // Find aspect ratio (1:1, 16:9, etc.)
+      let aspectRatio: import('./types').AspectRatio | null = null;
+      const aspectRatioButtons = document.querySelectorAll('button[role="combobox"]');
+      const aspectRatioPatterns: Record<string, import('./types').AspectRatio> = {
+        '1:1': '1:1',
+        '16:9': '16:9',
+        '9:16': '9:16',
+        '4:3': '4:3',
+        '3:4': '3:4',
+        '21:9': '21:9',
+      };
+
+      for (const button of Array.from(aspectRatioButtons)) {
+        const text = button.textContent?.trim() || '';
+        const span = button.querySelector('span');
+        const buttonText = span?.textContent?.trim() || text;
+        
+        for (const [pattern, ratio] of Object.entries(aspectRatioPatterns)) {
+          if (buttonText.includes(pattern)) {
+            aspectRatio = ratio;
+            this.log('debug', `Found aspect ratio: ${ratio}`);
+            break;
+          }
+        }
+        if (aspectRatio) break;
+      }
+
+      // Find variations (2v, 4v, etc.)
+      let variations: number | null = null;
+      const variationButtons = document.querySelectorAll('button[role="combobox"]');
+      for (const button of Array.from(variationButtons)) {
+        const text = button.textContent?.trim() || '';
+        const span = button.querySelector('span');
+        const buttonText = span?.textContent?.trim() || text;
+        
+        // Look for patterns like "2v", "4v", "2", "4"
+        const variationMatch = buttonText.match(/(\d+)[v]?/);
+        if (variationMatch) {
+          const num = parseInt(variationMatch[1], 10);
+          if (num === 2 || num === 4) {
+            variations = num;
+            this.log('debug', `Found variations: ${variations}`);
+            break;
+          }
+        }
+      }
+
+      // Alternative: Look for buttons with specific SVG icons or classes
+      // Try to find buttons in the flex container with gap-1.5
+      const flexContainers = document.querySelectorAll('.flex.gap-1\\.5, .flex.gap-1, [class*="gap-1"]');
+      for (const container of Array.from(flexContainers)) {
+        const buttons = container.querySelectorAll('button[role="combobox"]');
+        
+        for (const button of Array.from(buttons)) {
+          const text = button.textContent?.toLowerCase() || '';
+          const span = button.querySelector('span');
+          const buttonText = (span?.textContent || button.textContent || '').toLowerCase();
+          
+          // Check for media type
+          if (!mediaType) {
+            if (buttonText.includes('image') || buttonText.includes('img')) {
+              mediaType = 'image';
+            } else if (buttonText.includes('video') || buttonText.includes('vid')) {
+              mediaType = 'video';
+            }
+          }
+          
+          // Check for aspect ratio
+          if (!aspectRatio) {
+            for (const [pattern, ratio] of Object.entries(aspectRatioPatterns)) {
+              if (buttonText.includes(pattern)) {
+                aspectRatio = ratio;
+                break;
+              }
+            }
+          }
+          
+          // Check for variations
+          if (!variations) {
+            const variationMatch = buttonText.match(/(\d+)[v]?/);
+            if (variationMatch) {
+              const num = parseInt(variationMatch[1], 10);
+              if (num === 2 || num === 4) {
+                variations = num;
+              }
+            }
+          }
+        }
+      }
+
+      const result: import('./types').DetectedSettings = {
+        mediaType,
+        aspectRatio,
+        variations,
+        success: true,
+      };
+
+      this.log('info', '✅ Settings detected', result);
+      return result;
+    } catch (error) {
+      this.log('error', '❌ Failed to detect settings', { error });
+      return {
+        mediaType: null,
+        aspectRatio: null,
+        variations: null,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Handle generation completion notification
+   */
+  private async handleGenerationComplete(): Promise<void> {
+    this.log('info', '🎉 Handling generation complete');
+
+    // Notify background that this prompt is complete
+    if (this.currentPrompt) {
+      try {
+        await chrome.runtime.sendMessage({
+          action: 'markPromptComplete',
+          promptId: this.currentPrompt.id,
+        });
+        this.log('info', '✅ Notified background of completion', { promptId: this.currentPrompt.id });
+      } catch (error) {
+        this.log('error', '❌ Failed to notify background', { error });
+      }
+    }
+
+    // Reset state
+    this.isProcessing = false;
+    this.currentPrompt = null;
+    this.generationStarted = false;
   }
 
   /**

@@ -4,6 +4,7 @@ module.exports = {
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.ts?(x)', '**/?(*.)+(spec|test).ts?(x)'],
   moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
     '^~(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
@@ -16,7 +17,7 @@ module.exports = {
     '!src/content.ts', // Integration code - requires DOM mocking
     '!src/popup.tsx', // UI code - requires complex React/DOM mocking
     '!src/popup-legacy.tsx', // Legacy UI backup - not actively used
-    '!src/components/**', // UI components - covered by E2E tests
+    // '!src/components/**', // UI components - now testing PromptCard
     '!src/lib/**', // Component utilities - covered by component E2E tests
     '!src/styles/**', // CSS files - not applicable for Jest coverage
     '!src/types/**', // Type definitions only

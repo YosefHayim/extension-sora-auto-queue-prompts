@@ -43,7 +43,7 @@ export class QueueProcessor {
     }
   }
 
-  private async processNext(): Promise<void> {
+  async processNext(): Promise<void> {
     const queueState = await storage.getQueueState();
 
     // Check if paused
@@ -71,13 +71,12 @@ export class QueueProcessor {
 
     try {
       // Process the prompt (send to Sora)
+      // Note: The content script will notify us via markPromptComplete when generation is done
       await this.processPrompt(nextPrompt);
 
-      // Mark as completed
-      await storage.updatePrompt(nextPrompt.id, { status: 'completed' });
-      await storage.addToHistory([nextPrompt]);
-
-      logger.info('queueProcessor', `Prompt completed: ${nextPrompt.text.substring(0, 50)}...`);
+      // Don't mark as completed here - wait for markPromptComplete message from content script
+      // The content script will call markPromptComplete when generation actually finishes
+      logger.info('queueProcessor', `Prompt submitted: ${nextPrompt.text.substring(0, 50)}...`);
     } catch (error) {
       // Mark as failed
       await storage.updatePrompt(nextPrompt.id, { status: 'failed' });
@@ -94,20 +93,22 @@ export class QueueProcessor {
 
       // Don't stop the queue, just log and continue
       console.error('[Sora Auto Queue] Failed to process prompt:', errorMsg, errorStack);
+
+      // Update processed count for failed prompt
+      const newProcessedCount = queueState.processedCount + 1;
+      await storage.setQueueState({ processedCount: newProcessedCount });
+
+      // Get random delay before next prompt
+      const config = await storage.getConfig();
+      const delay = this.getRandomDelay(config.minDelayMs, config.maxDelayMs);
+
+      // Schedule next prompt with random delay
+      this.currentTimeoutId = setTimeout(async () => {
+        await this.processNext();
+      }, delay) as unknown as number;
     }
-
-    // Update processed count (count both completed and failed)
-    const newProcessedCount = queueState.processedCount + 1;
-    await storage.setQueueState({ processedCount: newProcessedCount });
-
-    // Get random delay before next prompt
-    const config = await storage.getConfig();
-    const delay = this.getRandomDelay(config.minDelayMs, config.maxDelayMs);
-
-    // Schedule next prompt with random delay
-    this.currentTimeoutId = setTimeout(async () => {
-      await this.processNext();
-    }, delay) as unknown as number;
+    // Note: For successful prompts, continuation is handled by handleMarkPromptComplete
+    // in the background script when the content script notifies completion
   }
 
   private async processPrompt(prompt: GeneratedPrompt): Promise<void> {
@@ -140,10 +141,13 @@ export class QueueProcessor {
         throw new Error('Invalid Sora tab - no tab ID');
       }
 
-      // Send prompt to content script
+      // Ensure content script is loaded before sending message
+      await this.ensureContentScriptLoaded(soraTab.id);
+
+      // Send prompt to content script with retries
       logger.info('queueProcessor', `Submitting prompt to tab ${soraTab.id}: ${prompt.text.substring(0, 50)}...`);
 
-      const response = await chrome.tabs.sendMessage(soraTab.id, {
+      const response = await this.sendMessageWithRetry(soraTab.id, {
         action: 'submitPrompt',
         prompt: prompt,
       });
@@ -174,6 +178,147 @@ export class QueueProcessor {
       // Re-throw with proper error message
       throw new Error(errorMsg);
     }
+  }
+
+  /**
+   * Ensure content script is loaded in the tab
+   * Checks if content script is loaded and injects it if needed
+   */
+  private async ensureContentScriptLoaded(tabId: number): Promise<void> {
+    const maxWaitTime = 3000; // 3 seconds max wait
+    const checkInterval = 200; // Check every 200ms
+    let elapsed = 0;
+
+    while (elapsed < maxWaitTime) {
+      try {
+        // Try to ping the content script
+        const pingResponse = await chrome.tabs.sendMessage(tabId, {
+          action: 'ping',
+        });
+        
+        if (pingResponse && pingResponse.loaded) {
+          logger.debug('queueProcessor', 'Content script is loaded and ready');
+          return;
+        }
+      } catch (pingError) {
+        // Content script not loaded yet, wait and retry
+        const errorMsg = pingError instanceof Error ? pingError.message : String(pingError);
+        
+        if (errorMsg.includes('Receiving end does not exist')) {
+          // Content script not loaded, wait a bit and retry
+          await new Promise(resolve => setTimeout(resolve, checkInterval));
+          elapsed += checkInterval;
+          continue;
+        } else {
+          // Different error, might be a real problem
+          logger.warn('queueProcessor', 'Unexpected error pinging content script', {
+            error: errorMsg,
+          });
+          // Wait a bit and try one more time
+          await new Promise(resolve => setTimeout(resolve, checkInterval));
+          elapsed += checkInterval;
+          continue;
+        }
+      }
+    }
+
+    // If we get here, content script didn't respond - try to inject it manually
+    logger.info('queueProcessor', 'Content script not loaded, attempting to inject manually', {
+      tabId,
+    });
+
+    try {
+      // Get the content script file from manifest
+      const manifest = chrome.runtime.getManifest();
+      const contentScripts = manifest.content_scripts || [];
+      
+      if (contentScripts.length > 0) {
+        const contentScript = contentScripts[0];
+        const scriptFiles = contentScript.js || [];
+        
+        if (scriptFiles.length > 0) {
+          const scriptPath = scriptFiles[0];
+          logger.info('queueProcessor', `Injecting content script: ${scriptPath}`);
+          
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId },
+              files: [scriptPath],
+            });
+            
+            logger.info('queueProcessor', 'Content script injected successfully, waiting for initialization...');
+            
+            // Wait for script to initialize
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Try ping again
+            const pingResponse = await chrome.tabs.sendMessage(tabId, {
+              action: 'ping',
+            });
+            
+            if (pingResponse && pingResponse.loaded) {
+              logger.info('queueProcessor', 'Content script loaded after manual injection');
+              return;
+            }
+          } catch (injectError) {
+            const injectErrorMsg = injectError instanceof Error ? injectError.message : String(injectError);
+            logger.error('queueProcessor', 'Failed to inject content script', {
+              error: injectErrorMsg,
+              scriptPath,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('queueProcessor', 'Error attempting to inject content script', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    // If we still can't reach the content script, throw an error
+    throw new Error('Content script is not loaded. Please refresh the Sora tab and try again.');
+  }
+
+  /**
+   * Send message to content script with retries
+   */
+  private async sendMessageWithRetry(
+    tabId: number,
+    message: { action: string; prompt?: GeneratedPrompt },
+    maxRetries: number = 3,
+    retryDelay: number = 1000
+  ): Promise<any> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await chrome.tabs.sendMessage(tabId, message);
+        return response;
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        // If it's a connection error and we have retries left, try again
+        if (errorMsg.includes('Receiving end does not exist') && attempt < maxRetries) {
+          logger.warn('queueProcessor', `Message send failed (attempt ${attempt}/${maxRetries}), retrying...`, {
+            error: errorMsg,
+          });
+
+          // Try to re-inject the content script
+          await this.ensureContentScriptLoaded(tabId);
+          
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+          continue;
+        }
+
+        // If it's not a connection error or we're out of retries, throw
+        throw error;
+      }
+    }
+
+    // If we get here, all retries failed
+    throw lastError || new Error('Failed to send message after retries');
   }
 
   private async handleEmptyQueue(): Promise<void> {

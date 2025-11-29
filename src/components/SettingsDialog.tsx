@@ -39,12 +39,6 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
       log.ui.action("SettingsDialog:Save");
 
       // Validation
-      if (!formData.apiKey?.trim()) {
-        setError("OpenAI API key is required");
-        setLoading(false);
-        return;
-      }
-
       if (formData.minDelayMs < 2000 || formData.minDelayMs > 60000) {
         setError("Min delay must be between 2-60 seconds");
         setLoading(false);
@@ -107,16 +101,26 @@ export function SettingsDialog({ config, isOpen, onClose, onSave }: SettingsDial
             <h3 className="text-sm font-semibold text-foreground">API Configuration</h3>
 
             <div className="space-y-2">
-              <Label htmlFor="apiKey">OpenAI API Key *</Label>
+              <Label htmlFor="apiKey">OpenAI API Key (Optional)</Label>
               <Input
                 id="apiKey"
                 type="password"
                 placeholder="sk-..."
-                value={formData.apiKey}
+                value={formData.apiKey || ""}
                 onChange={(e) => handleChange("apiKey", e.target.value)}
                 disabled={loading}
               />
-              <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
+              <div className="flex flex-col gap-1">
+                <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
+                <a
+                  href="https://platform.openai.com/api-keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline"
+                >
+                  Get your API key from OpenAI →
+                </a>
+              </div>
             </div>
 
             <div className="space-y-2">

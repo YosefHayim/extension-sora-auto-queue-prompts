@@ -6,8 +6,10 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import type { PromptConfig } from "../types";
+import type { PromptConfig, DetectedSettings } from "../types";
 import { Textarea } from "./ui/textarea";
+import { Badge } from "./ui/badge";
+import { Image, Video, Square, Hash } from "lucide-react";
 import { log } from "../utils/logger";
 
 interface GenerateDialogProps {
@@ -15,13 +17,23 @@ interface GenerateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onGenerate: (count: number, context: string) => Promise<void>;
+  detectedSettings?: DetectedSettings | null;
 }
 
-export function GenerateDialog({ config, isOpen, onClose, onGenerate }: GenerateDialogProps) {
+export function GenerateDialog({ config, isOpen, onClose, onGenerate, detectedSettings }: GenerateDialogProps) {
   const [count, setCount] = React.useState(config.batchSize || 10);
   const [context, setContext] = React.useState(config.contextPrompt || "");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+
+  // Reset form when dialog opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setCount(config.batchSize || 10);
+      setContext(config.contextPrompt || "");
+      setError("");
+    }
+  }, [isOpen, config.batchSize, config.contextPrompt]);
 
   if (!isOpen) return null;
 
@@ -74,6 +86,39 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate }: Generate
             <X className="h-4 w-4" />
           </Button>
         </div>
+
+        {/* Detected Settings Info */}
+        {detectedSettings && (detectedSettings.mediaType || detectedSettings.aspectRatio || detectedSettings.variations) && (
+          <div className="p-3 bg-muted rounded-md">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-medium text-muted-foreground">Using settings from Sora page:</span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {detectedSettings.mediaType && (
+                <Badge variant="outline" className="gap-1 text-xs">
+                  {detectedSettings.mediaType === 'video' ? (
+                    <Video className="h-3 w-3" />
+                  ) : (
+                    <Image className="h-3 w-3" />
+                  )}
+                  {detectedSettings.mediaType.charAt(0).toUpperCase() + detectedSettings.mediaType.slice(1)}
+                </Badge>
+              )}
+              {detectedSettings.aspectRatio && (
+                <Badge variant="outline" className="gap-1 text-xs">
+                  <Square className="h-3 w-3" />
+                  {detectedSettings.aspectRatio}
+                </Badge>
+              )}
+              {detectedSettings.variations && (
+                <Badge variant="outline" className="gap-1 text-xs">
+                  <Hash className="h-3 w-3" />
+                  {detectedSettings.variations}v
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">

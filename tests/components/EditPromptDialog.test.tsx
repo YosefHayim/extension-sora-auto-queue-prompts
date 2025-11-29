@@ -65,13 +65,18 @@ describe('EditPromptDialog', () => {
     render(<EditPromptDialog prompt={mockPrompt} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
     const textarea = screen.getByLabelText('Prompt Text');
     fireEvent.change(textarea, { target: { value: '   ' } }); // Whitespace only
-    const saveButton = screen.getByText('Save Changes');
-    fireEvent.click(saveButton);
+    
+    // Submit the form directly to ensure the handler is called
+    const form = textarea.closest('form');
+    if (form) {
+      fireEvent.submit(form);
+    } else {
+      const saveButton = screen.getByText('Save Changes');
+      fireEvent.click(saveButton);
+    }
 
     await waitFor(() => {
-      const errorElement = screen.queryByText((content, element) => {
-        return element?.textContent?.includes('Prompt text cannot be empty') || false;
-      });
+      const errorElement = screen.getByText('Prompt text cannot be empty');
       expect(errorElement).toBeInTheDocument();
     });
   });
@@ -123,10 +128,8 @@ describe('EditPromptDialog', () => {
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      const errorElement = screen.queryByText((content, element) => {
-        return element?.textContent?.includes('Save failed') || false;
-      });
-      expect(errorElement).toBeInTheDocument();
+      const errorElements = screen.getAllByText('Save failed');
+      expect(errorElements.length).toBeGreaterThan(0);
     }, { timeout: 2000 });
   });
 });

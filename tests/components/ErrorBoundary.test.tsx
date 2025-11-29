@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 
 // Component that throws an error
@@ -70,7 +70,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('Reload Extension')).toBeInTheDocument();
   });
 
-  it('should reset error state when try again is clicked', () => {
+  it('should reset error state when try again is clicked', async () => {
     const { rerender } = render(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
@@ -79,20 +79,22 @@ describe('ErrorBoundary', () => {
 
     expect(screen.getByText(/Something went wrong/)).toBeInTheDocument();
 
-    // Click try again button
+    // Click try again button - this resets the error boundary
     const tryAgainButton = screen.getByText('Try Again');
     fireEvent.click(tryAgainButton);
 
-    // Error boundary should reset, but component will still throw
-    // So we need to rerender with non-throwing component
+    // Error boundary resets, but component still throws
+    // So we need to rerender with non-throwing component immediately after reset
     rerender(
       <ErrorBoundary>
         <ThrowError shouldThrow={false} />
       </ErrorBoundary>
     );
 
-    // After reset, if component doesn't throw, it should render normally
-    expect(screen.getByText('No error')).toBeInTheDocument();
+    // After reset and rerender with non-throwing component, it should render normally
+    await waitFor(() => {
+      expect(screen.getByText('No error')).toBeInTheDocument();
+    }, { timeout: 2000 });
   });
 });
 

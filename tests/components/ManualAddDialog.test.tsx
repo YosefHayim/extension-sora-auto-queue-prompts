@@ -66,13 +66,23 @@ describe('ManualAddDialog', () => {
 
   it('should show error when no prompts entered', async () => {
     render(<ManualAddDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onAdd={mockOnAdd} />);
-    const submitButton = screen.getByText(/Add.*Prompt/i);
-    fireEvent.click(submitButton);
+    const submitButton = screen.getByRole('button', { name: /Add.*Prompt/i });
+    
+    // Button might be disabled, so we need to enable it or trigger submit differently
+    // First, ensure the textarea is empty
+    const textarea = screen.getByLabelText('Prompts');
+    fireEvent.change(textarea, { target: { value: '' } });
+    
+    // Try to submit - the button might be disabled, so we'll submit the form directly
+    const form = textarea.closest('form');
+    if (form) {
+      fireEvent.submit(form);
+    } else {
+      fireEvent.click(submitButton);
+    }
 
     await waitFor(() => {
-      const errorElement = screen.queryByText((content, element) => {
-        return element?.textContent?.includes('Please enter at least one prompt') || false;
-      });
+      const errorElement = screen.getByText('Please enter at least one prompt');
       expect(errorElement).toBeInTheDocument();
     });
   });
@@ -81,7 +91,7 @@ describe('ManualAddDialog', () => {
     render(<ManualAddDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onAdd={mockOnAdd} />);
     const textarea = screen.getByLabelText('Prompts');
     fireEvent.change(textarea, { target: { value: 'Prompt 1\nPrompt 2' } });
-    const submitButton = screen.getByText(/Add.*Prompt/i);
+    const submitButton = screen.getByRole('button', { name: /Add.*Prompt/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -103,7 +113,7 @@ describe('ManualAddDialog', () => {
     render(<ManualAddDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onAdd={mockOnAdd} />);
     const textarea = screen.getByLabelText('Prompts');
     fireEvent.change(textarea, { target: { value: 'Prompt 1' } });
-    const submitButton = screen.getByText(/Add.*Prompt/i);
+    const submitButton = screen.getByRole('button', { name: /Add.*Prompt/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {

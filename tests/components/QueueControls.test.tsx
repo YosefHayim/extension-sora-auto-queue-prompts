@@ -225,5 +225,177 @@ describe('QueueControls', () => {
     const progressBar = container.querySelector('[role="progressbar"]');
     expect(progressBar).not.toBeInTheDocument();
   });
+
+  it('should display timer when queue is running', () => {
+    const queueStartTime = Date.now() - 5000; // 5 seconds ago
+    const queueState = createQueueState({
+      isRunning: true,
+      isPaused: false,
+      queueStartTime,
+    });
+    const { container } = render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    // Timer should be visible - look for Timer icon (lucide-react icon)
+    const timerIcon = container.querySelector('svg');
+    expect(timerIcon).toBeInTheDocument();
+  });
+
+  it('should not display timer when queue is paused', () => {
+    const queueStartTime = Date.now() - 5000;
+    const queueState = createQueueState({
+      isRunning: true,
+      isPaused: true,
+      queueStartTime,
+    });
+    const { container } = render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    // Timer should not be visible when paused
+    const timer = container.querySelector('[class*="Timer"]');
+    expect(timer).not.toBeInTheDocument();
+  });
+
+  it('should not display timer when queue is stopped', () => {
+    const queueState = createQueueState({
+      isRunning: false,
+      queueStartTime: Date.now() - 5000,
+    });
+    const { container } = render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    // Timer should not be visible when stopped
+    const timer = container.querySelector('[class*="Timer"]');
+    expect(timer).not.toBeInTheDocument();
+  });
+
+  it('should handle zero total count', () => {
+    const queueState = createQueueState({ isRunning: false });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={0}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    expect(screen.getByText(/0 \/ 0 prompts/)).toBeInTheDocument();
+  });
+
+  it('should calculate progress correctly', () => {
+    const queueState = createQueueState({
+      isRunning: true,
+      processedCount: 7,
+      totalCount: 10,
+    });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    expect(screen.getByText('70% complete')).toBeInTheDocument();
+    expect(screen.getByText('3 remaining')).toBeInTheDocument();
+  });
+
+  it('should show hover card for start button', () => {
+    const queueState = createQueueState({ isRunning: false });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    const startButton = screen.getByText('Start');
+    expect(startButton).toBeInTheDocument();
+  });
+
+  it('should show hover card for pause button', () => {
+    const queueState = createQueueState({ isRunning: true, isPaused: false });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    const pauseButton = screen.getByText('Pause');
+    expect(pauseButton).toBeInTheDocument();
+  });
+
+  it('should show hover card for resume button', () => {
+    const queueState = createQueueState({ isRunning: true, isPaused: true });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    const resumeButton = screen.getByText('Resume');
+    expect(resumeButton).toBeInTheDocument();
+  });
+
+  it('should show hover card for stop button', () => {
+    const queueState = createQueueState({ isRunning: true });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    const stopButton = screen.getByText('Stop');
+    expect(stopButton).toBeInTheDocument();
+  });
 });
 

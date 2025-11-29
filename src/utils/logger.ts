@@ -56,7 +56,7 @@ class Logger {
 
     try {
       const result = await chrome.storage.local.get('logs');
-      const logs: LogEntry[] = result.logs || [];
+      const logs: LogEntry[] = (result && result.logs) ? result.logs : [];
 
       // Add new log
       logs.unshift(entry);
@@ -157,7 +157,7 @@ class Logger {
   }): Promise<LogEntry[]> {
     try {
       const result = await chrome.storage.local.get('logs');
-      let logs: LogEntry[] = result.logs || [];
+      let logs: LogEntry[] = (result && result.logs) ? result.logs : [];
 
       // Apply filters
       if (filter?.level) {

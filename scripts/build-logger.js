@@ -106,11 +106,15 @@ class BuildLogger {
   summary(stats) {
     const totalTime = this.formatTime(Date.now() - this.startTime);
     console.log(`\n${colors.bright}${colors.cyan}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}`);
-    console.log(`${colors.bright}${colors.green}  Build completed successfully${colors.reset}`);
-    console.log(`${colors.bright}${colors.cyan}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}`);
     if (stats) {
       Object.entries(stats).forEach(([key, value]) => {
-        console.log(`${colors.dim}  ${key}:${colors.reset} ${colors.bright}${value}${colors.reset}`);
+        // Capitalize first letter of status value and add green checkmark before the value
+        if (key === "Status") {
+          const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1);
+          console.log(`${colors.dim}  ${key}:${colors.reset} ${colors.bright}${colors.green}✓${colors.reset} ${colors.bright}${capitalizedValue}${colors.reset}`);
+        } else {
+          console.log(`${colors.dim}  ${key}:${colors.reset} ${colors.bright}${value}${colors.reset}`);
+        }
       });
     }
     console.log(`${colors.dim}  Total time: ${totalTime}${colors.reset}\n`);

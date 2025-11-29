@@ -47,7 +47,7 @@ function main() {
     // Step 3: Plasmo build
     logger.stage("Extension Build");
     logger.info("Building with Plasmo", "Bundling extension files");
-    executeCommand("plasmo build", "Building extension bundle");
+    executeCommand("plasmo build", "Building extension bundle", { silent: true });
 
     // Step 4: Post-build processing
     logger.stage("Post-build");
@@ -56,7 +56,7 @@ function main() {
     logger.summary({
       "Build target": "chrome-mv3",
       "Build mode": "production",
-      "Status": "success",
+      "Status": "Success",
     });
 
   } catch (error) {

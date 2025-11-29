@@ -104,16 +104,18 @@ describe("SettingsDialog", () => {
       success: true,
     };
 
-    const { container } = render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
+    const { container } = render(
+      <SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />
+    );
 
     // Find the Sora Generation Settings card by finding the title and then its parent card
     const soraSettingsTitle = screen.getByText("Sora Generation Settings");
-    const soraSettingsCard = soraSettingsTitle.closest('.rounded-lg');
-    
+    const soraSettingsCard = soraSettingsTitle.closest(".rounded-lg");
+
     // Check if the card has the green border class
     expect(soraSettingsCard).toBeTruthy();
-    expect(soraSettingsCard?.classList.contains('border-green-500')).toBe(true);
-    expect(soraSettingsCard?.classList.contains('border-2')).toBe(true);
+    expect(soraSettingsCard?.classList.contains("border-green-500")).toBe(true);
+    expect(soraSettingsCard?.classList.contains("border-2")).toBe(true);
   });
 
   it("should validate min delay", async () => {

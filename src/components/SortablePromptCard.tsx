@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { PromptCard } from './PromptCard';
@@ -31,7 +32,7 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
   // Filter out drag events from interactive elements
   // The PointerSensor with activationConstraint should handle most cases,
   // but we add an extra check here for safety
-  const filteredListeners = React.useMemo(() => {
+  const filteredListeners = useMemo(() => {
     if (!listeners?.onPointerDown) return listeners;
 
     const originalHandler = listeners.onPointerDown;

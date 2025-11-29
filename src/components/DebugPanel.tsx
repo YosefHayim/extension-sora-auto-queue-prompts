@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Download, Trash2 } from 'lucide-react';
+import { FaSync, FaDownload, FaTrash } from 'react-icons/fa';
 import { log } from '@/utils/logger';
 import type { LogEntry } from '@/utils/logger';
 
@@ -84,7 +84,7 @@ export function DebugPanel() {
                 onClick={loadLogs}
                 disabled={isLoading}
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <FaSync className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <Button
@@ -93,7 +93,7 @@ export function DebugPanel() {
                 onClick={handleExportLogs}
                 disabled={logs.length === 0}
               >
-                <Download className="h-4 w-4 mr-2" />
+                <FaDownload className="h-4 w-4 mr-2" />
                 Export
               </Button>
               <Button
@@ -102,7 +102,7 @@ export function DebugPanel() {
                 onClick={handleClearLogs}
                 disabled={logs.length === 0}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <FaTrash className="h-4 w-4 mr-2" />
                 Clear
               </Button>
             </div>

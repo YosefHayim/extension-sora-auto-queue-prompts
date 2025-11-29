@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Edit3, Loader2, X } from "lucide-react";
+import { FaEdit, FaSpinner, FaTimes } from "react-icons/fa";
 
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -91,11 +91,11 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Edit3 className="h-5 w-5 text-primary" />
+            <FaEdit className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Edit Prompt</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={handleCancel} disabled={loading}>
-            <X className="h-4 w-4" />
+            <FaTimes className="h-4 w-4" />
           </Button>
         </div>
 
@@ -142,11 +142,11 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
             <Button type="submit" className="flex-1" disabled={loading || !isValid || !hasChanges}>
               {loading ?
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
                   Saving...
                 </>
               : <>
-                  <Edit3 className="h-4 w-4 mr-2" />
+                  <FaEdit className="h-4 w-4 mr-2" />
                   Save Changes
                 </>
               }

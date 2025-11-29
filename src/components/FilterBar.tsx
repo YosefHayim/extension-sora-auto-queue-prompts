@@ -1,15 +1,15 @@
 import {
-  Filter,
-  X,
-  List,
-  Clock,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  Grid3x3,
-  Video,
-  Image as ImageIcon,
-} from "lucide-react";
+  FaFilter,
+  FaTimes,
+  FaList,
+  FaClock,
+  FaSpinner,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaTh,
+  FaVideo,
+  FaImage,
+} from "react-icons/fa";
 
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -31,24 +31,24 @@ interface FilterBarProps {
 }
 
 const statusConfig = {
-  all: { icon: List, label: "All", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
+  all: { icon: FaList, label: "All", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
   pending: {
-    icon: Clock,
+    icon: FaClock,
     label: "Pending",
     color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300",
   },
   processing: {
-    icon: Loader2,
+    icon: FaSpinner,
     label: "Processing",
     color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
   },
   completed: {
-    icon: CheckCircle2,
+    icon: FaCheckCircle,
     label: "Completed",
     color: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
   },
   failed: {
-    icon: XCircle,
+    icon: FaTimesCircle,
     label: "Failed",
     color: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
   },

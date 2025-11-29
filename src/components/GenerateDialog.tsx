@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Loader2, Sparkles, X } from "lucide-react";
+import { FaSpinner, FaMagic, FaTimes, FaImage, FaVideo, FaSquare, FaHashtag } from "react-icons/fa";
 
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -9,7 +9,6 @@ import { Label } from "./ui/label";
 import type { PromptConfig, DetectedSettings } from "../types";
 import { Textarea } from "./ui/textarea";
 import { Badge } from "./ui/badge";
-import { Image, Video, Square, Hash } from "lucide-react";
 import { log } from "../utils/logger";
 
 interface GenerateDialogProps {
@@ -79,11 +78,11 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate, detectedSe
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <FaMagic className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Generate Prompts</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} disabled={loading}>
-            <X className="h-4 w-4" />
+            <FaTimes className="h-4 w-4" />
           </Button>
         </div>
 
@@ -97,22 +96,22 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate, detectedSe
               {detectedSettings.mediaType && (
                 <Badge variant="outline" className="gap-1 text-xs">
                   {detectedSettings.mediaType === 'video' ? (
-                    <Video className="h-3 w-3" />
+                    <FaVideo className="h-3 w-3" />
                   ) : (
-                    <Image className="h-3 w-3" />
+                    <FaImage className="h-3 w-3" />
                   )}
                   {detectedSettings.mediaType.charAt(0).toUpperCase() + detectedSettings.mediaType.slice(1)}
                 </Badge>
               )}
               {detectedSettings.aspectRatio && (
                 <Badge variant="outline" className="gap-1 text-xs">
-                  <Square className="h-3 w-3" />
+                  <FaSquare className="h-3 w-3" />
                   {detectedSettings.aspectRatio}
                 </Badge>
               )}
               {detectedSettings.variations && (
                 <Badge variant="outline" className="gap-1 text-xs">
-                  <Hash className="h-3 w-3" />
+                  <FaHashtag className="h-3 w-3" />
                   {detectedSettings.variations}v
                 </Badge>
               )}
@@ -148,11 +147,11 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate, detectedSe
             <Button type="submit" className="flex-1" disabled={loading}>
               {loading ?
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
                   Generating...
                 </>
               : <>
-                  <Sparkles className="h-4 w-4 mr-2" />
+                  <FaMagic className="h-4 w-4 mr-2" />
                   Generate
                 </>
               }

@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import type { DetectedSettings, PromptConfig } from "../types";
-import { Loader2, Save, Settings, X, Key, Sparkles, PlayCircle } from "lucide-react";
+import { FaSpinner, FaSave, FaCog, FaTimes, FaKey, FaMagic, FaPlayCircle } from "react-icons/fa";
 
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -108,11 +108,11 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-primary" />
+            <FaCog className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Settings</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} disabled={loading}>
-            <X className="h-4 w-4" />
+            <FaTimes className="h-4 w-4" />
           </Button>
         </div>
 
@@ -122,7 +122,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Key className="h-4 w-4 text-primary" />
+                <FaKey className="h-4 w-4 text-primary" />
                 <CardTitle className="text-base">OpenAI Configuration</CardTitle>
               </div>
               <CardDescription>Configure your OpenAI API settings for prompt generation</CardDescription>
@@ -167,7 +167,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <FaMagic className="h-4 w-4 text-primary" />
                   <CardTitle className="text-base">Sora Generation Settings</CardTitle>
                 </div>
                 {detectedSettings?.success && (detectedSettings.mediaType || detectedSettings.variations) && (
@@ -253,7 +253,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <PlayCircle className="h-4 w-4 text-primary" />
+                <FaPlayCircle className="h-4 w-4 text-primary" />
                 <CardTitle className="text-base">Queue Processing Settings</CardTitle>
               </div>
               <CardDescription>Configure how the queue processes and submits prompts to Sora</CardDescription>
@@ -347,11 +347,11 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
             <Button type="submit" className="flex-1" disabled={loading}>
               {loading ?
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
                   Saving...
                 </>
               : <>
-                  <Save className="h-4 w-4 mr-2" />
+                  <FaSave className="h-4 w-4 mr-2" />
                   Save Settings
                 </>
               }

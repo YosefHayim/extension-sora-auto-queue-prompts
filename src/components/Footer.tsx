@@ -1,4 +1,5 @@
 import { FaGithub, FaLinkedin } from "react-icons/fa";
+
 import { AiFillHeart } from "react-icons/ai";
 
 export function Footer() {

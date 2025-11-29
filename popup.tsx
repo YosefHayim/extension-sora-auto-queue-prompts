@@ -14,7 +14,7 @@ import { ManualAddDialog } from './src/components/ManualAddDialog';
 import { EditPromptDialog } from './src/components/EditPromptDialog';
 import { Button } from './src/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './src/components/ui/tabs';
-import { Sparkles, Settings, List, Bug } from 'lucide-react';
+import { FaMagic, FaCog, FaList, FaBug } from 'react-icons/fa';
 import { storage } from './src/utils/storage';
 import { log } from './src/utils/logger';
 import type { PromptConfig, GeneratedPrompt, QueueState } from './src/types';
@@ -359,11 +359,11 @@ function IndexPopup() {
 
           <div className="flex gap-2">
             <Button onClick={handleGenerate}>
-              <Sparkles className="h-4 w-4 mr-2" />
+              <FaMagic className="h-4 w-4 mr-2" />
               Generate
             </Button>
             <Button variant="outline" size="icon" onClick={handleSettings}>
-              <Settings className="h-4 w-4" />
+              <FaCog className="h-4 w-4" />
             </Button>
           </div>
         </header>
@@ -372,11 +372,11 @@ function IndexPopup() {
         <Tabs defaultValue="queue">
           <TabsList>
             <TabsTrigger value="queue" className="flex-1">
-              <List className="h-4 w-4 mr-2" />
+              <FaList className="h-4 w-4 mr-2" />
               Queue
             </TabsTrigger>
             <TabsTrigger value="debug" className="flex-1">
-              <Bug className="h-4 w-4 mr-2" />
+              <FaBug className="h-4 w-4 mr-2" />
               Debug
             </TabsTrigger>
           </TabsList>

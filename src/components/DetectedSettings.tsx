@@ -1,5 +1,5 @@
 import * as React from "react";
-import { RefreshCw, CheckCircle2, AlertCircle, Image, Video, Square, Hash } from "lucide-react";
+import { FaSync, FaCheckCircle, FaExclamationCircle, FaImage, FaVideo, FaSquare, FaHashtag } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
@@ -26,13 +26,13 @@ export function DetectedSettings({ settings, onSync, loading }: DetectedSettings
         <CardContent className="p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              <FaExclamationCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
               <span className="text-sm text-yellow-800 dark:text-yellow-200">
                 Could not detect settings. Make sure Sora page is open.
               </span>
             </div>
             <Button variant="ghost" size="sm" onClick={onSync} disabled={loading}>
-              <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+              <FaSync className={cn("h-4 w-4", loading && "animate-spin")} />
             </Button>
           </div>
         </CardContent>
@@ -50,16 +50,16 @@ export function DetectedSettings({ settings, onSync, loading }: DetectedSettings
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <FaCheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
               <span className="text-xs font-medium text-green-800 dark:text-green-200">Detected:</span>
             </div>
 
             {settings.mediaType && (
               <Badge variant="outline" className="gap-1 text-xs">
                 {settings.mediaType === 'video' ? (
-                  <Video className="h-3 w-3" />
+                  <FaVideo className="h-3 w-3" />
                 ) : (
-                  <Image className="h-3 w-3" />
+                  <FaImage className="h-3 w-3" />
                 )}
                 {settings.mediaType.charAt(0).toUpperCase() + settings.mediaType.slice(1)}
               </Badge>
@@ -67,14 +67,14 @@ export function DetectedSettings({ settings, onSync, loading }: DetectedSettings
 
             {settings.aspectRatio && (
               <Badge variant="outline" className="gap-1 text-xs">
-                <Square className="h-3 w-3" />
+                <FaSquare className="h-3 w-3" />
                 {settings.aspectRatio}
               </Badge>
             )}
 
             {settings.variations && (
               <Badge variant="outline" className="gap-1 text-xs">
-                <Hash className="h-3 w-3" />
+                <FaHashtag className="h-3 w-3" />
                 {settings.variations}v
               </Badge>
             )}

@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Pencil, CopyPlus, Sparkles, MoreVertical, Trash2, Image, Video, CheckCircle2, Timer, Clock, XCircle, Play, CheckSquare, Square, ClipboardCopy, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { FaPencilAlt, FaCopy, FaMagic, FaEllipsisV, FaTrash, FaImage, FaVideo, FaCheckCircle, FaClock, FaTimesCircle, FaPlay, FaCheckSquare, FaSquare, FaClipboard, FaChevronDown, FaChevronUp, FaFileAlt } from 'react-icons/fa';
 import { cn } from '@/lib/utils';
 import { log } from '@/utils/logger';
 import type { GeneratedPrompt } from '@/types';
@@ -120,13 +120,13 @@ export function PromptCard({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="h-3.5 w-3.5" />;
+        return <FaCheckCircle className="h-3.5 w-3.5" />;
       case 'processing':
-        return <Timer className="h-3.5 w-3.5" />;
+        return <FaClock className="h-3.5 w-3.5" />;
       case 'pending':
-        return <Clock className="h-3.5 w-3.5" />;
+        return <FaClock className="h-3.5 w-3.5" />;
       case 'failed':
-        return <XCircle className="h-3.5 w-3.5" />;
+        return <FaTimesCircle className="h-3.5 w-3.5" />;
       default:
         return null;
     }
@@ -213,9 +213,9 @@ export function PromptCard({
               data-no-drag
             >
               {isSelected ? (
-                <CheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <FaCheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               ) : (
-                <Square className="h-4 w-4 text-muted-foreground" />
+                <FaSquare className="h-4 w-4 text-muted-foreground" />
               )}
             </button>
           )}
@@ -229,9 +229,9 @@ export function PromptCard({
               )}
             >
               {prompt.mediaType === 'video' ? (
-                <Video className="h-3 w-3" />
+                <FaVideo className="h-3 w-3" />
               ) : (
-                <Image className="h-3 w-3" />
+                <FaImage className="h-3 w-3" />
               )}
               {prompt.mediaType.charAt(0).toUpperCase() + prompt.mediaType.slice(1)}
             </Badge>
@@ -242,13 +242,13 @@ export function PromptCard({
             )}
             {prompt.variations && (
               <Badge variant="outline" className="text-xs font-medium gap-1">
-                <FileText className="h-3 w-3" />
+                <FaFileAlt className="h-3 w-3" />
                 {prompt.variations} variation{prompt.variations !== 1 ? 's' : ''}
               </Badge>
             )}
             {prompt.enhanced && (
               <Badge variant="default" className="gap-1 text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500">
-                <Sparkles className="h-3 w-3" />
+                <FaMagic className="h-3 w-3" />
                 Enhanced
               </Badge>
             )}
@@ -266,7 +266,7 @@ export function PromptCard({
                   title="Process this prompt"
                   data-no-drag
                 >
-                  <Play className="h-3.5 w-3.5" />
+                  <FaPlay className="h-3.5 w-3.5" />
                   Process
                 </Button>
               </HoverCardTrigger>
@@ -326,12 +326,12 @@ export function PromptCard({
               >
                 {isExpanded ? (
                   <>
-                    <ChevronUp className="h-3 w-3 mr-1" />
+                    <FaChevronUp className="h-3 w-3 mr-1" />
                     Show less
                   </>
                 ) : (
                   <>
-                    <ChevronDown className="h-3 w-3 mr-1" />
+                    <FaChevronDown className="h-3 w-3 mr-1" />
                     Read more
                   </>
                 )}
@@ -458,7 +458,7 @@ export function PromptCard({
                 {copied ? (
                   <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
                 ) : (
-                  <ClipboardCopy className="h-4 w-4" />
+                  <FaClipboard className="h-4 w-4" />
                 )}
               </Button>
             </HoverCardTrigger>
@@ -484,7 +484,7 @@ export function PromptCard({
                 data-no-drag
                 className="h-8 w-8"
               >
-                <Pencil className="h-4 w-4" />
+                <FaPencilAlt className="h-4 w-4" />
               </Button>
             </HoverCardTrigger>
             <HoverCardContent className="w-64">
@@ -513,7 +513,7 @@ export function PromptCard({
                 data-no-drag
                 className="h-8 w-8"
               >
-                <CopyPlus className="h-4 w-4" />
+                <FaCopy className="h-4 w-4" />
               </Button>
             </HoverCardTrigger>
             <HoverCardContent className="w-64">
@@ -563,7 +563,7 @@ export function PromptCard({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" type="button" data-no-drag className="h-8 w-8">
-              <MoreVertical className="h-4 w-4" />
+              <FaEllipsisV className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -576,7 +576,7 @@ export function PromptCard({
               onSelect={handleDelete}
               className="text-destructive focus:text-destructive"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <FaTrash className="h-4 w-4 mr-2" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

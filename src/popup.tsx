@@ -2,7 +2,7 @@ import "./styles/globals.css";
 
 import * as React from "react";
 
-import { Bug, Download, List, Moon, Play, Settings, Sparkles, Sun, Trash2, CheckSquare, Square } from "lucide-react";
+import { FaBug, FaDownload, FaList, FaMoon, FaPlay, FaCog, FaMagic, FaSun, FaTrash, FaCheckSquare, FaSquare } from "react-icons/fa";
 import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import type { GeneratedPrompt, PromptConfig, QueueState } from "./types";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -569,8 +569,8 @@ function IndexPopup() {
             <h1 className="text-xl font-bold text-foreground">Sora Auto Queue</h1>
             <Button variant="ghost" size="icon" onClick={toggleDarkMode} title="Toggle dark mode">
               {darkMode ?
-                <Sun className="h-4 w-4" />
-              : <Moon className="h-4 w-4" />}
+                <FaSun className="h-4 w-4" />
+              : <FaMoon className="h-4 w-4" />}
             </Button>
           </div>
           <StatusBar pendingCount={pendingCount} processingCount={processingCount} completedCount={completedCount} />
@@ -578,11 +578,11 @@ function IndexPopup() {
 
         <div className="flex gap-2">
           <Button onClick={handleGenerate} size="sm">
-            <Sparkles className="h-4 w-4 mr-2" />
+            <FaMagic className="h-4 w-4 mr-2" />
             Generate
           </Button>
           <Button variant="outline" size="icon" onClick={handleSettings} title="Settings">
-            <Settings className="h-4 w-4" />
+            <FaCog className="h-4 w-4" />
           </Button>
         </div>
       </header>
@@ -591,11 +591,11 @@ function IndexPopup() {
       <Tabs defaultValue="queue">
         <TabsList>
           <TabsTrigger value="queue" className="flex-1">
-            <List className="h-4 w-4 mr-2" />
+            <FaList className="h-4 w-4 mr-2" />
             Queue
           </TabsTrigger>
           <TabsTrigger value="debug" className="flex-1">
-            <Bug className="h-4 w-4 mr-2" />
+            <FaBug className="h-4 w-4 mr-2" />
             Debug
           </TabsTrigger>
         </TabsList>
@@ -639,9 +639,9 @@ function IndexPopup() {
                   title={selectedPrompts.size === filteredPrompts.length ? "Deselect all" : "Select all"}
                 >
                   {selectedPrompts.size === filteredPrompts.length ? (
-                    <CheckSquare className="h-4 w-4" />
+                    <FaCheckSquare className="h-4 w-4" />
                   ) : (
-                    <Square className="h-4 w-4" />
+                    <FaSquare className="h-4 w-4" />
                   )}
                   {selectedPrompts.size > 0 ? `${selectedPrompts.size} selected` : "Select"}
                 </Button>
@@ -652,7 +652,7 @@ function IndexPopup() {
                     onClick={handleProcessSelectedPrompts}
                     className="gap-2"
                   >
-                    <Play className="h-4 w-4" />
+                    <FaPlay className="h-4 w-4" />
                     Process Selected ({selectedPrompts.size})
                   </Button>
                 )}
@@ -669,11 +669,11 @@ function IndexPopup() {
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setExportDialogOpen(true)} className="gap-2">
-                  <Download className="h-4 w-4" />
+                  <FaDownload className="h-4 w-4" />
                   Export
                 </Button>
                 <Button variant="destructive" size="sm" onClick={handleDeleteAllPrompts} className="gap-2">
-                  <Trash2 className="h-4 w-4" />
+                  <FaTrash className="h-4 w-4" />
                   Delete All
                 </Button>
               </div>

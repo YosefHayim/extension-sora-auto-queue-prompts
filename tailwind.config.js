@@ -1,10 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
-  content: [
-    './src/**/*.{ts,tsx}',
-    './assets/**/*.html',
-  ],
+  content: ["./src/**/*.{ts,tsx}", "./entrypoints/**/*.{ts,tsx}", "./assets/**/*.html"],
   theme: {
     container: {
       center: true,
@@ -72,8 +69,8 @@ module.exports = {
           to: { height: "0" },
         },
         "pulse-border": {
-          '0%, 100%': { borderColor: 'hsl(var(--primary))' },
-          '50%': { borderColor: 'hsl(var(--primary) / 0.5)' },
+          "0%, 100%": { borderColor: "hsl(var(--primary))" },
+          "50%": { borderColor: "hsl(var(--primary) / 0.5)" },
         },
       },
       animation: {
@@ -86,4 +83,4 @@ module.exports = {
     },
   },
   plugins: [require("@tailwindcss/forms")],
-}
+};

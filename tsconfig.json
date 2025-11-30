@@ -25,7 +25,8 @@
     }
   },
   "include": [
-    ".plasmo/index.d.ts",
+    "entrypoints/**/*.ts",
+    "entrypoints/**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx"
   ],

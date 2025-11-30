@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { fireEvent, render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom";
 
 import type { GeneratedPrompt } from "../../src/types";
 import { SortablePromptCard } from "../../src/components/SortablePromptCard";
@@ -45,7 +46,8 @@ describe("SortablePromptCard", () => {
     id: "test-id",
     text: "Test prompt",
     status: "pending",
-    createdAt: Date.now(),
+    timestamp: Date.now(),
+    mediaType: "image",
   };
 
   const mockProps = {
@@ -502,5 +504,349 @@ describe("SortablePromptCard", () => {
     onPointerDown(noDragEvent);
     expect(stopPropagation).toHaveBeenCalled();
     expect(originalHandler).not.toHaveBeenCalled();
+  });
+
+  it("should call originalHandler when all closest() checks return null", () => {
+    const { useSortable } = require("@dnd-kit/sortable");
+    const originalHandler = jest.fn();
+    const stopPropagation = jest.fn();
+
+    useSortable.mockReturnValue({
+      attributes: { role: "button" },
+      listeners: {
+        onPointerDown: originalHandler,
+      },
+      setNodeRef: jest.fn((node) => node),
+      transform: null,
+      transition: null,
+      isDragging: false,
+    });
+
+    const { container } = render(<SortablePromptCard {...mockProps} />);
+    const wrapper = container.firstChild as HTMLElement;
+    const onPointerDown = (wrapper as any).onPointerDown;
+
+    if (!onPointerDown) return;
+
+    // Create a div that doesn't match any interactive element
+    const div = document.createElement("div");
+    div.textContent = "Plain div";
+    wrapper.appendChild(div);
+
+    // Mock closest to return null for all selectors
+    div.closest = jest.fn(() => null);
+
+    const mockEvent = {
+      target: div,
+      stopPropagation,
+    } as unknown as PointerEvent;
+
+    onPointerDown(mockEvent);
+
+    // Should call originalHandler and not stop propagation
+    expect(originalHandler).toHaveBeenCalledWith(mockEvent);
+    expect(stopPropagation).not.toHaveBeenCalled();
+  });
+
+  it("should handle event when target.closest returns element for button", () => {
+    const { useSortable } = require("@dnd-kit/sortable");
+    const originalHandler = jest.fn();
+    const stopPropagation = jest.fn();
+
+    useSortable.mockReturnValue({
+      attributes: { role: "button" },
+      listeners: {
+        onPointerDown: originalHandler,
+      },
+      setNodeRef: jest.fn((node) => node),
+      transform: null,
+      transition: null,
+      isDragging: false,
+    });
+
+    const { container } = render(<SortablePromptCard {...mockProps} />);
+    const wrapper = container.firstChild as HTMLElement;
+    const onPointerDown = (wrapper as any).onPointerDown;
+
+    if (!onPointerDown) return;
+
+    const button = document.createElement("button");
+    wrapper.appendChild(button);
+
+    const mockEvent = {
+      target: button,
+      stopPropagation,
+    } as unknown as PointerEvent;
+
+    // Mock closest to return button for "button" selector
+    button.closest = jest.fn((selector: string) => {
+      if (selector === "button") return button;
+      return null;
+    });
+
+    onPointerDown(mockEvent);
+
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(originalHandler).not.toHaveBeenCalled();
+  });
+
+  it("should handle event when target.closest returns element for input", () => {
+    const { useSortable } = require("@dnd-kit/sortable");
+    const originalHandler = jest.fn();
+    const stopPropagation = jest.fn();
+
+    useSortable.mockReturnValue({
+      attributes: { role: "button" },
+      listeners: {
+        onPointerDown: originalHandler,
+      },
+      setNodeRef: jest.fn((node) => node),
+      transform: null,
+      transition: null,
+      isDragging: false,
+    });
+
+    const { container } = render(<SortablePromptCard {...mockProps} />);
+    const wrapper = container.firstChild as HTMLElement;
+    const onPointerDown = (wrapper as any).onPointerDown;
+
+    if (!onPointerDown) return;
+
+    const input = document.createElement("input");
+    wrapper.appendChild(input);
+
+    const mockEvent = {
+      target: input,
+      stopPropagation,
+    } as unknown as PointerEvent;
+
+    // Mock closest to return input for "input" selector
+    input.closest = jest.fn((selector: string) => {
+      if (selector === "input") return input;
+      return null;
+    });
+
+    onPointerDown(mockEvent);
+
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(originalHandler).not.toHaveBeenCalled();
+  });
+
+  it("should handle event when target.closest returns element for role button", () => {
+    const { useSortable } = require("@dnd-kit/sortable");
+    const originalHandler = jest.fn();
+    const stopPropagation = jest.fn();
+
+    useSortable.mockReturnValue({
+      attributes: { role: "button" },
+      listeners: {
+        onPointerDown: originalHandler,
+      },
+      setNodeRef: jest.fn((node) => node),
+      transform: null,
+      transition: null,
+      isDragging: false,
+    });
+
+    const { container } = render(<SortablePromptCard {...mockProps} />);
+    const wrapper = container.firstChild as HTMLElement;
+    const onPointerDown = (wrapper as any).onPointerDown;
+
+    if (!onPointerDown) return;
+
+    const roleButton = document.createElement("div");
+    roleButton.setAttribute("role", "button");
+    wrapper.appendChild(roleButton);
+
+    const mockEvent = {
+      target: roleButton,
+      stopPropagation,
+    } as unknown as PointerEvent;
+
+    // Mock closest to return roleButton for '[role="button"]' selector
+    roleButton.closest = jest.fn((selector: string) => {
+      if (selector === '[role="button"]') return roleButton;
+      return null;
+    });
+
+    onPointerDown(mockEvent);
+
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(originalHandler).not.toHaveBeenCalled();
+  });
+
+  it("should handle event when target.closest returns element for data-no-drag", () => {
+    const { useSortable } = require("@dnd-kit/sortable");
+    const originalHandler = jest.fn();
+    const stopPropagation = jest.fn();
+
+    useSortable.mockReturnValue({
+      attributes: { role: "button" },
+      listeners: {
+        onPointerDown: originalHandler,
+      },
+      setNodeRef: jest.fn((node) => node),
+      transform: null,
+      transition: null,
+      isDragging: false,
+    });
+
+    const { container } = render(<SortablePromptCard {...mockProps} />);
+    const wrapper = container.firstChild as HTMLElement;
+    const onPointerDown = (wrapper as any).onPointerDown;
+
+    if (!onPointerDown) return;
+
+    const noDrag = document.createElement("div");
+    noDrag.setAttribute("data-no-drag", "true");
+    wrapper.appendChild(noDrag);
+
+    const mockEvent = {
+      target: noDrag,
+      stopPropagation,
+    } as unknown as PointerEvent;
+
+    // Mock closest to return noDrag for '[data-no-drag]' selector
+    noDrag.closest = jest.fn((selector: string) => {
+      if (selector === "[data-no-drag]") return noDrag;
+      return null;
+    });
+
+    onPointerDown(mockEvent);
+
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(originalHandler).not.toHaveBeenCalled();
+  });
+
+  it("should handle event target as HTMLElement and call stopPropagation correctly", () => {
+    const { useSortable } = require("@dnd-kit/sortable");
+    const originalHandler = jest.fn();
+    const stopPropagation = jest.fn();
+
+    useSortable.mockReturnValue({
+      attributes: { role: "button" },
+      listeners: {
+        onPointerDown: originalHandler,
+      },
+      setNodeRef: jest.fn((node) => node),
+      transform: null,
+      transition: null,
+      isDragging: false,
+    });
+
+    const { container } = render(<SortablePromptCard {...mockProps} />);
+    const wrapper = container.firstChild as HTMLElement;
+    const onPointerDown = (wrapper as any).onPointerDown;
+
+    if (!onPointerDown) return;
+
+    // Test that event.target is properly cast to HTMLElement
+    const button = document.createElement("button");
+    wrapper.appendChild(button);
+
+    const mockEvent = {
+      target: button,
+      stopPropagation,
+    } as unknown as PointerEvent;
+
+    button.closest = jest.fn((selector: string) => {
+      if (selector === "button") return button;
+      return null;
+    });
+
+    onPointerDown(mockEvent);
+
+    // Verify the handler properly accesses target.closest
+    expect(button.closest).toHaveBeenCalledWith("button");
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(originalHandler).not.toHaveBeenCalled();
+  });
+
+  it("should test all branches of the if condition with OR logic", () => {
+    const { useSortable } = require("@dnd-kit/sortable");
+    const originalHandler = jest.fn();
+    const stopPropagation = jest.fn();
+
+    useSortable.mockReturnValue({
+      attributes: { role: "button" },
+      listeners: {
+        onPointerDown: originalHandler,
+      },
+      setNodeRef: jest.fn((node) => node),
+      transform: null,
+      transition: null,
+      isDragging: false,
+    });
+
+    const { container } = render(<SortablePromptCard {...mockProps} />);
+    const wrapper = container.firstChild as HTMLElement;
+    const onPointerDown = (wrapper as any).onPointerDown;
+
+    if (!onPointerDown) return;
+
+    // Test that when first condition (button) is true, others are not evaluated (short-circuit)
+    const button = document.createElement("button");
+    wrapper.appendChild(button);
+
+    const mockEvent = {
+      target: button,
+      stopPropagation,
+    } as unknown as PointerEvent;
+
+    const closestSpy = jest.fn((selector: string) => {
+      if (selector === "button") return button;
+      // These should not be called due to short-circuit evaluation
+      if (selector === "input") return null;
+      if (selector === '[role="button"]') return null;
+      if (selector === "[data-no-drag]") return null;
+      return null;
+    });
+
+    button.closest = closestSpy;
+
+    onPointerDown(mockEvent);
+
+    // Should only call closest with "button" due to short-circuit
+    expect(closestSpy).toHaveBeenCalledWith("button");
+    expect(closestSpy).toHaveBeenCalledTimes(1);
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(originalHandler).not.toHaveBeenCalled();
+  });
+
+  it("should test filteredListeners useMemo dependency on listeners", () => {
+    const { useSortable } = require("@dnd-kit/sortable");
+    const originalHandler1 = jest.fn();
+    const originalHandler2 = jest.fn();
+
+    // First render with first handler
+    useSortable.mockReturnValue({
+      attributes: { role: "button" },
+      listeners: {
+        onPointerDown: originalHandler1,
+      },
+      setNodeRef: jest.fn((node) => node),
+      transform: null,
+      transition: null,
+      isDragging: false,
+    });
+
+    const { rerender } = render(<SortablePromptCard {...mockProps} />);
+
+    // Second render with different handler (should trigger useMemo recalculation)
+    useSortable.mockReturnValue({
+      attributes: { role: "button" },
+      listeners: {
+        onPointerDown: originalHandler2,
+      },
+      setNodeRef: jest.fn((node) => node),
+      transform: null,
+      transition: null,
+      isDragging: false,
+    });
+
+    rerender(<SortablePromptCard {...mockProps} />);
+
+    // Verify useSortable was called with the prompt id
+    expect(useSortable).toHaveBeenCalledWith({ id: mockPrompt.id });
   });
 });

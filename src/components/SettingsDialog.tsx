@@ -102,23 +102,65 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
-  // Auto-save API key when user finishes typing (on blur)
+  // Auto-verify and save API key when user finishes typing (on blur)
   async function handleApiKeyBlur() {
-    if (formData.apiKey && formData.apiKey.trim() !== config.apiKey) {
-      try {
-        // Save only the API key and provider if changed
+    const trimmedKey = formData.apiKey?.trim() || "";
+
+    // If empty, clear verification status
+    if (!trimmedKey) {
+      setVerificationStatus(null);
+      setVerifying(false);
+      return;
+    }
+
+    // If unchanged, don't verify again
+    if (trimmedKey === config.apiKey) {
+      return;
+    }
+
+    const provider = formData.apiProvider || detectedProvider;
+    if (!provider) {
+      setVerificationStatus({ valid: false, error: "Please select an API provider" });
+      return;
+    }
+
+    setVerifying(true);
+    setVerificationStatus(null);
+    setError("");
+
+    try {
+      log.ui.action("SettingsDialog:AutoVerifyApiKey", { provider });
+      const result = await verifyApiKey(trimmedKey, provider);
+      setVerificationStatus(result);
+
+      if (result.valid) {
+        // Only save if verification succeeds
         const updates: Partial<PromptConfig> = {
-          apiKey: formData.apiKey.trim(),
+          apiKey: trimmedKey,
         };
         if (formData.apiProvider) {
           updates.apiProvider = formData.apiProvider;
         }
         await onSave(updates);
-        log.ui.action("SettingsDialog:AutoSaveApiKey");
-      } catch (err) {
-        log.ui.error("SettingsDialog:AutoSaveApiKey", err);
-        // Don't show error to user for auto-save, just log it
+        log.ui.action("SettingsDialog:AutoSaveApiKey:Success");
+
+        toast({
+          title: "API key verified and saved",
+          description: "Your API key has been verified and saved successfully.",
+          duration: 3000,
+        });
+      } else {
+        // Show warning but don't save
+        setError(result.error || "API key verification failed");
+        log.ui.error("SettingsDialog:AutoVerifyApiKey:Failed", result.error);
       }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Verification failed";
+      setVerificationStatus({ valid: false, error: errorMsg });
+      setError(errorMsg);
+      log.ui.error("SettingsDialog:AutoVerifyApiKey", err);
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -176,46 +218,6 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
   function handleBackdropClick(e: React.MouseEvent) {
     if (e.target === e.currentTarget && !loading) {
       onClose();
-    }
-  }
-
-  async function handleVerifyApiKey() {
-    if (!formData.apiKey || formData.apiKey.trim().length === 0) {
-      setVerificationStatus({ valid: false, error: "Please enter an API key first" });
-      return;
-    }
-
-    const provider = formData.apiProvider || detectedProvider;
-    if (!provider) {
-      setVerificationStatus({ valid: false, error: "Please select an API provider" });
-      return;
-    }
-
-    setVerifying(true);
-    setVerificationStatus(null);
-    setError("");
-
-    try {
-      log.ui.action("SettingsDialog:VerifyApiKey", { provider });
-      const result = await verifyApiKey(formData.apiKey, provider);
-      setVerificationStatus(result);
-
-      if (result.valid) {
-        toast({
-          title: "API key verified successfully!",
-          description: "Your API key is valid and ready to use.",
-          duration: 3000,
-        });
-      } else {
-        setError(result.error || "API key verification failed");
-      }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Verification failed";
-      setVerificationStatus({ valid: false, error: errorMsg });
-      setError(errorMsg);
-      log.ui.error("SettingsDialog:VerifyApiKey", err);
-    } finally {
-      setVerifying(false);
     }
   }
 
@@ -296,7 +298,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="apiKey">API Key</Label>
-                  <div className="flex gap-2">
+                  <div className="relative">
                     <Input
                       id="apiKey"
                       type="password"
@@ -305,26 +307,20 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                       onChange={(e) => handleChange("apiKey", e.target.value)}
                       onBlur={handleApiKeyBlur}
                       disabled={loading || verifying}
-                      className="flex-1"
+                      className={cn("flex-1 pr-10", verificationStatus && !verificationStatus.valid && "border-destructive")}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleVerifyApiKey}
-                      disabled={loading || verifying || !formData.apiKey || (!formData.apiProvider && !detectedProvider)}
-                      title="Verify API key"
-                    >
-                      {verifying ?
-                        <>
-                          <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
-                          Verifying...
-                        </>
-                      : <>
-                          <FaCheckCircle className="h-4 w-4 mr-2" />
-                          Verify
-                        </>
-                      }
-                    </Button>
+                    {verifying && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <FaSpinner className="h-4 w-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                    {verificationStatus && !verifying && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {verificationStatus.valid ?
+                          <FaCheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        : <FaExclamationCircle className="h-4 w-4 text-destructive" />}
+                      </div>
+                    )}
                   </div>
                   {detectedProvider && (
                     <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
@@ -335,22 +331,16 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                       </span>
                     </div>
                   )}
-                  {verificationStatus && (
-                    <div
-                      className={`flex items-center gap-2 text-xs p-2 rounded-md ${
-                        verificationStatus.valid ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-destructive/10 text-destructive"
-                      }`}
-                    >
-                      {verificationStatus.valid ?
-                        <>
-                          <FaCheckCircle className="h-3 w-3" />
-                          <span>API key verified successfully!</span>
-                        </>
-                      : <>
-                          <FaExclamationCircle className="h-3 w-3" />
-                          <span>{verificationStatus.error || "Verification failed"}</span>
-                        </>
-                      }
+                  {verificationStatus && !verificationStatus.valid && (
+                    <div className="flex items-center gap-2 text-xs p-2 rounded-md bg-destructive/10 text-destructive">
+                      <FaExclamationCircle className="h-3 w-3" />
+                      <span>{verificationStatus.error || "API key verification failed. Please check your key and try again."}</span>
+                    </div>
+                  )}
+                  {verificationStatus && verificationStatus.valid && (
+                    <div className="flex items-center gap-2 text-xs p-2 rounded-md bg-green-500/10 text-green-600 dark:text-green-400">
+                      <FaCheckCircle className="h-3 w-3" />
+                      <span>API key verified and saved successfully!</span>
                     </div>
                   )}
                   <div className="flex flex-col gap-1">
@@ -426,7 +416,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="apiKey">API Key</Label>
-                  <div className="flex gap-2">
+                  <div className="relative">
                     <Input
                       id="apiKey"
                       type="password"
@@ -435,26 +425,20 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                       onChange={(e) => handleChange("apiKey", e.target.value)}
                       onBlur={handleApiKeyBlur}
                       disabled={loading || verifying}
-                      className="flex-1"
+                      className={cn("flex-1 pr-10", verificationStatus && !verificationStatus.valid && "border-destructive")}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleVerifyApiKey}
-                      disabled={loading || verifying || !formData.apiKey || (!formData.apiProvider && !detectedProvider)}
-                      title="Verify API key"
-                    >
-                      {verifying ?
-                        <>
-                          <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
-                          Verifying...
-                        </>
-                      : <>
-                          <FaCheckCircle className="h-4 w-4 mr-2" />
-                          Verify
-                        </>
-                      }
-                    </Button>
+                    {verifying && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <FaSpinner className="h-4 w-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                    {verificationStatus && !verifying && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {verificationStatus.valid ?
+                          <FaCheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        : <FaExclamationCircle className="h-4 w-4 text-destructive" />}
+                      </div>
+                    )}
                   </div>
                   {detectedProvider && (
                     <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
@@ -465,22 +449,16 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                       </span>
                     </div>
                   )}
-                  {verificationStatus && (
-                    <div
-                      className={`flex items-center gap-2 text-xs p-2 rounded-md ${
-                        verificationStatus.valid ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-destructive/10 text-destructive"
-                      }`}
-                    >
-                      {verificationStatus.valid ?
-                        <>
-                          <FaCheckCircle className="h-3 w-3" />
-                          <span>API key verified successfully!</span>
-                        </>
-                      : <>
-                          <FaExclamationCircle className="h-3 w-3" />
-                          <span>{verificationStatus.error || "Verification failed"}</span>
-                        </>
-                      }
+                  {verificationStatus && !verificationStatus.valid && (
+                    <div className="flex items-center gap-2 text-xs p-2 rounded-md bg-destructive/10 text-destructive">
+                      <FaExclamationCircle className="h-3 w-3" />
+                      <span>{verificationStatus.error || "API key verification failed. Please check your key and try again."}</span>
+                    </div>
+                  )}
+                  {verificationStatus && verificationStatus.valid && (
+                    <div className="flex items-center gap-2 text-xs p-2 rounded-md bg-green-500/10 text-green-600 dark:text-green-400">
+                      <FaCheckCircle className="h-3 w-3" />
+                      <span>API key verified and saved successfully!</span>
                     </div>
                   )}
                   <div className="flex flex-col gap-1">

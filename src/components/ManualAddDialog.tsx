@@ -51,8 +51,9 @@ export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDia
     try {
       log.ui.action("ManualAddDialog:Submit", { count: prompts.length, delimiter });
 
-      const newPrompts: GeneratedPrompt[] = prompts.map((text, index) => ({
-        id: `${Date.now()}-${index}`,
+      const { generateUniqueId } = await import('../lib/utils');
+      const newPrompts: GeneratedPrompt[] = prompts.map((text) => ({
+        id: generateUniqueId(),
         text,
         timestamp: Date.now(),
         status: "pending" as const,

@@ -45,7 +45,7 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate, detectedSe
     }
 
     if (!config.apiKey) {
-      setError("Please configure your OpenAI API key in Settings");
+      setError("Please configure your API key in Settings");
       return;
     }
 

@@ -408,7 +408,7 @@ export class QueueProcessor {
   }
 
   private async autoGeneratePrompts(config: PromptConfig): Promise<void> {
-    const generator = new PromptGenerator(config.apiKey);
+    const generator = new PromptGenerator(config.apiKey, config.apiProvider);
 
     const result = await generator.generatePrompts({
       context: config.contextPrompt,
@@ -418,8 +418,9 @@ export class QueueProcessor {
     });
 
     if (result.success) {
-      const newPrompts: GeneratedPrompt[] = result.prompts.map((text: string, index: number) => ({
-        id: `${Date.now()}-${index}`,
+      const { generateUniqueId } = await import('../lib/utils');
+      const newPrompts: GeneratedPrompt[] = result.prompts.map((text: string) => ({
+        id: generateUniqueId(),
         text,
         timestamp: Date.now(),
         status: 'pending' as const,

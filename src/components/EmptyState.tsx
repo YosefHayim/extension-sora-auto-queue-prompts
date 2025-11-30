@@ -1,7 +1,7 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from './ui/card'
+import { Button } from './ui/button'
 import { FaInbox, FaMagic, FaUpload, FaPlus } from 'react-icons/fa';
-import { log } from '@/utils/logger';
+import { log } from '../utils/logger'
 
 interface EmptyStateProps {
   onGenerate: () => void;

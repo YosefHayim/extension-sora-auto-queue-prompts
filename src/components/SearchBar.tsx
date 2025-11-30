@@ -1,7 +1,7 @@
 import { Input } from "./ui/input";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils"
 
 interface SearchBarProps {
   value: string;

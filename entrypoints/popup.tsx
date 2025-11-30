@@ -3,7 +3,7 @@ import "../src/styles/globals.css";
 import * as React from "react";
 import ReactDOM from "react-dom/client";
 
-import { FaBug, FaDownload, FaList, FaMoon, FaPlay, FaCog, FaMagic, FaSun, FaTrash, FaCheckSquare, FaSquare } from "react-icons/fa";
+import { FaBug, FaDownload, FaList, FaMoon, FaPlay, FaCog, FaMagic, FaSun, FaTrash, FaCheckSquare, FaSquare, FaKey, FaSlidersH } from "react-icons/fa";
 import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import type { GeneratedPrompt, PromptConfig, QueueState } from "../src/types";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -17,7 +17,7 @@ import { EditPromptDialog } from "../src/components/EditPromptDialog";
 import { EmptyState } from "../src/components/EmptyState";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { ExportDialog } from "../src/components/ExportDialog";
-import { FilterBar } from "../src/components/FilterBar";
+import { FilterDropdown } from "../src/components/FilterDropdown";
 import { GenerateDialog } from "../src/components/GenerateDialog";
 import { ManualAddDialog } from "../src/components/ManualAddDialog";
 import { QueueControls } from "../src/components/QueueControls";
@@ -594,9 +594,13 @@ function IndexPopup() {
             <FaList className="h-4 w-4 mr-2" />
             Queue
           </TabsTrigger>
-          <TabsTrigger value="debug" className="flex-1">
-            <FaBug className="h-4 w-4 mr-2" />
-            Debug
+          <TabsTrigger value="api-settings" className="flex-1">
+            <FaKey className="h-4 w-4 mr-2" />
+            API Settings
+          </TabsTrigger>
+          <TabsTrigger value="generation-settings" className="flex-1">
+            <FaSlidersH className="h-4 w-4 mr-2" />
+            Generation Settings
           </TabsTrigger>
         </TabsList>
 
@@ -614,16 +618,20 @@ function IndexPopup() {
 
           {/* Search and Filters */}
           {prompts.length > 0 && (
-            <div className="space-y-3">
-              <SearchBar value={searchQuery} onChange={setSearchQuery} />
-              <FilterBar
-                statusFilter={statusFilter}
-                mediaTypeFilter={mediaTypeFilter}
-                onStatusFilterChange={setStatusFilter}
-                onMediaTypeFilterChange={setMediaTypeFilter}
-                promptCount={prompts.length}
-                filteredCount={filteredPrompts.length}
-              />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                </div>
+                <FilterDropdown
+                  statusFilter={statusFilter}
+                  mediaTypeFilter={mediaTypeFilter}
+                  onStatusFilterChange={setStatusFilter}
+                  onMediaTypeFilterChange={setMediaTypeFilter}
+                  promptCount={prompts.length}
+                  filteredCount={filteredPrompts.length}
+                />
+              </div>
             </div>
           )}
 
@@ -724,9 +732,32 @@ function IndexPopup() {
           </div>
         </TabsContent>
 
-        {/* Debug Tab Content */}
-        <TabsContent value="debug">
-          <DebugPanel />
+        {/* API Settings Tab Content */}
+        <TabsContent value="api-settings" className="space-y-4">
+          <div className="p-4">
+            <SettingsDialog
+              config={config}
+              isOpen={true}
+              onClose={() => {}}
+              onSave={handleSaveSettings}
+              detectedSettings={detectedSettings}
+              showOnly="api"
+            />
+          </div>
+        </TabsContent>
+
+        {/* Generation Settings Tab Content */}
+        <TabsContent value="generation-settings" className="space-y-4">
+          <div className="p-4">
+            <SettingsDialog
+              config={config}
+              isOpen={true}
+              onClose={() => {}}
+              onSave={handleSaveSettings}
+              detectedSettings={detectedSettings}
+              showOnly="generation"
+            />
+          </div>
         </TabsContent>
       </Tabs>
 

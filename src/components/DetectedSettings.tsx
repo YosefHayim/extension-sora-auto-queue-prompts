@@ -3,7 +3,7 @@ import { FaSync, FaCheckCircle, FaExclamationCircle, FaImage, FaVideo, FaSquare,
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils"
 import type { DetectedSettings } from "../types";
 import { log } from "../utils/logger";
 

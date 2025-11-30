@@ -1,11 +1,11 @@
-import type { PromptConfig, GeneratedPrompt, QueueState } from '../types';
+import type { GeneratedPrompt, PromptConfig, QueueState } from "../types";
 
 const DEFAULT_CONFIG: PromptConfig = {
-  contextPrompt: '',
-  apiKey: '',
+  contextPrompt: "",
+  apiKey: "",
   batchSize: 50,
-  mediaType: 'video',
-  variationCount: 4,
+  mediaType: "image",
+  variationCount: 2,
   autoRun: false,
   useSecretPrompt: true, // Default to enhanced prompts
   autoGenerateOnEmpty: false,
@@ -25,7 +25,7 @@ const DEFAULT_QUEUE_STATE: QueueState = {
 
 export const storage = {
   async getConfig(): Promise<PromptConfig> {
-    const result = await chrome.storage.local.get('config');
+    const result = await chrome.storage.local.get("config");
     return result.config || DEFAULT_CONFIG;
   },
 
@@ -37,7 +37,7 @@ export const storage = {
   },
 
   async getPrompts(): Promise<GeneratedPrompt[]> {
-    const result = await chrome.storage.local.get('prompts');
+    const result = await chrome.storage.local.get("prompts");
     return result.prompts || [];
   },
 
@@ -54,9 +54,7 @@ export const storage = {
 
   async updatePrompt(id: string, updates: Partial<GeneratedPrompt>): Promise<void> {
     const prompts = await this.getPrompts();
-    const updatedPrompts = prompts.map((p) =>
-      p.id === id ? { ...p, ...updates } : p
-    );
+    const updatedPrompts = prompts.map((p) => (p.id === id ? { ...p, ...updates } : p));
     await chrome.storage.local.set({ prompts: updatedPrompts });
   },
 
@@ -70,7 +68,7 @@ export const storage = {
   },
 
   async getHistory(): Promise<GeneratedPrompt[]> {
-    const result = await chrome.storage.local.get('history');
+    const result = await chrome.storage.local.get("history");
     return result.history || [];
   },
 
@@ -96,7 +94,7 @@ export const storage = {
   },
 
   async getQueueState(): Promise<QueueState> {
-    const result = await chrome.storage.local.get('queueState');
+    const result = await chrome.storage.local.get("queueState");
     return result.queueState || DEFAULT_QUEUE_STATE;
   },
 

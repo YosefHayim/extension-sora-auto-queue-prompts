@@ -1,12 +1,15 @@
 import { storage } from './storage';
 import { PromptGenerator } from './promptGenerator';
-import type { GeneratedPrompt, PromptEditAction } from '../types';
+import type { ApiProvider, GeneratedPrompt, PromptEditAction } from '../types';
+import { generateUniqueId } from '../lib/utils';
 
 export class PromptActions {
   private apiKey: string;
+  private apiProvider?: ApiProvider;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, apiProvider?: ApiProvider) {
     this.apiKey = apiKey;
+    this.apiProvider = apiProvider;
   }
 
   async editPrompt(promptId: string, newText: string): Promise<{ success: boolean; error?: string }> {
@@ -53,7 +56,7 @@ export class PromptActions {
         return { success: false, error: 'Prompt not found' };
       }
 
-      const generator = new PromptGenerator(this.apiKey);
+      const generator = new PromptGenerator(this.apiKey, this.apiProvider);
       const result = await generator.enhancePrompt(prompt.text, prompt.mediaType);
 
       if (result.success) {
@@ -91,7 +94,7 @@ export class PromptActions {
       for (let i = 0; i < count; i++) {
         duplicates.push({
           ...prompt,
-          id: `${Date.now()}-dup-${i}`,
+          id: generateUniqueId(),
           timestamp: Date.now() + i,
           status: 'pending',
         });
@@ -120,7 +123,7 @@ export class PromptActions {
         return { success: false, error: 'Prompt not found' };
       }
 
-      const generator = new PromptGenerator(this.apiKey);
+      const generator = new PromptGenerator(this.apiKey, this.apiProvider);
       const result = await generator.generateSimilar(
         prompt.text,
         count,
@@ -129,7 +132,7 @@ export class PromptActions {
 
       if (result.success) {
         const similarPrompts: GeneratedPrompt[] = result.prompts.map((text: string, index: number) => ({
-          id: `${Date.now()}-sim-${index}`,
+          id: generateUniqueId(),
           text,
           timestamp: Date.now() + index,
           status: 'pending' as const,

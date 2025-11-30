@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { CSS } from "@dnd-kit/utilities";
-import type { GeneratedPrompt } from "@/types";
+import type { GeneratedPrompt } from "../types"
 import { PromptCard } from "./PromptCard";
 import { useSortable } from "@dnd-kit/sortable";
 

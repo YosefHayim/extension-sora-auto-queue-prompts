@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Card, CardHeader, CardContent } from './ui/card'
+import { Button } from './ui/button'
+import { Badge } from './ui/badge'
+import { Progress } from './ui/progress'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 import { FaPlay, FaPause, FaStop, FaClock } from 'react-icons/fa';
-import { cn } from '@/lib/utils';
-import { log } from '@/utils/logger';
-import type { QueueState } from '@/types';
+import { cn } from '../lib/utils'
+import { log } from '../utils/logger'
+import type { QueueState } from '../types'
 
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;

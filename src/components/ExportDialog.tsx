@@ -3,7 +3,7 @@ import { FaDownload, FaTimes, FaFileAlt, FaFileExcel } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Label } from "./ui/label";
-import type { GeneratedPrompt } from "@/types";
+import type { GeneratedPrompt } from "../types"
 import { log } from "../utils/logger";
 
 interface ExportDialogProps {

@@ -1,14 +1,16 @@
 import * as React from "react";
 
-import type { DetectedSettings, PromptConfig } from "../types";
-import { FaSpinner, FaSave, FaCog, FaTimes, FaKey, FaMagic, FaPlayCircle } from "react-icons/fa";
+import type { ApiProvider, DetectedSettings, PromptConfig } from "../types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { FaCheckCircle, FaCog, FaExclamationCircle, FaKey, FaMagic, FaPlayCircle, FaSave, FaSpinner, FaTimes } from "react-icons/fa";
+import { recognizeApiProvider, verifyApiKey } from "../utils/apiKeyUtils";
 
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { log } from "../utils/logger";
+import { cn } from "../lib/utils";
 
 interface SettingsDialogProps {
   config: PromptConfig;
@@ -16,13 +18,17 @@ interface SettingsDialogProps {
   onClose: () => void;
   onSave: (updates: Partial<PromptConfig>) => Promise<void>;
   detectedSettings?: DetectedSettings | null;
+  showOnly?: "api" | "generation" | "all";
 }
 
-export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettings }: SettingsDialogProps) {
+export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettings, showOnly = "all" }: SettingsDialogProps) {
   const [formData, setFormData] = React.useState<PromptConfig>(config);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
+  const [verifying, setVerifying] = React.useState(false);
+  const [verificationStatus, setVerificationStatus] = React.useState<{ valid: boolean; error?: string } | null>(null);
+  const [detectedProvider, setDetectedProvider] = React.useState<ApiProvider | null>(null);
 
   // Update form data when dialog opens or detected settings change
   React.useEffect(() => {
@@ -42,10 +48,37 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
       setFormData(initialData);
       setError("");
       setSuccess("");
+      setVerificationStatus(null);
+
+      // Detect provider from existing API key
+      if (initialData.apiKey) {
+        const provider = recognizeApiProvider(initialData.apiKey);
+        setDetectedProvider(provider);
+        if (provider && !initialData.apiProvider) {
+          initialData.apiProvider = provider;
+        }
+      } else {
+        setDetectedProvider(null);
+      }
     }
   }, [isOpen, config, detectedSettings]);
 
-  if (!isOpen) return null;
+  // Auto-detect provider when API key changes
+  React.useEffect(() => {
+    if (formData.apiKey) {
+      const provider = recognizeApiProvider(formData.apiKey);
+      setDetectedProvider(provider);
+      if (provider) {
+        setFormData((prev) => ({ ...prev, apiProvider: provider }));
+      }
+    } else {
+      setDetectedProvider(null);
+      setVerificationStatus(null);
+    }
+  }, [formData.apiKey]);
+
+  // For tab-based usage, always render (isOpen check is for dialog mode)
+  const isDialogMode = showOnly === "all";
 
   function handleChange(field: keyof PromptConfig, value: any) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -102,10 +135,74 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
     }
   }
 
+  async function handleVerifyApiKey() {
+    if (!formData.apiKey || formData.apiKey.trim().length === 0) {
+      setVerificationStatus({ valid: false, error: "Please enter an API key first" });
+      return;
+    }
+
+    const provider = formData.apiProvider || detectedProvider;
+    if (!provider) {
+      setVerificationStatus({ valid: false, error: "Please select an API provider" });
+      return;
+    }
+
+    setVerifying(true);
+    setVerificationStatus(null);
+    setError("");
+
+    try {
+      log.ui.action("SettingsDialog:VerifyApiKey", { provider });
+      const result = await verifyApiKey(formData.apiKey, provider);
+      setVerificationStatus(result);
+
+      if (result.valid) {
+        setSuccess("API key verified successfully!");
+        setTimeout(() => setSuccess(""), 3000);
+      } else {
+        setError(result.error || "API key verification failed");
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Verification failed";
+      setVerificationStatus({ valid: false, error: errorMsg });
+      setError(errorMsg);
+      log.ui.error("SettingsDialog:VerifyApiKey", err);
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  function getProviderDisplayName(provider: ApiProvider): string {
+    switch (provider) {
+      case "openai":
+        return "OpenAI (ChatGPT)";
+      case "anthropic":
+        return "Anthropic (Claude)";
+      case "google":
+        return "Google (Gemini)";
+      default:
+        return provider;
+    }
+  }
+
+  function getProviderApiKeyUrl(provider: ApiProvider): string {
+    switch (provider) {
+      case "openai":
+        return "https://platform.openai.com/api-keys";
+      case "anthropic":
+        return "https://console.anthropic.com/settings/keys";
+      case "google":
+        return "https://makersuite.google.com/app/apikey";
+      default:
+        return "#";
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4" onClick={handleBackdropClick}>
-      <Card className="w-full max-w-2xl p-6 my-auto max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
+      <Card className={cn("w-full p-6", isDialogMode && "max-w-2xl my-auto max-h-[90vh] overflow-y-auto")} onClick={(e) => e.stopPropagation()}>
+        {/* Header - only show in dialog mode */}
+        {isDialogMode && (
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <FaCog className="h-5 w-5 text-primary" />
@@ -115,35 +212,110 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
             <FaTimes className="h-4 w-4" />
           </Button>
         </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* OpenAI Configuration */}
+          {/* API Configuration */}
+          {(showOnly === "all" || showOnly === "api") && (
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
                 <FaKey className="h-4 w-4 text-primary" />
-                <CardTitle className="text-base">OpenAI Configuration</CardTitle>
+                <CardTitle className="text-base">API Configuration</CardTitle>
               </div>
-              <CardDescription>Configure your OpenAI API settings for prompt generation</CardDescription>
+              <CardDescription>Configure your AI API settings for prompt generation (OpenAI, Anthropic, or Google)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="apiKey">API Key (Optional)</Label>
-                <Input
-                  id="apiKey"
-                  type="password"
-                  placeholder="sk-..."
-                  value={formData.apiKey || ""}
-                  onChange={(e) => handleChange("apiKey", e.target.value)}
-                  disabled={loading}
-                />
+                <Label htmlFor="apiKey">API Key</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="apiKey"
+                    type="password"
+                    placeholder="Enter your API key (auto-detected by pattern)..."
+                    value={formData.apiKey || ""}
+                    onChange={(e) => handleChange("apiKey", e.target.value)}
+                    disabled={loading || verifying}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleVerifyApiKey}
+                    disabled={loading || verifying || !formData.apiKey || (!formData.apiProvider && !detectedProvider)}
+                    title="Verify API key"
+                  >
+                    {verifying ?
+                      <>
+                        <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
+                        Verifying...
+                      </>
+                    : <>
+                        <FaCheckCircle className="h-4 w-4 mr-2" />
+                        Verify
+                      </>
+                    }
+                  </Button>
+                </div>
+                {detectedProvider && (
+                  <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                    <FaCheckCircle className="h-3 w-3" />
+                    <span>Detected: {getProviderDisplayName(detectedProvider)}</span>
+                  </div>
+                )}
+                {verificationStatus && (
+                  <div
+                    className={`flex items-center gap-2 text-xs p-2 rounded-md ${
+                      verificationStatus.valid ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-destructive/10 text-destructive"
+                    }`}
+                  >
+                    {verificationStatus.valid ?
+                      <>
+                        <FaCheckCircle className="h-3 w-3" />
+                        <span>API key verified successfully!</span>
+                      </>
+                    : <>
+                        <FaExclamationCircle className="h-3 w-3" />
+                        <span>{verificationStatus.error || "Verification failed"}</span>
+                      </>
+                    }
+                  </div>
+                )}
                 <div className="flex flex-col gap-1">
                   <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
-                  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                    Get your API key from OpenAI →
-                  </a>
+                  {formData.apiProvider && (
+                    <a
+                      href={getProviderApiKeyUrl(formData.apiProvider)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Get your API key from {getProviderDisplayName(formData.apiProvider)} →
+                    </a>
+                  )}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="apiProvider">API Provider</Label>
+                <select
+                  id="apiProvider"
+                  value={formData.apiProvider || ""}
+                  onChange={(e) => handleChange("apiProvider", (e.target.value as ApiProvider) || undefined)}
+                  disabled={loading || verifying}
+                  className="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 border-input bg-background"
+                >
+                  <option value="">Select provider (or auto-detect from key)</option>
+                  <option value="openai">OpenAI (ChatGPT)</option>
+                  <option value="anthropic">Anthropic (Claude)</option>
+                  <option value="google">Google (Gemini)</option>
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  {detectedProvider ?
+                    `Auto-detected as ${getProviderDisplayName(detectedProvider)}. You can override by selecting a different provider.`
+                  : "If the API key pattern isn't recognized, please select the provider manually."}
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -161,8 +333,10 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Sora Generation Settings */}
+          {(showOnly === "all" || showOnly === "generation") && (
           <Card className={detectedSettings?.success && (detectedSettings.mediaType || detectedSettings.variations) ? "border-green-500 border-2" : ""}>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -248,8 +422,10 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Queue Processing Settings */}
+          {(showOnly === "all" || showOnly === "generation") && (
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -362,6 +538,16 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
           </div>
         </form>
       </Card>
-    </div>
-  );
+    );
+
+  if (isDialogMode) {
+    if (!isOpen) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={handleBackdropClick}>
+        {content}
+      </div>
+    );
+  }
+
+  return content;
 }

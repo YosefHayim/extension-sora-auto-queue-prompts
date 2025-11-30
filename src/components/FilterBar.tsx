@@ -14,8 +14,8 @@ import {
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
-import type { GeneratedPrompt } from "@/types";
-import { cn } from "@/lib/utils";
+import type { GeneratedPrompt } from "../types"
+import { cn } from "../lib/utils"
 
 type StatusFilter = "all" | "pending" | "processing" | "completed" | "failed";
 type MediaTypeFilter = "all" | "video" | "image";

@@ -35,8 +35,9 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
       const result = await CSVParser.parseFile(file);
 
       if (result.success) {
-        const newPrompts: GeneratedPrompt[] = result.rows.map((row, index) => ({
-          id: `${Date.now()}-${index}`,
+        const { generateUniqueId } = await import('../lib/utils');
+        const newPrompts: GeneratedPrompt[] = result.rows.map((row) => ({
+          id: generateUniqueId(),
           text: row.prompt,
           timestamp: Date.now(),
           status: 'pending' as const,

@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardFooter, CardHeader } from "./ui/card"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import {
   FaCheckCircle,
   FaCheckSquare,
@@ -14,6 +14,7 @@ import {
   FaEllipsisV,
   FaFileAlt,
   FaImage,
+  FaLocationArrow,
   FaMagic,
   FaPencilAlt,
   FaPlay,
@@ -22,14 +23,14 @@ import {
   FaTrash,
   FaVideo,
 } from "react-icons/fa";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card"
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import type { GeneratedPrompt } from "@/types";
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
-import { log } from "@/utils/logger";
+import { Badge } from "./ui/badge"
+import { Button } from "./ui/button"
+import type { GeneratedPrompt } from "../types"
+import { Progress } from "./ui/progress"
+import { cn } from "../lib/utils"
+import { log } from "../utils/logger"
 
 function formatDuration(ms: number): string {
   if (!ms || ms < 1000) return `${ms || 0}ms`;
@@ -206,17 +207,17 @@ export function PromptCard({
     <Card
       onClick={handleCardClick}
       className={cn(
-        "group transition-all duration-300 hover:shadow-xl hover:border-primary/50 relative overflow-hidden",
+        "group transition-all duration-200 hover:shadow-md hover:border-primary/30 relative overflow-hidden",
         "border-l-4",
         getStatusBorderColor(prompt.status),
-        isProcessing && "ring-2 ring-yellow-500/20 dark:ring-yellow-400/20",
-        isSelected && "border-2 border-blue-500 dark:border-blue-400 ring-2 ring-blue-500/20 dark:ring-blue-400/20 bg-blue-50/50 dark:bg-blue-950/30",
+        isProcessing && "ring-1 ring-yellow-500/20 dark:ring-yellow-400/20",
+        isSelected && "border-2 border-blue-500 dark:border-blue-400 ring-1 ring-blue-500/20 dark:ring-blue-400/20 bg-blue-50/50 dark:bg-blue-950/30",
         prompt.status === "failed" && "bg-destructive/5 dark:bg-destructive/10",
-        isCompleted && onNavigateToPrompt && "cursor-pointer hover:ring-2 hover:ring-green-500/30"
+        isCompleted && onNavigateToPrompt && "cursor-pointer hover:ring-1 hover:ring-green-500/30"
       )}
       title={isCompleted && onNavigateToPrompt ? "Click to navigate to this prompt on Sora" : undefined}
     >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3 px-4 pt-4">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 px-3 pt-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {onToggleSelection && (
             <button
@@ -234,7 +235,7 @@ export function PromptCard({
             <Badge
               variant="outline"
               className={cn(
-                "gap-1 text-xs font-medium",
+                "gap-1 text-xs font-medium hover:bg-transparent",
                 prompt.mediaType === "video" && "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300",
                 prompt.mediaType === "image" && "border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300"
               )}
@@ -245,18 +246,18 @@ export function PromptCard({
               {prompt.mediaType.charAt(0).toUpperCase() + prompt.mediaType.slice(1)}
             </Badge>
             {prompt.aspectRatio && (
-              <Badge variant="secondary" className="text-xs font-medium">
+              <Badge variant="secondary" className="text-xs font-medium hover:bg-secondary">
                 {prompt.aspectRatio}
               </Badge>
             )}
             {prompt.variations && (
-              <Badge variant="outline" className="text-xs font-medium gap-1">
+              <Badge variant="outline" className="text-xs font-medium gap-1 hover:bg-transparent">
                 <FaFileAlt className="h-3 w-3" />
                 {prompt.variations} variation{prompt.variations !== 1 ? "s" : ""}
               </Badge>
             )}
             {prompt.enhanced && (
-              <Badge variant="default" className="gap-1 text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500">
+              <Badge variant="default" className="gap-1 text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500">
                 <FaMagic className="h-3 w-3" />
                 Enhanced
               </Badge>
@@ -285,7 +286,7 @@ export function PromptCard({
               <Badge
                 variant="outline"
                 className={cn(
-                  "flex items-center justify-center gap-1.5 px-2.5 py-1.5 border font-semibold text-xs",
+                  "flex items-center justify-center gap-1.5 px-2.5 py-1.5 border font-semibold text-xs hover:bg-transparent",
                   isProcessing && "bg-yellow-50 dark:bg-yellow-950/30 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300",
                   isCompleted && "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300",
                   prompt.status === "pending" && "bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300",
@@ -311,10 +312,10 @@ export function PromptCard({
         </div>
       </CardHeader>
 
-      <CardContent className="px-4 pb-3">
-        <div className="space-y-3">
+      <CardContent className="px-3 pb-2">
+        <div className="space-y-2">
           <div>
-            <p className="text-sm leading-relaxed text-foreground font-medium">{displayText}</p>
+            <p className="text-sm leading-snug text-foreground">{displayText}</p>
             {shouldTruncate && (
               <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="h-6 text-xs mt-2 px-2">
                 {isExpanded ?
@@ -329,8 +330,8 @@ export function PromptCard({
                 }
               </Button>
             )}
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs text-muted-foreground">{prompt.text.length} characters</span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-muted-foreground">{prompt.text.length} chars</span>
             </div>
           </div>
 
@@ -348,11 +349,11 @@ export function PromptCard({
           )}
 
           {/* Duration and timing info */}
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap text-xs">
             {isCompleted && prompt.duration && (
               <HoverCard>
                 <HoverCardTrigger asChild>
-                  <Badge variant="outline" className="text-xs gap-1.5 cursor-help">
+                  <Badge variant="outline" className="text-xs gap-1.5 cursor-help hover:bg-transparent">
                     <FaClock className="h-3 w-3" />
                     {formatDuration(prompt.duration)}
                   </Badge>
@@ -367,18 +368,18 @@ export function PromptCard({
               </HoverCard>
             )}
             {isProcessing && prompt.startTime && (
-              <Badge variant="outline" className="text-xs gap-1.5">
+              <Badge variant="outline" className="text-xs gap-1.5 hover:bg-transparent">
                 <FaClock className="h-3 w-3 animate-pulse" />
                 {formatDuration(Date.now() - prompt.startTime)}
               </Badge>
             )}
-            {prompt.timestamp && <span className="text-xs text-muted-foreground">Created {formatTimeAgo(prompt.timestamp)}</span>}
+            {prompt.timestamp && <span className="text-muted-foreground">Created {formatTimeAgo(prompt.timestamp)}</span>}
           </div>
 
           {/* Collapsible metadata */}
           <Collapsible open={isMetadataOpen} onOpenChange={setIsMetadataOpen}>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5">
+              <Button variant="ghost" size="sm" className="h-6 text-xs gap-1">
                 {isMetadataOpen ?
                   <>
                     <FaChevronUp className="h-3 w-3" />
@@ -419,11 +420,38 @@ export function PromptCard({
         </div>
       </CardContent>
 
-      <CardFooter className="gap-1 pt-3 border-t px-4" data-no-drag>
+      <CardFooter className="gap-1 pt-2 border-t px-3" data-no-drag>
         <div className="flex items-center gap-1 flex-1">
+          {isCompleted && onNavigateToPrompt && (
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onNavigateToPrompt(prompt.id, prompt.text);
+                  }}
+                  title="Navigate to generated image/video"
+                  type="button"
+                  data-no-drag
+                  className="h-7 w-7"
+                >
+                  <FaLocationArrow className="h-4 w-4" />
+                </Button>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-64">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-semibold">Navigate to Generated Media</h4>
+                  <p className="text-xs text-muted-foreground">Click to navigate to this prompt's generated {prompt.mediaType} on Sora</p>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+          )}
+
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleCopyText} title="Copy prompt text" type="button" data-no-drag className="h-8 w-8">
+              <Button variant="ghost" size="icon" onClick={handleCopyText} title="Copy prompt text" type="button" data-no-drag className="h-7 w-7">
                 {copied ?
                   <FaCheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                 : <FaClipboard className="h-4 w-4" />}
@@ -447,7 +475,7 @@ export function PromptCard({
                 title="Edit prompt (E)"
                 type="button"
                 data-no-drag
-                className="h-8 w-8"
+                className="h-7 w-7"
               >
                 <FaPencilAlt className="h-4 w-4" />
               </Button>
@@ -469,7 +497,7 @@ export function PromptCard({
 
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleDuplicate} title="Duplicate (D)" type="button" data-no-drag className="h-8 w-8">
+              <Button variant="ghost" size="icon" onClick={handleDuplicate} title="Duplicate (D)" type="button" data-no-drag className="h-7 w-7">
                 <FaCopy className="h-4 w-4" />
               </Button>
             </HoverCardTrigger>
@@ -494,7 +522,7 @@ export function PromptCard({
                 title="Refine with AI (R)"
                 type="button"
                 data-no-drag
-                className="h-8 w-8"
+                className="h-7 w-7"
               >
                 <FaMagic className="h-4 w-4" />
               </Button>
@@ -517,7 +545,7 @@ export function PromptCard({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" type="button" data-no-drag className="h-8 w-8">
+            <Button variant="ghost" size="icon" type="button" data-no-drag className="h-7 w-7">
               <FaEllipsisV className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

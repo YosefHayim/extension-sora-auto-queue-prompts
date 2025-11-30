@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from './ui/card'
+import { Button } from './ui/button'
+import { Badge } from './ui/badge'
 import { FaSync, FaDownload, FaTrash } from 'react-icons/fa';
-import { log } from '@/utils/logger';
-import type { LogEntry } from '@/utils/logger';
+import { log } from '../utils/logger'
+import type { LogEntry } from '../utils/logger'
 
 export function DebugPanel() {
   const [logs, setLogs] = React.useState<LogEntry[]>([]);

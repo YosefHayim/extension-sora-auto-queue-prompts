@@ -595,25 +595,53 @@ function IndexPopup() {
   }
 
   return (
-    <div className="popup-container bg-background space-y-4">
+    <div className="popup-container bg-background space-y-4 relative">
       {/* Header */}
-      <header className="border-b pb-3 space-y-2">
-        <div className="flex items-center justify-between">
+      <header className="border-b pb-3 space-y-2 relative z-[100] bg-background">
+        <div className="flex items-center justify-between relative z-[101]">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold text-foreground">Sora Auto Queue</h1>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleDarkMode} title="Toggle dark mode">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 relative z-[102]" 
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleDarkMode();
+              }} 
+              title="Toggle dark mode"
+              type="button"
+            >
               {darkMode ?
                 <FaSun className="h-3.5 w-3.5" />
               : <FaMoon className="h-3.5 w-3.5" />}
             </Button>
           </div>
 
-          <div className="flex gap-1.5">
-            <Button onClick={handleGenerate} size="sm" className="h-8">
+          <div className="flex gap-1.5 relative z-[102]">
+            <Button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleGenerate();
+              }} 
+              size="sm" 
+              className="h-8 relative z-[103]"
+              type="button"
+            >
               <FaMagic className="h-3.5 w-3.5 mr-1.5" />
               Generate
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleSettings} title="Settings">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 relative z-[103]" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSettings();
+              }} 
+              title="Settings"
+              type="button"
+            >
               <FaCog className="h-3.5 w-3.5" />
             </Button>
           </div>

@@ -63,6 +63,20 @@
   @apply w-[600px] min-h-[500px] max-h-[700px] overflow-y-auto p-5;
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--muted)) transparent;
+  position: relative;
+}
+
+.popup-container header {
+  position: relative;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+.popup-container header button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 102;
 }
 
 .popup-container::-webkit-scrollbar {

@@ -2,7 +2,7 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 echo "Running pre-push checks..."
-echo "Testing with coverage validation (requires 90% minimum)..."
+echo "Testing with coverage validation (requires 80% minimum)..."
 
 # Run tests with coverage
 npm run test:coverage
@@ -10,7 +10,7 @@ npm run test:coverage
 # Check the exit code
 if [ $? -ne 0 ]; then
   echo ""
-  echo "PUSH BLOCKED: Test coverage is below 90% threshold"
+  echo "PUSH BLOCKED: Test coverage is below 80% threshold"
   echo "Please add tests to increase coverage before pushing"
   echo ""
   echo "To bypass this check (NOT RECOMMENDED), use:"

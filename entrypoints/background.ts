@@ -177,6 +177,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           log.queue.stop();
           return { success: true };
 
+        case 'processSelectedPrompts':
+          await queueProcessor.processSelectedPrompts(request.data.promptIds);
+          log.queue.start();
+          return { success: true };
+
         case 'promptAction':
           return await handlePromptAction(request.data);
 
@@ -189,6 +194,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'clearLogs':
           await logger.clearLogs();
           return { success: true };
+
+        case 'detectSettings':
+          return await handleDetectSettings();
 
         case 'exportLogs':
           await logger.exportLogs(request.filename);
@@ -218,6 +226,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'stopNetworkMonitoring':
           networkMonitor.stopMonitoring(request.tabId || sender.tab?.id || 0);
           return { success: true };
+
+        case 'navigateToPrompt':
+          return await handleNavigateToPrompt(request.data.promptText);
 
         default:
           logger.warn('background', `Unknown action: ${request.action}`);
@@ -327,14 +338,60 @@ async function handleGetNextPrompt() {
 }
 
 async function handleMarkPromptComplete(promptId: string) {
-  await storage.updatePrompt(promptId, { status: 'completed' });
+  // Get prompt to calculate duration
+  const prompts = await storage.getPrompts();
+  const prompt = prompts.find((p) => p.id === promptId);
+  
+  if (prompt && prompt.startTime) {
+    const completedTime = Date.now();
+    const duration = completedTime - prompt.startTime;
+    
+    await storage.updatePrompt(promptId, { 
+      status: 'completed',
+      completedTime,
+      duration
+    });
+  } else {
+    await storage.updatePrompt(promptId, { status: 'completed' });
+  }
+  
   log.queue.completed(promptId);
 
   // Move to history
-  const prompts = await storage.getPrompts();
   const completedPrompt = prompts.find((p) => p.id === promptId);
   if (completedPrompt) {
     await storage.addToHistory([completedPrompt]);
+  }
+
+  // Continue processing the next prompt in the queue
+  // Get the current queue state to check if we should continue
+  const queueState = await storage.getQueueState();
+  const allPrompts = await storage.getPrompts();
+  const pendingPrompts = allPrompts.filter((p) => p.status === 'pending');
+  
+  if (queueState.isRunning && !queueState.isPaused && pendingPrompts.length > 0) {
+    // Recalculate processed count based on actual prompt statuses
+    const allPrompts = await storage.getPrompts();
+    const completedCount = allPrompts.filter((p) => p.status === 'completed' || p.status === 'failed').length;
+    await storage.setQueueState({ processedCount: completedCount });
+
+    // Get config for delay
+    const config = await storage.getConfig();
+    const minDelay = config.minDelayMs || 2000;
+    const maxDelay = config.maxDelayMs || 5000;
+    const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+
+    // Schedule next prompt processing
+    setTimeout(async () => {
+      await queueProcessor.processNext();
+    }, delay);
+  } else if (queueState.isRunning && pendingPrompts.length === 0) {
+    // All prompts completed, stop queue and reset timer
+    // Recalculate final count before stopping
+    const allPrompts = await storage.getPrompts();
+    const finalProcessedCount = allPrompts.filter((p) => p.status === 'completed' || p.status === 'failed').length;
+    await storage.setQueueState({ processedCount: finalProcessedCount });
+    await queueProcessor.stopQueue();
   }
 
   return { success: true };
@@ -386,3 +443,133 @@ async function handleEnhancePrompt(data: { text: string; mediaType: 'video' | 'i
   return result;
 }
 
+async function handleDetectSettings() {
+  logger.info('background', 'Detecting settings from Sora page');
+
+  try {
+    // Find the Sora tab
+    let tabs = await chrome.tabs.query({ url: '*://sora.com/*' });
+    if (tabs.length === 0) {
+      tabs = await chrome.tabs.query({ url: '*://sora.chatgpt.com/*' });
+    }
+
+    if (tabs.length === 0) {
+      return {
+        mediaType: null,
+        aspectRatio: null,
+        variations: null,
+        success: false,
+        error: 'No Sora tab found. Please open sora.com in a browser tab.',
+      };
+    }
+
+    const soraTab = tabs[0];
+    if (!soraTab.id) {
+      return {
+        mediaType: null,
+        aspectRatio: null,
+        variations: null,
+        success: false,
+        error: 'Invalid Sora tab - no tab ID',
+      };
+    }
+
+    // Ensure content script is loaded
+    await queueProcessor['ensureContentScriptLoaded'](soraTab.id);
+
+    // Send detectSettings message
+    const response = await chrome.tabs.sendMessage(soraTab.id, { action: 'detectSettings' });
+
+    if (response && response.success !== undefined) {
+      logger.info('background', 'Settings detected', response);
+      return response;
+    }
+
+    return {
+      mediaType: null,
+      aspectRatio: null,
+      variations: null,
+      success: false,
+      error: 'Failed to detect settings from Sora page',
+    };
+  } catch (error) {
+    logger.error('background', 'Failed to detect settings', { error });
+    return {
+      mediaType: null,
+      aspectRatio: null,
+      variations: null,
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+async function handleNavigateToPrompt(promptText: string) {
+  try {
+    logger.info('background', 'Navigating to prompt', { promptLength: promptText.length });
+
+    // Find the Sora tab
+    let tabs = await chrome.tabs.query({ url: '*://sora.com/*' });
+    if (tabs.length === 0) {
+      tabs = await chrome.tabs.query({ url: '*://sora.chatgpt.com/*' });
+    }
+
+    if (tabs.length === 0) {
+      return { success: false, error: 'No Sora tab found. Please open sora.com in a browser tab.' };
+    }
+
+    const soraTab = tabs[0];
+    if (!soraTab.id) {
+      return { success: false, error: 'Invalid Sora tab' };
+    }
+
+    // Activate the tab
+    await chrome.tabs.update(soraTab.id, { active: true });
+
+    // Wait a bit for tab to activate
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Send message to content script to find and highlight
+    try {
+      const response = await chrome.tabs.sendMessage(soraTab.id, {
+        action: 'navigateToPrompt',
+        promptText: promptText,
+      });
+
+      if (response && response.success) {
+        logger.info('background', 'Successfully navigated to prompt');
+        return { success: true };
+      } else {
+        logger.warn('background', 'Content script navigation failed', { error: response?.error });
+        return { success: false, error: response?.error || 'Failed to navigate to prompt' };
+      }
+    } catch (error) {
+      logger.error('background', 'Failed to send navigate message', { error });
+      // Try to inject content script if not loaded
+      const manifest = chrome.runtime.getManifest();
+      const contentScripts = manifest.content_scripts || [];
+      if (contentScripts.length > 0) {
+        const scriptFiles = contentScripts[0].js || [];
+        if (scriptFiles.length > 0) {
+          await chrome.scripting.executeScript({
+            target: { tabId: soraTab.id },
+            files: [scriptFiles[0]],
+          });
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Retry
+          const retryResponse = await chrome.tabs.sendMessage(soraTab.id, {
+            action: 'navigateToPrompt',
+            promptText: promptText,
+          });
+          return retryResponse || { success: false, error: 'Content script not responding' };
+        }
+      }
+      return { success: false, error: 'Content script not loaded' };
+    }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    logger.error('background', 'Navigate to prompt failed', { error: errorMsg });
+    return { success: false, error: errorMsg };
+  }
+}

@@ -226,5 +226,54 @@ describe('GenerateDialog', () => {
       expect(mockOnClose).not.toHaveBeenCalled();
     }
   });
+
+  it('should initialize with default values when batchSize is undefined', () => {
+    const configWithoutBatchSize = { ...mockConfig, batchSize: undefined };
+    render(<GenerateDialog config={configWithoutBatchSize} isOpen={true} onClose={mockOnClose} onGenerate={mockOnGenerate} />);
+    const countInput = screen.getByLabelText('Number of Prompts') as HTMLInputElement;
+    expect(countInput.value).toBe('10');
+  });
+
+  it('should initialize with default values when contextPrompt is undefined', () => {
+    const configWithoutContext = { ...mockConfig, contextPrompt: undefined };
+    render(<GenerateDialog config={configWithoutContext} isOpen={true} onClose={mockOnClose} onGenerate={mockOnGenerate} />);
+    const contextInput = screen.getByLabelText('Context Prompt') as HTMLTextAreaElement;
+    expect(contextInput.value).toBe('');
+  });
+
+  it('should not display detected settings when they are empty', () => {
+    const emptyDetectedSettings: DetectedSettings = {
+      mediaType: null,
+      aspectRatio: null,
+      variations: null,
+      success: true,
+    };
+
+    render(
+      <GenerateDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onGenerate={mockOnGenerate}
+        detectedSettings={emptyDetectedSettings}
+      />
+    );
+
+    expect(screen.queryByText('Using settings from Sora page:')).not.toBeInTheDocument();
+  });
+
+  it('should not display detected settings when detectedSettings is null', () => {
+    render(
+      <GenerateDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onGenerate={mockOnGenerate}
+        detectedSettings={null}
+      />
+    );
+
+    expect(screen.queryByText('Using settings from Sora page:')).not.toBeInTheDocument();
+  });
 });
 

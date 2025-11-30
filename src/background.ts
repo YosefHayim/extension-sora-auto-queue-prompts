@@ -1,22 +1,26 @@
-import { storage } from './utils/storage';
-import { PromptGenerator } from './utils/promptGenerator';
-import { queueProcessor } from './utils/queueProcessor';
-import { PromptActions } from './utils/promptActions';
-import { logger, log } from './utils/logger';
-import type { GeneratedPrompt, PromptEditAction, AspectRatio, PresetType } from './types';
+import type { AspectRatio, GeneratedPrompt, PresetType, PromptEditAction } from "./types";
+import { log, logger } from "./utils/logger";
+
+import { PromptActions } from "./utils/promptActions";
+import { PromptGenerator } from "./utils/promptGenerator";
+import { queueProcessor } from "./utils/queueProcessor";
+import { storage } from "./utils/storage";
 
 /**
  * Network Activity Monitor
  * Tracks requests to DataDog RUM endpoint to detect when generation is complete
  */
 class NetworkMonitor {
-  private monitoredTabs: Map<number, {
-    lastRequestTime: number;
-    checkInterval: number | null;
-    onComplete: () => void;
-  }> = new Map();
+  private monitoredTabs: Map<
+    number,
+    {
+      lastRequestTime: number;
+      checkInterval: number | null;
+      onComplete: () => void;
+    }
+  > = new Map();
 
-  private readonly DATADOG_PATTERN = 'https://browser-intake-datadoghq.com/api/v2/rum';
+  private readonly DATADOG_PATTERN = "https://browser-intake-datadoghq.com/api/v2/rum";
   private readonly SILENCE_THRESHOLD = 30000; // 30 seconds
   private readonly CHECK_INTERVAL = 5000; // Check every 5 seconds
 
@@ -31,7 +35,7 @@ class NetworkMonitor {
           this.handleRequest(details.tabId);
         }
       },
-      { urls: ['https://browser-intake-datadoghq.com/*'] }
+      { urls: ["https://browser-intake-datadoghq.com/*"] }
     );
   }
 
@@ -39,14 +43,14 @@ class NetworkMonitor {
     const monitored = this.monitoredTabs.get(tabId);
     if (monitored) {
       monitored.lastRequestTime = Date.now();
-      logger.debug('networkMonitor', `DataDog request detected for tab ${tabId}`, {
+      logger.debug("networkMonitor", `DataDog request detected for tab ${tabId}`, {
         lastRequestTime: new Date(monitored.lastRequestTime).toISOString(),
       });
     }
   }
 
   startMonitoring(tabId: number, onComplete: () => void) {
-    logger.info('networkMonitor', `Starting network monitoring for tab ${tabId}`);
+    logger.info("networkMonitor", `Starting network monitoring for tab ${tabId}`);
 
     // Clear any existing monitoring for this tab
     this.stopMonitoring(tabId);
@@ -69,13 +73,13 @@ class NetworkMonitor {
 
     const timeSinceLastRequest = Date.now() - monitored.lastRequestTime;
 
-    logger.debug('networkMonitor', `Checking completion for tab ${tabId}`, {
+    logger.debug("networkMonitor", `Checking completion for tab ${tabId}`, {
       timeSinceLastRequest: `${timeSinceLastRequest / 1000}s`,
       threshold: `${this.SILENCE_THRESHOLD / 1000}s`,
     });
 
     if (timeSinceLastRequest >= this.SILENCE_THRESHOLD) {
-      logger.info('networkMonitor', `Generation completed for tab ${tabId} - no requests for 30s`);
+      logger.info("networkMonitor", `Generation completed for tab ${tabId} - no requests for 30s`);
       this.stopMonitoring(tabId);
       monitored.onComplete();
     }
@@ -84,7 +88,7 @@ class NetworkMonitor {
   stopMonitoring(tabId: number) {
     const monitored = this.monitoredTabs.get(tabId);
     if (monitored) {
-      logger.info('networkMonitor', `Stopping network monitoring for tab ${tabId}`);
+      logger.info("networkMonitor", `Stopping network monitoring for tab ${tabId}`);
       if (monitored.checkInterval !== null) {
         clearInterval(monitored.checkInterval as unknown as number);
       }
@@ -104,36 +108,36 @@ const networkMonitor = new NetworkMonitor();
 async function recoverStalePrompts() {
   try {
     const prompts = await storage.getPrompts();
-    const stalePrompts = prompts.filter((p) => p.status === 'processing');
+    const stalePrompts = prompts.filter((p) => p.status === "processing");
 
     if (stalePrompts.length > 0) {
-      logger.info('queue', `Recovering ${stalePrompts.length} stale prompts`);
+      logger.info("queue", `Recovering ${stalePrompts.length} stale prompts`);
 
       // Reset all processing prompts to pending
       for (const prompt of stalePrompts) {
-        await storage.updatePrompt(prompt.id, { status: 'pending' });
+        await storage.updatePrompt(prompt.id, { status: "pending" });
       }
 
-      logger.info('queue', `Successfully recovered ${stalePrompts.length} prompts to pending status`);
+      logger.info("queue", `Successfully recovered ${stalePrompts.length} prompts to pending status`);
     } else {
-      logger.debug('queue', 'No stale prompts found - queue is clean');
+      logger.debug("queue", "No stale prompts found - queue is clean");
     }
   } catch (error) {
-    log.extension.error('recoverStalePrompts', error instanceof Error ? error : new Error('Unknown error'));
+    log.extension.error("recoverStalePrompts", error instanceof Error ? error : new Error("Unknown error"));
   }
 }
 
 // Listen for extension startup
 chrome.runtime.onStartup.addListener(() => {
-  logger.info('extension', 'Service worker started');
+  logger.info("extension", "Service worker started");
   recoverStalePrompts();
 });
 
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === 'install') {
+  if (details.reason === "install") {
     log.extension.installed();
-  } else if (details.reason === 'update') {
+  } else if (details.reason === "update") {
     log.extension.updated(chrome.runtime.getManifest().version);
   }
 
@@ -144,98 +148,101 @@ chrome.runtime.onInstalled.addListener((details) => {
 // Handle messages from popup and content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const handler = async () => {
-    logger.debug('background', `Message received: ${request.action}`, { data: request.data });
+    logger.debug("background", `Message received: ${request.action}`, { data: request.data });
 
     try {
       switch (request.action) {
-        case 'generatePrompts':
+        case "generatePrompts":
           return await handleGeneratePrompts(request.data);
 
-        case 'getNextPrompt':
+        case "getNextPrompt":
           return await handleGetNextPrompt();
 
-        case 'markPromptComplete':
+        case "markPromptComplete":
           return await handleMarkPromptComplete(request.promptId);
 
-        case 'startQueue':
+        case "startQueue":
           await queueProcessor.startQueue();
           log.queue.start();
           return { success: true };
 
-        case 'pauseQueue':
+        case "pauseQueue":
           await queueProcessor.pauseQueue();
           log.queue.pause();
           return { success: true };
 
-        case 'resumeQueue':
+        case "resumeQueue":
           await queueProcessor.resumeQueue();
           log.queue.resume();
           return { success: true };
 
-        case 'stopQueue':
+        case "stopQueue":
           await queueProcessor.stopQueue();
           log.queue.stop();
           return { success: true };
 
-        case 'processSelectedPrompts':
+        case "processSelectedPrompts":
           await queueProcessor.processSelectedPrompts(request.data.promptIds);
           log.queue.start();
           return { success: true };
 
-        case 'promptAction':
+        case "promptAction":
           return await handlePromptAction(request.data);
 
-        case 'enhancePrompt':
+        case "enhancePrompt":
           return await handleEnhancePrompt(request.data);
 
-        case 'getLogs':
+        case "getLogs":
           return { success: true, logs: await logger.getLogs(request.filter) };
 
-        case 'clearLogs':
+        case "clearLogs":
           await logger.clearLogs();
           return { success: true };
 
-        case 'detectSettings':
+        case "detectSettings":
           return await handleDetectSettings();
 
-        case 'exportLogs':
+        case "exportLogs":
           await logger.exportLogs(request.filename);
           return { success: true };
 
-        case 'contentLog':
+        case "contentLog":
           // Log from content script - store in logger AND console
-          const prefix = '[Content Script]';
-          const logLevel = request.level || 'info';
+          const prefix = "[Content Script]";
+          const logLevel = request.level || "info";
 
           // Store in logger for Debug tab visibility
           log.content.log(logLevel, request.message, request.data);
 
           // Also log to console for real-time debugging
-          if (logLevel === 'error') {
-            console.error(prefix, request.message, request.data || '');
-          } else if (logLevel === 'warn') {
-            console.warn(prefix, request.message, request.data || '');
+          if (logLevel === "error") {
+            console.error(prefix, request.message, request.data || "");
+          } else if (logLevel === "warn") {
+            console.warn(prefix, request.message, request.data || "");
           } else {
-            console.log(prefix, request.message, request.data || '');
+            console.log(prefix, request.message, request.data || "");
           }
           return { success: true };
 
-        case 'startNetworkMonitoring':
+        case "startNetworkMonitoring":
           return await handleStartNetworkMonitoring(request.tabId, sender.tab?.id);
 
-        case 'stopNetworkMonitoring':
+        case "stopNetworkMonitoring":
           networkMonitor.stopMonitoring(request.tabId || sender.tab?.id || 0);
           return { success: true };
 
-        case 'navigateToPrompt':
+        case "navigateToPrompt":
           return await handleNavigateToPrompt(request.data.promptText);
 
+        case "generationLimitReached":
+          return await handleGenerationLimitReached(sender.tab?.id);
+
         default:
-          logger.warn('background', `Unknown action: ${request.action}`);
-          return { success: false, error: 'Unknown action' };
+          logger.warn("background", `Unknown action: ${request.action}`);
+          return { success: false, error: "Unknown action" };
       }
     } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown error');
+      const err = error instanceof Error ? error : new Error("Unknown error");
       log.extension.error(request.action, err);
       return {
         success: false,
@@ -252,8 +259,8 @@ async function handleStartNetworkMonitoring(requestTabId: number | undefined, se
   const tabId = requestTabId || senderTabId;
 
   if (!tabId) {
-    logger.error('background', 'Cannot start network monitoring - no tab ID');
-    return { success: false, error: 'No tab ID provided' };
+    logger.error("background", "Cannot start network monitoring - no tab ID");
+    return { success: false, error: "No tab ID provided" };
   }
 
   return new Promise<{ success: boolean }>((resolve) => {
@@ -261,12 +268,12 @@ async function handleStartNetworkMonitoring(requestTabId: number | undefined, se
       // Generation completed - notify the content script
       try {
         await chrome.tabs.sendMessage(tabId, {
-          action: 'generationComplete',
+          action: "generationComplete",
         });
-        logger.info('background', `Notified tab ${tabId} that generation is complete`);
+        logger.info("background", `Notified tab ${tabId} that generation is complete`);
         resolve({ success: true });
       } catch (error) {
-        logger.error('background', `Failed to notify tab ${tabId} of completion`, { error });
+        logger.error("background", `Failed to notify tab ${tabId} of completion`, { error });
         resolve({ success: false });
       }
     });
@@ -279,13 +286,13 @@ async function handleStartNetworkMonitoring(requestTabId: number | undefined, se
 async function handleGeneratePrompts(data: {
   context: string;
   count: number;
-  mediaType: 'video' | 'image';
+  mediaType: "video" | "image";
   useSecretPrompt?: boolean;
   aspectRatio?: string;
   variations?: number;
   preset?: string;
 }) {
-  logger.info('background', 'Generating prompts', { count: data.count, mediaType: data.mediaType });
+  logger.info("background", "Generating prompts", { count: data.count, mediaType: data.mediaType });
 
   const config = await storage.getConfig();
   const generator = new PromptGenerator(config.apiKey);
@@ -302,7 +309,7 @@ async function handleGeneratePrompts(data: {
       id: `${Date.now()}-${index}`,
       text,
       timestamp: Date.now(),
-      status: 'pending' as const,
+      status: "pending" as const,
       mediaType: data.mediaType,
       aspectRatio: data.aspectRatio as AspectRatio | undefined,
       variations: data.variations,
@@ -319,42 +326,42 @@ async function handleGeneratePrompts(data: {
     return { success: true, count: prompts.length };
   }
 
-  logger.error('background', 'Failed to generate prompts', { error: result.error });
+  logger.error("background", "Failed to generate prompts", { error: result.error });
   return { success: false, error: result.error };
 }
 
 async function handleGetNextPrompt() {
   const prompts = await storage.getPrompts();
-  const nextPrompt = prompts.find((p) => p.status === 'pending');
+  const nextPrompt = prompts.find((p) => p.status === "pending");
 
   if (nextPrompt) {
-    await storage.updatePrompt(nextPrompt.id, { status: 'processing' });
-    logger.debug('background', `Next prompt: ${nextPrompt.id}`);
+    await storage.updatePrompt(nextPrompt.id, { status: "processing" });
+    logger.debug("background", `Next prompt: ${nextPrompt.id}`);
     return { success: true, prompt: nextPrompt };
   }
 
-  logger.warn('background', 'No pending prompts in queue');
-  return { success: false, error: 'No pending prompts' };
+  logger.warn("background", "No pending prompts in queue");
+  return { success: false, error: "No pending prompts" };
 }
 
 async function handleMarkPromptComplete(promptId: string) {
   // Get prompt to calculate duration
   const prompts = await storage.getPrompts();
   const prompt = prompts.find((p) => p.id === promptId);
-  
+
   if (prompt && prompt.startTime) {
     const completedTime = Date.now();
     const duration = completedTime - prompt.startTime;
-    
-    await storage.updatePrompt(promptId, { 
-      status: 'completed',
+
+    await storage.updatePrompt(promptId, {
+      status: "completed",
       completedTime,
-      duration
+      duration,
     });
   } else {
-    await storage.updatePrompt(promptId, { status: 'completed' });
+    await storage.updatePrompt(promptId, { status: "completed" });
   }
-  
+
   log.queue.completed(promptId);
 
   // Move to history
@@ -367,12 +374,12 @@ async function handleMarkPromptComplete(promptId: string) {
   // Get the current queue state to check if we should continue
   const queueState = await storage.getQueueState();
   const allPrompts = await storage.getPrompts();
-  const pendingPrompts = allPrompts.filter((p) => p.status === 'pending');
-  
+  const pendingPrompts = allPrompts.filter((p) => p.status === "pending");
+
   if (queueState.isRunning && !queueState.isPaused && pendingPrompts.length > 0) {
     // Recalculate processed count based on actual prompt statuses
     const allPrompts = await storage.getPrompts();
-    const completedCount = allPrompts.filter((p) => p.status === 'completed' || p.status === 'failed').length;
+    const completedCount = allPrompts.filter((p) => p.status === "completed" || p.status === "failed").length;
     await storage.setQueueState({ processedCount: completedCount });
 
     // Get config for delay
@@ -389,7 +396,7 @@ async function handleMarkPromptComplete(promptId: string) {
     // All prompts completed, stop queue and reset timer
     // Recalculate final count before stopping
     const allPrompts = await storage.getPrompts();
-    const finalProcessedCount = allPrompts.filter((p) => p.status === 'completed' || p.status === 'failed').length;
+    const finalProcessedCount = allPrompts.filter((p) => p.status === "completed" || p.status === "failed").length;
     await storage.setQueueState({ processedCount: finalProcessedCount });
     await queueProcessor.stopQueue();
   }
@@ -398,15 +405,15 @@ async function handleMarkPromptComplete(promptId: string) {
 }
 
 async function handlePromptAction(action: PromptEditAction) {
-  logger.info('background', `Prompt action: ${action.type}`, { promptId: action.promptId });
+  logger.info("background", `Prompt action: ${action.type}`, { promptId: action.promptId });
 
   const config = await storage.getConfig();
 
   // Check if API key is required for this action type
-  const apiKeyRequired = ['refine', 'generate-similar'].includes(action.type);
+  const apiKeyRequired = ["refine", "generate-similar"].includes(action.type);
   if (apiKeyRequired && !config.apiKey) {
-    const errorMsg = 'OpenAI API key is required for this action. Please configure it in Settings.';
-    logger.error('background', `Prompt action ${action.type} failed - no API key`, { promptId: action.promptId });
+    const errorMsg = "OpenAI API key is required for this action. Please configure it in Settings.";
+    logger.error("background", `Prompt action ${action.type} failed - no API key`, { promptId: action.promptId });
     return {
       success: false,
       error: errorMsg,
@@ -418,16 +425,16 @@ async function handlePromptAction(action: PromptEditAction) {
   const result = await promptActions.executeAction(action);
 
   if (result.success) {
-    logger.info('background', `Prompt action ${action.type} completed`, { promptId: action.promptId });
+    logger.info("background", `Prompt action ${action.type} completed`, { promptId: action.promptId });
   } else {
-    logger.error('background', `Prompt action ${action.type} failed`, { promptId: action.promptId, error: result.error });
+    logger.error("background", `Prompt action ${action.type} failed`, { promptId: action.promptId, error: result.error });
   }
 
   return result;
 }
 
-async function handleEnhancePrompt(data: { text: string; mediaType: 'video' | 'image' }) {
-  logger.info('background', 'Enhancing prompt', { mediaType: data.mediaType });
+async function handleEnhancePrompt(data: { text: string; mediaType: "video" | "image" }) {
+  logger.info("background", "Enhancing prompt", { mediaType: data.mediaType });
 
   const config = await storage.getConfig();
   const generator = new PromptGenerator(config.apiKey);
@@ -435,22 +442,22 @@ async function handleEnhancePrompt(data: { text: string; mediaType: 'video' | 'i
   const result = await generator.enhancePrompt(data.text, data.mediaType);
 
   if (result.success) {
-    logger.info('background', 'Prompt enhanced successfully');
+    logger.info("background", "Prompt enhanced successfully");
   } else {
-    logger.error('background', 'Failed to enhance prompt', { error: result.error });
+    logger.error("background", "Failed to enhance prompt", { error: result.error });
   }
 
   return result;
 }
 
 async function handleDetectSettings() {
-  logger.info('background', 'Detecting settings from Sora page');
+  logger.info("background", "Detecting settings from Sora page");
 
   try {
     // Find the Sora tab
-    let tabs = await chrome.tabs.query({ url: '*://sora.com/*' });
+    let tabs = await chrome.tabs.query({ url: "*://sora.com/*" });
     if (tabs.length === 0) {
-      tabs = await chrome.tabs.query({ url: '*://sora.chatgpt.com/*' });
+      tabs = await chrome.tabs.query({ url: "*://sora.chatgpt.com/*" });
     }
 
     if (tabs.length === 0) {
@@ -459,7 +466,7 @@ async function handleDetectSettings() {
         aspectRatio: null,
         variations: null,
         success: false,
-        error: 'No Sora tab found. Please open sora.com in a browser tab.',
+        error: "No Sora tab found. Please open sora.com in a browser tab.",
       };
     }
 
@@ -470,18 +477,18 @@ async function handleDetectSettings() {
         aspectRatio: null,
         variations: null,
         success: false,
-        error: 'Invalid Sora tab - no tab ID',
+        error: "Invalid Sora tab - no tab ID",
       };
     }
 
     // Ensure content script is loaded
-    await queueProcessor['ensureContentScriptLoaded'](soraTab.id);
+    await queueProcessor["ensureContentScriptLoaded"](soraTab.id);
 
     // Send detectSettings message
-    const response = await chrome.tabs.sendMessage(soraTab.id, { action: 'detectSettings' });
+    const response = await chrome.tabs.sendMessage(soraTab.id, { action: "detectSettings" });
 
     if (response && response.success !== undefined) {
-      logger.info('background', 'Settings detected', response);
+      logger.info("background", "Settings detected", response);
       return response;
     }
 
@@ -490,61 +497,61 @@ async function handleDetectSettings() {
       aspectRatio: null,
       variations: null,
       success: false,
-      error: 'Failed to detect settings from Sora page',
+      error: "Failed to detect settings from Sora page",
     };
   } catch (error) {
-    logger.error('background', 'Failed to detect settings', { error });
+    logger.error("background", "Failed to detect settings", { error });
     return {
       mediaType: null,
       aspectRatio: null,
       variations: null,
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
 
 async function handleNavigateToPrompt(promptText: string) {
   try {
-    logger.info('background', 'Navigating to prompt', { promptLength: promptText.length });
+    logger.info("background", "Navigating to prompt", { promptLength: promptText.length });
 
     // Find the Sora tab
-    let tabs = await chrome.tabs.query({ url: '*://sora.com/*' });
+    let tabs = await chrome.tabs.query({ url: "*://sora.com/*" });
     if (tabs.length === 0) {
-      tabs = await chrome.tabs.query({ url: '*://sora.chatgpt.com/*' });
+      tabs = await chrome.tabs.query({ url: "*://sora.chatgpt.com/*" });
     }
 
     if (tabs.length === 0) {
-      return { success: false, error: 'No Sora tab found. Please open sora.com in a browser tab.' };
+      return { success: false, error: "No Sora tab found. Please open sora.com in a browser tab." };
     }
 
     const soraTab = tabs[0];
     if (!soraTab.id) {
-      return { success: false, error: 'Invalid Sora tab' };
+      return { success: false, error: "Invalid Sora tab" };
     }
 
     // Activate the tab
     await chrome.tabs.update(soraTab.id, { active: true });
 
     // Wait a bit for tab to activate
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     // Send message to content script to find and highlight
     try {
       const response = await chrome.tabs.sendMessage(soraTab.id, {
-        action: 'navigateToPrompt',
+        action: "navigateToPrompt",
         promptText: promptText,
       });
 
       if (response && response.success) {
-        logger.info('background', 'Successfully navigated to prompt');
+        logger.info("background", "Successfully navigated to prompt");
         return { success: true };
       } else {
-        logger.warn('background', 'Content script navigation failed', { error: response?.error });
-        return { success: false, error: response?.error || 'Failed to navigate to prompt' };
+        logger.warn("background", "Content script navigation failed", { error: response?.error });
+        return { success: false, error: response?.error || "Failed to navigate to prompt" };
       }
     } catch (error) {
-      logger.error('background', 'Failed to send navigate message', { error });
+      logger.error("background", "Failed to send navigate message", { error });
       // Try to inject content script if not loaded
       const manifest = chrome.runtime.getManifest();
       const contentScripts = manifest.content_scripts || [];
@@ -555,21 +562,65 @@ async function handleNavigateToPrompt(promptText: string) {
             target: { tabId: soraTab.id },
             files: [scriptFiles[0]],
           });
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
           // Retry
           const retryResponse = await chrome.tabs.sendMessage(soraTab.id, {
-            action: 'navigateToPrompt',
+            action: "navigateToPrompt",
             promptText: promptText,
           });
-          return retryResponse || { success: false, error: 'Content script not responding' };
+          return retryResponse || { success: false, error: "Content script not responding" };
         }
       }
-      return { success: false, error: 'Content script not loaded' };
+      return { success: false, error: "Content script not loaded" };
     }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    logger.error('background', 'Navigate to prompt failed', { error: errorMsg });
+    logger.error("background", "Navigate to prompt failed", { error: errorMsg });
+    return { success: false, error: errorMsg };
+  }
+}
+
+async function handleGenerationLimitReached(senderTabId: number | undefined) {
+  try {
+    logger.warn("background", "Generation limit reached - stopping queue and switching tab", {
+      tabId: senderTabId,
+    });
+
+    // Stop the queue
+    await queueProcessor.stopQueue();
+    log.queue.stop();
+
+    // Find and switch to the Sora tab where the limit was detected
+    if (senderTabId) {
+      // Use the sender tab ID (where the limit message was detected)
+      try {
+        await chrome.tabs.update(senderTabId, { active: true });
+        logger.info("background", `Switched to tab ${senderTabId} where limit was detected`);
+        return { success: true };
+      } catch (error) {
+        logger.warn("background", `Failed to switch to tab ${senderTabId}, trying to find Sora tab`, { error });
+        // Fall through to find Sora tab
+      }
+    }
+
+    // If tabId not provided or update failed, find Sora tab
+    let tabs = await chrome.tabs.query({ url: "*://sora.com/*" });
+    if (tabs.length === 0) {
+      tabs = await chrome.tabs.query({ url: "*://sora.chatgpt.com/*" });
+    }
+
+    if (tabs.length > 0 && tabs[0].id) {
+      await chrome.tabs.update(tabs[0].id, { active: true });
+      logger.info("background", `Switched to Sora tab ${tabs[0].id}`);
+    } else {
+      logger.warn("background", "Could not find Sora tab to switch to");
+    }
+
+    return { success: true };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    logger.error("background", "Failed to handle generation limit", { error: errorMsg });
     return { success: false, error: errorMsg };
   }
 }

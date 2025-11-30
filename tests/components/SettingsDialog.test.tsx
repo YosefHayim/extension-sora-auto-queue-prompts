@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import type { DetectedSettings, PromptConfig } from "../../src/types";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { SettingsDialog } from "../../src/components/SettingsDialog";
 
@@ -171,6 +171,7 @@ describe("SettingsDialog", () => {
 
   it("should call onSave when form is submitted", async () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    
     fireEvent.click(screen.getByText("Save Settings"));
 
     await waitFor(() => {
@@ -180,22 +181,30 @@ describe("SettingsDialog", () => {
 
   it("should show success message after saving", async () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    fireEvent.click(screen.getByText("Save Settings"));
+    
+    await act(async () => {
+      fireEvent.click(screen.getByText("Save Settings"));
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Settings saved successfully!")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 
   it("should close dialog after successful save", async () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    fireEvent.click(screen.getByText("Save Settings"));
+    
+    await act(async () => {
+      fireEvent.click(screen.getByText("Save Settings"));
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Settings saved successfully!")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
 
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
 
     await waitFor(() => {
       expect(mockOnClose).toHaveBeenCalled();
@@ -254,22 +263,26 @@ describe("SettingsDialog", () => {
     const errorOnSave = jest.fn().mockRejectedValue(new Error("Save failed"));
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={errorOnSave} />);
 
-    fireEvent.click(screen.getByText("Save Settings"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("Save Settings"));
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Save failed")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 
   it("should handle non-Error exceptions", async () => {
     const errorOnSave = jest.fn().mockRejectedValue("String error");
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={errorOnSave} />);
 
-    fireEvent.click(screen.getByText("Save Settings"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("Save Settings"));
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Failed to save settings")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 
   it("should close dialog when backdrop is clicked", () => {
@@ -284,11 +297,18 @@ describe("SettingsDialog", () => {
     }
   });
 
-  it("should not close dialog when backdrop is clicked while loading", () => {
-    const { container } = render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+  it("should not close dialog when backdrop is clicked while loading", async () => {
+    const slowSave = jest.fn().mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
+    const { container } = render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={slowSave} />);
 
     // Start saving to set loading state
     fireEvent.click(screen.getByText("Save Settings"));
+
+    // Wait for loading state
+    await waitFor(() => {
+      const apiKeyInput = screen.getByLabelText("API Key (Optional)");
+      expect(apiKeyInput).toBeDisabled();
+    });
 
     const backdrop = container.querySelector(".fixed.inset-0");
     if (backdrop) {

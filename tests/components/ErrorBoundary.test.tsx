@@ -147,7 +147,17 @@ describe('ErrorBoundary', () => {
   });
 
   it('should handle reload button click', () => {
-    const reloadSpy = jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+    const originalReload = window.location.reload;
+    const reloadMock = jest.fn();
+    
+    // Mock window.location.reload using Object.defineProperty since location is read-only
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: {
+        ...window.location,
+        reload: reloadMock,
+      },
+    });
     
     render(
       <ErrorBoundary>
@@ -158,8 +168,16 @@ describe('ErrorBoundary', () => {
     const reloadButton = screen.getByText('Reload Extension');
     fireEvent.click(reloadButton);
 
-    expect(reloadSpy).toHaveBeenCalled();
-    reloadSpy.mockRestore();
+    expect(reloadMock).toHaveBeenCalled();
+    
+    // Restore original location
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: {
+        ...window.location,
+        reload: originalReload,
+      },
+    });
   });
 });
 

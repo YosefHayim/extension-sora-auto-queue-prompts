@@ -134,4 +134,71 @@ describe("ManualAddDialog", () => {
     fireEvent.change(textarea, { target: { value: "Prompt 1\n\nPrompt 2\n  \nPrompt 3" } });
     expect(screen.getByText(/3 prompt/)).toBeInTheDocument();
   });
+
+  it("should handle add errors", async () => {
+    const errorAdd = jest.fn().mockRejectedValue(new Error("Add failed"));
+    render(<ManualAddDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onAdd={errorAdd} />);
+    const textarea = screen.getByLabelText("Prompts");
+    fireEvent.change(textarea, { target: { value: "Prompt 1" } });
+    const submitButton = screen.getByRole("button", { name: /Add.*Prompt/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Add failed")).toBeInTheDocument();
+    }, { timeout: 2000 });
+  });
+
+  it("should handle non-Error exception in add", async () => {
+    const errorAdd = jest.fn().mockRejectedValue("String error");
+    render(<ManualAddDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onAdd={errorAdd} />);
+    const textarea = screen.getByLabelText("Prompts");
+    fireEvent.change(textarea, { target: { value: "Prompt 1" } });
+    const submitButton = screen.getByRole("button", { name: /Add.*Prompt/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Failed to add prompts")).toBeInTheDocument();
+    }, { timeout: 2000 });
+  });
+
+  it("should close dialog when clicking backdrop while not loading", () => {
+    const { container } = render(<ManualAddDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onAdd={mockOnAdd} />);
+    const backdrop = container.querySelector(".fixed.inset-0");
+    
+    if (backdrop) {
+      fireEvent.click(backdrop);
+      expect(mockOnClose).toHaveBeenCalled();
+    }
+  });
+
+  it("should not close dialog when clicking backdrop while loading", async () => {
+    const slowAdd = jest.fn().mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
+    const { container } = render(<ManualAddDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onAdd={slowAdd} />);
+    const textarea = screen.getByLabelText("Prompts");
+    fireEvent.change(textarea, { target: { value: "Prompt 1" } });
+    const submitButton = screen.getByRole("button", { name: /Add.*Prompt/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Adding/)).toBeInTheDocument();
+    });
+
+    const backdrop = container.querySelector(".fixed.inset-0");
+    if (backdrop) {
+      fireEvent.click(backdrop);
+      // Should not close while loading
+      expect(mockOnClose).not.toHaveBeenCalled();
+    }
+  });
+
+  it("should not close dialog when clicking on dialog content", () => {
+    const { container } = render(<ManualAddDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onAdd={mockOnAdd} />);
+    const dialog = container.querySelector(".rounded-lg");
+    
+    if (dialog) {
+      fireEvent.click(dialog);
+      // Should not close when clicking on dialog itself
+      expect(mockOnClose).not.toHaveBeenCalled();
+    }
+  });
 });

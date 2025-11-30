@@ -179,6 +179,36 @@ export class QueueProcessor {
       // Ensure content script is loaded before sending message
       await this.ensureContentScriptLoaded(soraTab.id);
 
+      // Check for generation limit before processing
+      try {
+        const limitCheck = await chrome.tabs.sendMessage(soraTab.id, {
+          action: 'checkLimit',
+        });
+        
+        if (limitCheck && limitCheck.found) {
+          logger.warn('queueProcessor', 'Generation limit detected - stopping queue', {
+            message: limitCheck.message,
+          });
+          
+          // Stop the queue
+          await this.stopQueue();
+          
+          // Switch to the tab
+          await chrome.tabs.update(soraTab.id, { active: true });
+          
+          throw new Error(`Generation limit reached: ${limitCheck.message || 'Please try again later'}`);
+        }
+      } catch (limitError) {
+        // If it's our limit error, re-throw it
+        if (limitError instanceof Error && limitError.message.includes('Generation limit reached')) {
+          throw limitError;
+        }
+        // Otherwise, it might be a connection error - continue with processing
+        logger.debug('queueProcessor', 'Limit check failed (might be connection issue), continuing', {
+          error: limitError instanceof Error ? limitError.message : String(limitError),
+        });
+      }
+
       // Send prompt to content script with retries
       logger.info('queueProcessor', `Submitting prompt to tab ${soraTab.id}: ${prompt.text.substring(0, 50)}...`);
 

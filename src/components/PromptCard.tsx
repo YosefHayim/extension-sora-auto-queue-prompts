@@ -79,9 +79,63 @@ interface PromptCardProps {
   onRefine: (id: string) => void;
   onGenerateSimilar: (id: string) => void;
   onDelete: (id: string) => void;
+  searchQuery?: string;
 }
 
 const MAX_TEXT_LENGTH = 200;
+
+/**
+ * Highlights matching text in a string based on search query
+ */
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query || !query.trim()) {
+    return text;
+  }
+
+  const queryLower = query.toLowerCase().trim();
+  const textLower = text.toLowerCase();
+  const parts: Array<{ text: string; isMatch: boolean }> = [];
+  let lastIndex = 0;
+  let searchIndex = 0;
+
+  while (true) {
+    const index = textLower.indexOf(queryLower, searchIndex);
+    if (index === -1) {
+      // Add remaining text
+      if (lastIndex < text.length) {
+        parts.push({ text: text.substring(lastIndex), isMatch: false });
+      }
+      break;
+    }
+
+    // Add text before match
+    if (index > lastIndex) {
+      parts.push({ text: text.substring(lastIndex, index), isMatch: false });
+    }
+
+    // Add matched text
+    parts.push({ text: text.substring(index, index + query.length), isMatch: true });
+    lastIndex = index + query.length;
+    searchIndex = index + 1;
+  }
+
+      return (
+        <>
+          {parts.map((part, i) =>
+            part.isMatch ? (
+              <mark
+                key={i}
+                className="bg-yellow-200 dark:bg-yellow-900/50 text-yellow-900 dark:text-yellow-100 px-0.5 rounded pointer-events-none"
+              >
+                {part.text}
+              </mark>
+            ) : (
+              <span key={i}>{part.text}</span>
+            )
+          )}
+        </>
+      );
+}
 
 export function PromptCard({
   prompt,
@@ -94,6 +148,7 @@ export function PromptCard({
   onRefine,
   onGenerateSimilar,
   onDelete,
+  searchQuery = "",
 }: PromptCardProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = React.useState(false);
@@ -181,9 +236,22 @@ export function PromptCard({
   const handleCardClick = (e: React.MouseEvent) => {
     // Only navigate if clicking on the card itself, not on interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest("button") || target.closest("a") || target.closest("[data-no-drag]") || target.closest("input") || target.closest("textarea")) {
+    if (
+      target.closest("button") ||
+      target.closest("a") ||
+      target.closest("[data-no-drag]") ||
+      target.closest("input") ||
+      target.closest("textarea") ||
+      target.closest("[role='menu']") ||
+      target.closest("[role='menuitem']") ||
+      target.closest("[data-radix-dropdown-menu-content]")
+    ) {
       return;
     }
+
+    // Allow clicks on mark elements (highlighted search text) to work
+    // If clicking on mark, use the parent element to check
+    const clickTarget = target.tagName === "MARK" ? target.parentElement : target;
 
     // Only navigate for completed prompts
     if (prompt.status === "completed" && onNavigateToPrompt) {
@@ -217,342 +285,171 @@ export function PromptCard({
       )}
       title={isCompleted && onNavigateToPrompt ? "Click to navigate to this prompt on Sora" : undefined}
     >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 px-3 pt-3">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-2.5">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {onToggleSelection && (
             <button
               onClick={handleToggleSelection}
-              className="flex-shrink-0 p-1 rounded hover:bg-accent transition-colors"
+              className="flex-shrink-0 p-0.5 rounded hover:bg-accent transition-colors"
               title={isSelected ? "Deselect" : "Select"}
               data-no-drag
             >
               {isSelected ?
-                <FaCheckSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              : <FaSquare className="h-4 w-4 text-muted-foreground" />}
+                <FaCheckSquare className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+              : <FaSquare className="h-3.5 w-3.5 text-muted-foreground" />}
             </button>
           )}
-          <div className="flex gap-2 flex-wrap flex-1 min-w-0">
-            <Badge
-              variant="outline"
-              className={cn(
-                "gap-1 text-xs font-medium hover:bg-transparent",
-                prompt.mediaType === "video" && "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300",
-                prompt.mediaType === "image" && "border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300"
-              )}
-            >
-              {prompt.mediaType === "video" ?
-                <FaVideo className="h-3 w-3" />
-              : <FaImage className="h-3 w-3" />}
-              {prompt.mediaType.charAt(0).toUpperCase() + prompt.mediaType.slice(1)}
-            </Badge>
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <span className={cn(
+              "text-xs font-medium",
+              prompt.mediaType === "video" && "text-blue-600 dark:text-blue-400",
+              prompt.mediaType === "image" && "text-purple-600 dark:text-purple-400"
+            )}>
+              {prompt.mediaType === "video" ? <FaVideo className="h-3 w-3 inline mr-1" /> : <FaImage className="h-3 w-3 inline mr-1" />}
+            </span>
             {prompt.aspectRatio && (
-              <Badge variant="secondary" className="text-xs font-medium hover:bg-secondary">
-                {prompt.aspectRatio}
-              </Badge>
+              <span className="text-xs text-muted-foreground">• {prompt.aspectRatio}</span>
             )}
             {prompt.variations && (
-              <Badge variant="outline" className="text-xs font-medium gap-1 hover:bg-transparent">
-                <FaFileAlt className="h-3 w-3" />
-                {prompt.variations} variation{prompt.variations !== 1 ? "s" : ""}
-              </Badge>
+              <span className="text-xs text-muted-foreground">• {prompt.variations}v</span>
             )}
             {prompt.enhanced && (
-              <Badge
-                variant="default"
-                className="gap-1 text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500"
-              >
-                <FaMagic className="h-3 w-3" />
-                Enhanced
-              </Badge>
+              <span className="text-xs text-purple-600 dark:text-purple-400">
+                <FaMagic className="h-3 w-3 inline mr-0.5" />
+              </span>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {onProcess && prompt.status === "pending" && (
-            <HoverCard>
-              <HoverCardTrigger asChild>
-                <Button variant="default" size="sm" onClick={handleProcess} className="h-7 text-xs gap-1.5" title="Process this prompt" data-no-drag>
-                  <FaPlay className="h-3.5 w-3.5" />
-                  Process
-                </Button>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-64">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-semibold">Process Prompt</h4>
-                  <p className="text-xs text-muted-foreground">Start processing this prompt immediately. It will be submitted to Sora for generation.</p>
-                </div>
-              </HoverCardContent>
-            </HoverCard>
+            <Button variant="default" size="sm" onClick={handleProcess} className="h-6 px-2 text-xs gap-1" title="Process" data-no-drag>
+              <FaPlay className="h-3 w-3" />
+            </Button>
           )}
-          <HoverCard>
-            <HoverCardTrigger asChild>
-              <Badge
-                variant="outline"
-                className={cn(
-                  "flex items-center justify-center gap-1.5 px-2.5 py-1.5 border font-semibold text-xs hover:bg-transparent",
-                  isProcessing && "bg-yellow-50 dark:bg-yellow-950/30 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300",
-                  isCompleted && "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300",
-                  prompt.status === "pending" && "bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300",
-                  prompt.status === "failed" && "bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300"
-                )}
-              >
-                {getStatusIcon(prompt.status)}
-                <span className="capitalize">{prompt.status}</span>
-              </Badge>
-            </HoverCardTrigger>
-            <HoverCardContent className="w-64">
-              <div className="space-y-1">
-                <h4 className="text-sm font-semibold capitalize">{prompt.status} Status</h4>
-                <p className="text-xs text-muted-foreground">
-                  {isCompleted && prompt.completedTime && `Completed ${formatTimeAgo(prompt.completedTime)}`}
-                  {isProcessing && "Currently being processed by Sora"}
-                  {prompt.status === "pending" && "Waiting to be processed"}
-                  {prompt.status === "failed" && "Failed during processing"}
-                </p>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
+          <Badge
+            variant="outline"
+            className={cn(
+              "flex items-center gap-1 px-2 py-0.5 text-xs font-medium border-0",
+              isProcessing && "text-yellow-600 dark:text-yellow-400",
+              isCompleted && "text-green-600 dark:text-green-400",
+              prompt.status === "pending" && "text-muted-foreground",
+              prompt.status === "failed" && "text-red-600 dark:text-red-400"
+            )}
+          >
+            {getStatusIcon(prompt.status)}
+            <span className="capitalize text-[10px]">{prompt.status}</span>
+          </Badge>
         </div>
       </CardHeader>
 
       <CardContent className="px-3 pb-2">
-        <div className="space-y-2">
-          <div>
-            <p className="text-sm leading-snug text-foreground">{displayText}</p>
-            {shouldTruncate && (
-              <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="h-6 text-xs mt-2 px-2">
-                {isExpanded ?
-                  <>
-                    <FaChevronUp className="h-3 w-3 mr-1" />
-                    Show less
-                  </>
-                : <>
-                    <FaChevronDown className="h-3 w-3 mr-1" />
-                    Read more
-                  </>
-                }
-              </Button>
-            )}
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-muted-foreground">{prompt.text.length} chars</span>
-            </div>
-          </div>
+        <div className="space-y-1.5">
+          <p className="text-sm leading-relaxed text-foreground">{highlightText(displayText, searchQuery)}</p>
+          {shouldTruncate && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              {isExpanded ?
+                <>
+                  <FaChevronUp className="h-2.5 w-2.5" />
+                  Show less
+                </>
+              : <>
+                  <FaChevronDown className="h-2.5 w-2.5" />
+                  Read more
+                </>
+              }
+            </button>
+          )}
 
           {/* Progress indicator for processing prompts */}
           {isProcessing && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Processing...</span>
-                {estimatedTimeRemaining !== null && estimatedTimeRemaining > 0 && (
-                  <span className="text-muted-foreground">~{formatDuration(estimatedTimeRemaining)} remaining</span>
-                )}
-              </div>
-              <Progress value={prompt.startTime ? Math.min(90, ((Date.now() - prompt.startTime) / (2.5 * 60 * 1000)) * 100) : 0} className="h-1.5" />
+            <div className="space-y-1">
+              <Progress value={prompt.startTime ? Math.min(90, ((Date.now() - prompt.startTime) / (2.5 * 60 * 1000)) * 100) : 0} className="h-1" />
+              {estimatedTimeRemaining !== null && estimatedTimeRemaining > 0 && (
+                <span className="text-[10px] text-muted-foreground">~{formatDuration(estimatedTimeRemaining)} remaining</span>
+              )}
             </div>
           )}
 
-          {/* Duration and timing info */}
-          <div className="flex items-center gap-2 flex-wrap text-xs">
+          {/* Compact timing info */}
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+            {prompt.timestamp && <span>{formatTimeAgo(prompt.timestamp)}</span>}
             {isCompleted && prompt.duration && (
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <Badge variant="outline" className="text-xs gap-1.5 cursor-help hover:bg-transparent">
-                    <FaClock className="h-3 w-3" />
-                    {formatDuration(prompt.duration)}
-                  </Badge>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-semibold">Generation Duration</h4>
-                    <p className="text-xs text-muted-foreground">Time taken to generate this {prompt.mediaType}</p>
-                    {prompt.completedTime && <p className="text-xs text-muted-foreground mt-2">Completed: {formatDateTime(prompt.completedTime)}</p>}
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
+              <span>• {formatDuration(prompt.duration)}</span>
             )}
             {isProcessing && prompt.startTime && (
-              <Badge variant="outline" className="text-xs gap-1.5 hover:bg-transparent">
-                <FaClock className="h-3 w-3 animate-pulse" />
+              <span className="flex items-center gap-1">
+                <FaClock className="h-2.5 w-2.5 animate-pulse" />
                 {formatDuration(Date.now() - prompt.startTime)}
-              </Badge>
+              </span>
             )}
-            {prompt.timestamp && <span className="text-muted-foreground">Created {formatTimeAgo(prompt.timestamp)}</span>}
           </div>
-
-          {/* Collapsible metadata */}
-          <Collapsible open={isMetadataOpen} onOpenChange={setIsMetadataOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 text-xs gap-1">
-                {isMetadataOpen ?
-                  <>
-                    <FaChevronUp className="h-3 w-3" />
-                    Hide details
-                  </>
-                : <>
-                    <FaChevronDown className="h-3 w-3" />
-                    Show details
-                  </>
-                }
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 pt-2">
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-muted-foreground">Created:</span>
-                  <span className="ml-2">{formatDateTime(prompt.timestamp)}</span>
-                </div>
-                {prompt.completedTime && (
-                  <div>
-                    <span className="text-muted-foreground">Completed:</span>
-                    <span className="ml-2">{formatDateTime(prompt.completedTime)}</span>
-                  </div>
-                )}
-                {prompt.startTime && (
-                  <div>
-                    <span className="text-muted-foreground">Started:</span>
-                    <span className="ml-2">{formatDateTime(prompt.startTime)}</span>
-                  </div>
-                )}
-                <div>
-                  <span className="text-muted-foreground">ID:</span>
-                  <span className="ml-2 font-mono text-[10px]">{prompt.id.substring(0, 8)}...</span>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
         </div>
       </CardContent>
 
-      <CardFooter className="gap-1 pt-2 border-t px-3" data-no-drag>
-        <div className="flex items-center gap-1 flex-1">
+      <CardFooter className="gap-0 pt-1.5 border-t px-3 pb-2" data-no-drag>
+        <div className="flex items-center gap-0.5 flex-1">
           {isCompleted && onNavigateToPrompt && (
-            <HoverCard>
-              <HoverCardTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onNavigateToPrompt(prompt.id, prompt.text);
-                  }}
-                  title="Navigate to generated image/video"
-                  type="button"
-                  data-no-drag
-                  className="h-7 w-7"
-                >
-                  <FaLocationArrow className="h-4 w-4" />
-                </Button>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-64">
-                <div className="space-y-1">
-                  <h4 className="text-sm font-semibold">Navigate to Generated Media</h4>
-                  <p className="text-xs text-muted-foreground">Click to navigate to this prompt's generated {prompt.mediaType} on Sora</p>
-                </div>
-              </HoverCardContent>
-            </HoverCard>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigateToPrompt(prompt.id, prompt.text);
+              }}
+              title="Navigate to generated media"
+              type="button"
+              data-no-drag
+              className="h-6 w-6"
+            >
+              <FaLocationArrow className="h-3.5 w-3.5" />
+            </Button>
           )}
-
-          <HoverCard>
-            <HoverCardTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleCopyText} title="Copy prompt text" type="button" data-no-drag className="h-7 w-7">
-                {copied ?
-                  <FaCheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                : <FaClipboard className="h-4 w-4" />}
-              </Button>
-            </HoverCardTrigger>
-            <HoverCardContent className="w-64">
-              <div className="space-y-1">
-                <h4 className="text-sm font-semibold">Copy Text</h4>
-                <p className="text-xs text-muted-foreground">{copied ? "Copied to clipboard!" : "Copy the prompt text to your clipboard"}</p>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
-
-          <HoverCard>
-            <HoverCardTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleEdit}
-                disabled={!canEdit}
-                title="Edit prompt (E)"
-                type="button"
-                data-no-drag
-                className="h-7 w-7"
-              >
-                <FaPencilAlt className="h-4 w-4" />
-              </Button>
-            </HoverCardTrigger>
-            <HoverCardContent className="w-64">
-              <div className="space-y-1">
-                <h4 className="text-sm font-semibold">Edit Prompt</h4>
-                <p className="text-xs text-muted-foreground">
-                  {canEdit ? "Modify the prompt text. Changes will be saved immediately." : "Cannot edit completed or processing prompts"}
-                </p>
-                {canEdit && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted rounded">E</kbd> Keyboard shortcut
-                  </p>
-                )}
-              </div>
-            </HoverCardContent>
-          </HoverCard>
-
-          <HoverCard>
-            <HoverCardTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleDuplicate} title="Duplicate (D)" type="button" data-no-drag className="h-7 w-7">
-                <FaCopy className="h-4 w-4" />
-              </Button>
-            </HoverCardTrigger>
-            <HoverCardContent className="w-64">
-              <div className="space-y-1">
-                <h4 className="text-sm font-semibold">Duplicate Prompt</h4>
-                <p className="text-xs text-muted-foreground">Create an exact copy of this prompt in the queue.</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted rounded">D</kbd> Keyboard shortcut
-                </p>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
-
-          <HoverCard>
-            <HoverCardTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleRefine}
-                disabled={!canRefine}
-                title="Refine with AI (R)"
-                type="button"
-                data-no-drag
-                className="h-7 w-7"
-              >
-                <FaMagic className="h-4 w-4" />
-              </Button>
-            </HoverCardTrigger>
-            <HoverCardContent className="w-64">
-              <div className="space-y-1">
-                <h4 className="text-sm font-semibold">Refine with AI</h4>
-                <p className="text-xs text-muted-foreground">
-                  {canRefine ? "Enhance this prompt using AI to improve clarity and effectiveness." : "Cannot refine completed or processing prompts"}
-                </p>
-                {canRefine && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted rounded">R</kbd> Keyboard shortcut
-                  </p>
-                )}
-              </div>
-            </HoverCardContent>
-          </HoverCard>
+          <Button variant="ghost" size="icon" onClick={handleCopyText} title="Copy" type="button" data-no-drag className="h-6 w-6">
+            {copied ?
+              <FaCheckCircle className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+            : <FaClipboard className="h-3.5 w-3.5" />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleEdit}
+            disabled={!canEdit}
+            title="Edit"
+            type="button"
+            data-no-drag
+            className="h-6 w-6"
+          >
+            <FaPencilAlt className="h-3.5 w-3.5" />
+          </Button>
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" type="button" data-no-drag className="h-7 w-7">
-              <FaEllipsisV className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              data-no-drag
+              className="h-6 w-6"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <FaEllipsisV className="h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuItem onSelect={handleDuplicate}>
+              <FaCopy className="h-4 w-4 mr-2" />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleRefine} disabled={!canRefine}>
+              <FaMagic className="h-4 w-4 mr-2" />
+              Refine with AI
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={handleGenerateSimilar}>
               <FaMagic className="h-4 w-4 mr-2" />
               Generate Similar

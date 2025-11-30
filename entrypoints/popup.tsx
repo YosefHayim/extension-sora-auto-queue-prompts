@@ -751,6 +751,7 @@ function IndexPopup() {
                         onRefine={handleRefinePrompt}
                         onGenerateSimilar={handleGenerateSimilar}
                         onDelete={handleDeletePrompt}
+                        searchQuery={searchQuery}
                       />
                     ))}
                   </div>

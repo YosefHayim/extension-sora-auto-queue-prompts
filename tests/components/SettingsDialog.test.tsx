@@ -184,6 +184,7 @@ describe("SettingsDialog", () => {
     
     await act(async () => {
       fireEvent.click(screen.getByText("Save Settings"));
+      await Promise.resolve(); // Wait for onSave to resolve
     });
 
     await waitFor(() => {
@@ -196,6 +197,7 @@ describe("SettingsDialog", () => {
     
     await act(async () => {
       fireEvent.click(screen.getByText("Save Settings"));
+      await Promise.resolve(); // Wait for onSave to resolve
     });
 
     await waitFor(() => {
@@ -204,6 +206,7 @@ describe("SettingsDialog", () => {
 
     await act(async () => {
       jest.advanceTimersByTime(1000);
+      await Promise.resolve(); // Wait for setTimeout to execute
     });
 
     await waitFor(() => {
@@ -254,7 +257,7 @@ describe("SettingsDialog", () => {
 
   it("should display section headers correctly", () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    expect(screen.getByText("OpenAI Configuration")).toBeInTheDocument();
+    expect(screen.getByText("API Configuration")).toBeInTheDocument();
     expect(screen.getByText("Sora Generation Settings")).toBeInTheDocument();
     expect(screen.getByText("Queue Processing Settings")).toBeInTheDocument();
   });
@@ -306,7 +309,7 @@ describe("SettingsDialog", () => {
 
     // Wait for loading state
     await waitFor(() => {
-      const apiKeyInput = screen.getByLabelText("API Key (Optional)");
+      const apiKeyInput = screen.getByLabelText("API Key");
       expect(apiKeyInput).toBeDisabled();
     });
 
@@ -335,7 +338,7 @@ describe("SettingsDialog", () => {
 
   it("should update apiKey field", () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    const apiKeyInput = screen.getByLabelText("API Key (Optional)");
+    const apiKeyInput = screen.getByLabelText("API Key");
     fireEvent.change(apiKeyInput, { target: { value: "sk-new-key" } });
     expect((apiKeyInput as HTMLInputElement).value).toBe("sk-new-key");
   });
@@ -440,7 +443,7 @@ describe("SettingsDialog", () => {
     fireEvent.click(screen.getByText("Save Settings"));
 
     await waitFor(() => {
-      const apiKeyInput = screen.getByLabelText("API Key (Optional)");
+      const apiKeyInput = screen.getByLabelText("API Key");
       expect(apiKeyInput).toBeDisabled();
     });
   });
@@ -492,14 +495,14 @@ describe("SettingsDialog", () => {
     };
 
     render(<SettingsDialog config={configWithoutKey} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    const apiKeyInput = screen.getByLabelText("API Key (Optional)");
+    const apiKeyInput = screen.getByLabelText("API Key");
     expect((apiKeyInput as HTMLInputElement).value).toBe("");
   });
 
   it("should display all form sections with proper labels", () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
 
-    expect(screen.getByText("API Key (Optional)")).toBeInTheDocument();
+    expect(screen.getByText("API Key")).toBeInTheDocument();
     expect(screen.getByText("Default Context Prompt")).toBeInTheDocument();
     expect(screen.getByText("Media Type")).toBeInTheDocument();
     expect(screen.getByText("Variations")).toBeInTheDocument();

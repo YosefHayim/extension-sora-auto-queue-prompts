@@ -339,7 +339,20 @@ export class PromptGenerator {
 
   validateApiKey(): boolean {
     if (!this.apiKey) return false;
-    // Basic validation - more specific validation is done in apiKeyUtils
-    return this.apiKey.length > 10;
+    // Basic validation - check for valid API key patterns
+    // OpenAI: starts with "sk-" and typically 20+ characters
+    if (this.apiKey.startsWith("sk-") && this.apiKey.length >= 20) {
+      return true;
+    }
+    // Anthropic: starts with "sk-ant-" and typically 20+ characters
+    if (this.apiKey.startsWith("sk-ant-") && this.apiKey.length >= 20) {
+      return true;
+    }
+    // Google Gemini: starts with "AIza" and typically 35+ characters
+    if (this.apiKey.startsWith("AIza") && this.apiKey.length >= 35) {
+      return true;
+    }
+    // If none of the patterns match, it's invalid
+    return false;
   }
 }

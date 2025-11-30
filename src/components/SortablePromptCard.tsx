@@ -16,6 +16,7 @@ interface SortablePromptCardProps {
   onRefine: (id: string) => void;
   onGenerateSimilar: (id: string) => void;
   onDelete: (id: string) => void;
+  searchQuery?: string;
 }
 
 export function SortablePromptCard(props: SortablePromptCardProps) {
@@ -61,6 +62,7 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
         onRefine={props.onRefine}
         onGenerateSimilar={props.onGenerateSimilar}
         onDelete={props.onDelete}
+        searchQuery={props.searchQuery}
       />
     </div>
   );

@@ -2,7 +2,7 @@ import * as React from "react";
 
 import type { ApiProvider, DetectedSettings, PromptConfig } from "../types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { FaCheckCircle, FaCog, FaExclamationCircle, FaKey, FaMagic, FaPlayCircle, FaSave, FaSpinner, FaTimes } from "react-icons/fa";
+import { FaCheckCircle, FaCog, FaExclamationCircle, FaKey, FaMagic, FaPlayCircle, FaSave, FaSpinner, FaTimes, FaRobot, FaBrain, FaGoogle } from "react-icons/fa";
 import { recognizeApiProvider, verifyApiKey } from "../utils/apiKeyUtils";
 
 import { Button } from "./ui/button";
@@ -11,6 +11,7 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { log } from "../utils/logger";
 import { cn } from "../lib/utils";
+import { useToast } from "./ui/use-toast";
 
 interface SettingsDialogProps {
   config: PromptConfig;
@@ -29,6 +30,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
   const [verifying, setVerifying] = React.useState(false);
   const [verificationStatus, setVerificationStatus] = React.useState<{ valid: boolean; error?: string } | null>(null);
   const [detectedProvider, setDetectedProvider] = React.useState<ApiProvider | null>(null);
+  const { toast } = useToast();
 
   // Update form data when dialog opens or detected settings change
   React.useEffect(() => {
@@ -87,7 +89,6 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
     e.preventDefault();
     setLoading(true);
     setError("");
-    setSuccess("");
 
     try {
       log.ui.action("SettingsDialog:Save");
@@ -115,7 +116,14 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
       setSuccess("Settings saved successfully!");
       log.ui.action("SettingsDialog:Success");
 
-      // Close dialog after 1 second
+      // Show success toast
+      toast({
+        title: "Settings successfully saved",
+        description: "Your settings have been saved successfully.",
+        duration: 3000,
+      });
+
+      // Close dialog after a short delay
       setTimeout(() => {
         onClose();
       }, 1000);
@@ -156,8 +164,11 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
       setVerificationStatus(result);
 
       if (result.valid) {
-        setSuccess("API key verified successfully!");
-        setTimeout(() => setSuccess(""), 3000);
+        toast({
+          title: "API key verified successfully!",
+          description: "Your API key is valid and ready to use.",
+          duration: 3000,
+        });
       } else {
         setError(result.error || "API key verification failed");
       }
@@ -168,6 +179,19 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
       log.ui.error("SettingsDialog:VerifyApiKey", err);
     } finally {
       setVerifying(false);
+    }
+  }
+
+  function getProviderIcon(provider: ApiProvider) {
+    switch (provider) {
+      case "openai":
+        return <FaRobot className="h-4 w-4" />;
+      case "anthropic":
+        return <FaBrain className="h-4 w-4" />;
+      case "google":
+        return <FaGoogle className="h-4 w-4" />;
+      default:
+        return null;
     }
   }
 
@@ -263,7 +287,10 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                 {detectedProvider && (
                   <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
                     <FaCheckCircle className="h-3 w-3" />
-                    <span>Detected: {getProviderDisplayName(detectedProvider)}</span>
+                    <span className="flex items-center gap-1.5">
+                      Detected: {getProviderIcon(detectedProvider)}
+                      {getProviderDisplayName(detectedProvider)}
+                    </span>
                   </div>
                 )}
                 {verificationStatus && (
@@ -291,9 +318,9 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                       href={getProviderApiKeyUrl(formData.apiProvider)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline"
+                      className="text-xs text-primary hover:underline flex items-center gap-1.5"
                     >
-                      Get your API key from {getProviderDisplayName(formData.apiProvider)} →
+                      Get your API key from {getProviderIcon(formData.apiProvider)} {getProviderDisplayName(formData.apiProvider)} →
                     </a>
                   )}
                 </div>
@@ -301,21 +328,33 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
 
               <div className="space-y-2">
                 <Label htmlFor="apiProvider">API Provider</Label>
-                <select
-                  id="apiProvider"
-                  value={formData.apiProvider || ""}
-                  onChange={(e) => handleChange("apiProvider", (e.target.value as ApiProvider) || undefined)}
-                  disabled={loading || verifying}
-                  className="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 border-input bg-background"
-                >
-                  <option value="">Select provider (or auto-detect from key)</option>
-                  <option value="openai">OpenAI (ChatGPT)</option>
-                  <option value="anthropic">Anthropic (Claude)</option>
-                  <option value="google">Google (Gemini)</option>
-                </select>
+                <div className="relative">
+                  {formData.apiProvider && (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      {getProviderIcon(formData.apiProvider)}
+                    </div>
+                  )}
+                  <select
+                    id="apiProvider"
+                    value={formData.apiProvider || ""}
+                    onChange={(e) => handleChange("apiProvider", (e.target.value as ApiProvider) || undefined)}
+                    disabled={loading || verifying}
+                    className={cn(
+                      "flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 border-input bg-background",
+                      formData.apiProvider && "pl-9"
+                    )}
+                  >
+                    <option value="">Select provider (or auto-detect from key)</option>
+                    <option value="openai">OpenAI (ChatGPT)</option>
+                    <option value="anthropic">Anthropic (Claude)</option>
+                    <option value="google">Google (Gemini)</option>
+                  </select>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {detectedProvider ?
-                    `Auto-detected as ${getProviderDisplayName(detectedProvider)}. You can override by selecting a different provider.`
+                    <span className="flex items-center gap-1.5">
+                      Auto-detected as {getProviderIcon(detectedProvider)} {getProviderDisplayName(detectedProvider)}. You can override by selecting a different provider.
+                    </span>
                   : "If the API key pattern isn't recognized, please select the provider manually."}
                 </p>
               </div>
@@ -527,7 +566,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
               {loading ?
                 <>
                   <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
+                  Saving Settings...
                 </>
               : <>
                   <FaSave className="h-4 w-4 mr-2" />

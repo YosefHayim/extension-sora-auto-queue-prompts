@@ -91,7 +91,7 @@ describe('GenerateDialog', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Please configure your OpenAI API key/)).toBeInTheDocument();
+      expect(screen.getByText(/Please configure your API key in Settings/)).toBeInTheDocument();
     });
   });
 
@@ -101,7 +101,12 @@ describe('GenerateDialog', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockOnGenerate).toHaveBeenCalledWith(10, 'Test context');
+      expect(mockOnGenerate).toHaveBeenCalled();
+      // Check that it was called with count and context (progress callback is optional)
+      const calls = mockOnGenerate.mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      expect(calls[0][0]).toBe(10);
+      expect(calls[0][1]).toBe('Test context');
     });
   });
 

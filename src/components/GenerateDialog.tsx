@@ -9,13 +9,14 @@ import { Label } from "./ui/label";
 import type { PromptConfig, DetectedSettings } from "../types";
 import { Textarea } from "./ui/textarea";
 import { Badge } from "./ui/badge";
+import { Progress } from "./ui/progress";
 import { log } from "../utils/logger";
 
 interface GenerateDialogProps {
   config: PromptConfig;
   isOpen: boolean;
   onClose: () => void;
-  onGenerate: (count: number, context: string) => Promise<void>;
+  onGenerate: (count: number, context: string, onProgress?: (current: number, total: number) => void) => Promise<void>;
   detectedSettings?: DetectedSettings | null;
 }
 
@@ -24,6 +25,7 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate, detectedSe
   const [context, setContext] = React.useState(config.contextPrompt || "");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [progress, setProgress] = React.useState({ current: 0, total: 0 });
 
   // Reset form when dialog opens
   React.useEffect(() => {
@@ -31,6 +33,7 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate, detectedSe
       setCount(config.batchSize || 10);
       setContext(config.contextPrompt || "");
       setError("");
+      setProgress({ current: 0, total: 0 });
     }
   }, [isOpen, config.batchSize, config.contextPrompt]);
 
@@ -51,12 +54,18 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate, detectedSe
 
     setLoading(true);
     setError("");
+    setProgress({ current: 0, total: count });
 
     try {
       log.ui.action("GenerateDialog:Submit", { count, contextLength: context.length });
-      await onGenerate(count, context);
+      await onGenerate(count, context, (current, total) => {
+        setProgress({ current, total });
+      });
       log.ui.action("GenerateDialog:Success");
-      onClose();
+      // Keep dialog open briefly to show completion, then close
+      setTimeout(() => {
+        onClose();
+      }, 500);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to generate prompts";
       setError(errorMsg);
@@ -142,6 +151,24 @@ export function GenerateDialog({ config, isOpen, onClose, onGenerate, detectedSe
           </div>
 
           {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
+
+          {/* Progress Bar */}
+          {loading && progress.total > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Generating prompts...
+                </span>
+                <span className="font-medium">
+                  {progress.current} / {progress.total}
+                </span>
+              </div>
+              <Progress value={(progress.current / progress.total) * 100} className="h-2" />
+              <p className="text-xs text-muted-foreground text-center">
+                {progress.current} prompt{progress.current !== 1 ? "s" : ""} successfully generated
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-2">
             <Button type="submit" className="flex-1" disabled={loading}>

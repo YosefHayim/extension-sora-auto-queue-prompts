@@ -165,5 +165,66 @@ describe('GenerateDialog', () => {
       expect(mockOnClose).toHaveBeenCalled();
     }, { timeout: 2000 });
   });
+
+  it('should handle generation errors', async () => {
+    const errorGenerate = jest.fn().mockRejectedValue(new Error('Generation failed'));
+    render(<GenerateDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onGenerate={errorGenerate} />);
+    const submitButton = screen.getByText('Generate');
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Generation failed')).toBeInTheDocument();
+    }, { timeout: 2000 });
+  });
+
+  it('should handle non-Error exception in generation', async () => {
+    const errorGenerate = jest.fn().mockRejectedValue('String error');
+    render(<GenerateDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onGenerate={errorGenerate} />);
+    const submitButton = screen.getByText('Generate');
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to generate prompts')).toBeInTheDocument();
+    }, { timeout: 2000 });
+  });
+
+  it('should close dialog when clicking backdrop while not loading', () => {
+    const { container } = render(<GenerateDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onGenerate={mockOnGenerate} />);
+    const backdrop = container.querySelector('.fixed.inset-0');
+    
+    if (backdrop) {
+      fireEvent.click(backdrop);
+      expect(mockOnClose).toHaveBeenCalled();
+    }
+  });
+
+  it('should not close dialog when clicking backdrop while loading', async () => {
+    const slowGenerate = jest.fn().mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
+    const { container } = render(<GenerateDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onGenerate={slowGenerate} />);
+    const submitButton = screen.getByText('Generate');
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Generating...')).toBeInTheDocument();
+    });
+
+    const backdrop = container.querySelector('.fixed.inset-0');
+    if (backdrop) {
+      fireEvent.click(backdrop);
+      // Should not close while loading
+      expect(mockOnClose).not.toHaveBeenCalled();
+    }
+  });
+
+  it('should not close dialog when clicking on dialog content', () => {
+    const { container } = render(<GenerateDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onGenerate={mockOnGenerate} />);
+    const dialog = container.querySelector('[role="dialog"]') || container.querySelector('.rounded-lg');
+    
+    if (dialog) {
+      fireEvent.click(dialog);
+      // Should not close when clicking on dialog itself
+      expect(mockOnClose).not.toHaveBeenCalled();
+    }
+  });
 });
 

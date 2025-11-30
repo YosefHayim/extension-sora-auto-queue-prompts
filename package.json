@@ -29,7 +29,6 @@
     "build": "node scripts/build.js",
     "build:css": "pnpm exec tailwindcss -i src/styles/globals.css -o .plasmo/static/popup.css --minify",
     "dev:css": "pnpm exec tailwindcss -i src/styles/globals.css -o .plasmo/static/popup.css --watch",
-    "copy:dist": "node scripts/copy-to-dist.js",
     "package": "plasmo package",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -37,8 +36,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "clean": "del-cli .plasmo build dist *.zip",
-    "clean:dist": "del-cli dist",
+    "clean": "del-cli .plasmo build *.zip",
+    "clean:all": "del-cli .plasmo build *.zip && rm -rf .plasmo node_modules/.cache",
     "prepare": "husky",
     "lint": "prettier --check \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""

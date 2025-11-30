@@ -3,7 +3,7 @@
  * This script runs on sora.com pages and handles prompt submission
  */
 
-import type { GeneratedPrompt } from './types';
+import type { GeneratedPrompt } from '../src/types';
 
 class SoraAutomation {
   private isProcessing = false;
@@ -68,34 +68,9 @@ class SoraAutomation {
       }
 
       if (request.action === 'checkReady') {
-        // Check for limit message first
-        const limitCheck = this.checkForLimitMessage();
-        if (limitCheck.found) {
-          this.log('warn', '⚠️ Generation limit detected during ready check', {
-            message: limitCheck.message,
-          });
-          
-          // Notify background script (it will get tab ID from sender)
-          chrome.runtime.sendMessage({
-            action: 'generationLimitReached',
-          }).catch(() => {
-            // Ignore errors
-          });
-          
-          sendResponse({ ready: false, limitReached: true, message: limitCheck.message });
-          return true;
-        }
-        
         const isReady = this.checkIfReady();
         this.log('debug', 'checkReady request', { isReady });
         sendResponse({ ready: isReady });
-        return true;
-      }
-
-      if (request.action === 'checkLimit') {
-        const limitCheck = this.checkForLimitMessage();
-        this.log('debug', 'checkLimit request', { found: limitCheck.found });
-        sendResponse({ found: limitCheck.found, message: limitCheck.message });
         return true;
       }
 
@@ -217,26 +192,6 @@ class SoraAutomation {
     if (this.isProcessing) {
       this.log('warn', 'Already processing a prompt, rejecting new request');
       throw new Error('Already processing a prompt');
-    }
-
-    // Check for generation limit before proceeding
-    const limitCheck = this.checkForLimitMessage();
-    if (limitCheck.found) {
-      this.log('error', '🚫 Generation limit reached - cannot proceed', {
-        message: limitCheck.message,
-      });
-      
-      // Notify background script to stop queue and switch to this tab
-      // The background script will get the tab ID from the message sender
-      try {
-        await chrome.runtime.sendMessage({
-          action: 'generationLimitReached',
-        });
-      } catch (error) {
-        this.log('error', 'Failed to notify background of limit', { error });
-      }
-      
-      throw new Error(`Generation limit reached: ${limitCheck.message || 'Please try again later'}`);
     }
 
     this.isProcessing = true;
@@ -737,71 +692,6 @@ class SoraAutomation {
   }
 
   /**
-   * Check if there's a generation limit message (e.g., "You've already generated X images/videos in the last day")
-   * This is a generic check that works for any number of images/videos
-   */
-  private checkForLimitMessage(): { found: boolean; message?: string } {
-    // Look for elements with "Please try again later" text (generic indicator)
-    const secondaryTextElements = document.querySelectorAll('.text-token-text-secondary');
-    for (const element of Array.from(secondaryTextElements)) {
-      const text = element.textContent || '';
-      const lowerText = text.toLowerCase();
-      
-      if (lowerText.includes('please try again later')) {
-        // Check if parent or sibling contains the limit message pattern
-        const parent = element.parentElement;
-        if (parent) {
-          const parentText = parent.textContent || '';
-          const parentLowerText = parentText.toLowerCase();
-          
-          // Check for limit message patterns (generic - works for any number)
-          if (
-            parentLowerText.includes("you've already generated") ||
-            parentLowerText.includes("you have already generated") ||
-            parentLowerText.includes("already generated") ||
-            parentLowerText.includes("generated") && parentLowerText.includes("last day")
-          ) {
-            this.log('warn', '⚠️ Generation limit detected (via text-token-text-secondary)', {
-              message: parentText.trim().substring(0, 150),
-            });
-            return { found: true, message: parentText.trim() };
-          }
-        }
-      }
-    }
-
-    // Also check all divs for the complete message pattern
-    const allDivs = document.querySelectorAll('div');
-    for (const element of Array.from(allDivs)) {
-      const text = element.textContent || '';
-      const lowerText = text.toLowerCase();
-      
-      // Check if it contains both the limit pattern and "try again later"
-      if (
-        (lowerText.includes("you've already generated") || 
-         lowerText.includes("you have already generated") ||
-         (lowerText.includes("already generated") && lowerText.includes("last day"))) &&
-        lowerText.includes("please try again later")
-      ) {
-        // Verify it has a reasonable structure (not too large, likely a message container)
-        const hasFlexClass = element.classList.contains('flex');
-        const hasTextCenter = element.classList.contains('text-center') || 
-                             element.querySelector('.text-center') !== null;
-        
-        if (hasFlexClass || hasTextCenter || element.querySelector('.text-token-text-secondary') !== null) {
-          this.log('warn', '⚠️ Generation limit detected', {
-            message: text.trim().substring(0, 150),
-            elementClasses: element.className.substring(0, 100),
-          });
-          return { found: true, message: text.trim() };
-        }
-      }
-    }
-
-    return { found: false };
-  }
-
-  /**
    * Check if Sora is ready for next prompt (generation completed)
    */
   private checkIfReady(): boolean {
@@ -867,7 +757,7 @@ class SoraAutomation {
   /**
    * Detect current settings from Sora interface
    */
-  private detectCurrentSettings(): import('./types').DetectedSettings {
+  private detectCurrentSettings(): import('../src/types').DetectedSettings {
     try {
       this.log('info', '🔍 Detecting current settings from Sora page...');
 
@@ -891,9 +781,9 @@ class SoraAutomation {
       }
 
       // Find aspect ratio (1:1, 16:9, etc.)
-      let aspectRatio: import('./types').AspectRatio | null = null;
+      let aspectRatio: import('../src/types').AspectRatio | null = null;
       const aspectRatioButtons = document.querySelectorAll('button[role="combobox"]');
-      const aspectRatioPatterns: Record<string, import('./types').AspectRatio> = {
+      const aspectRatioPatterns: Record<string, import('../src/types').AspectRatio> = {
         '1:1': '1:1',
         '16:9': '16:9',
         '9:16': '9:16',
@@ -980,7 +870,7 @@ class SoraAutomation {
         }
       }
 
-      const result: import('./types').DetectedSettings = {
+      const result: import('../src/types').DetectedSettings = {
         mediaType,
         aspectRatio,
         variations,

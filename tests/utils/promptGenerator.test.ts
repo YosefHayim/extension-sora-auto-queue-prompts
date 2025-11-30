@@ -518,6 +518,7 @@ describe('PromptGenerator', () => {
     });
 
     afterEach(() => {
+      jest.runOnlyPendingTimers();
       jest.useRealTimers();
     });
 
@@ -552,6 +553,8 @@ describe('PromptGenerator', () => {
 
       // Fast-forward through the retry delay
       await jest.runAllTimersAsync();
+      // Flush any pending promises
+      await Promise.resolve();
       const result = await promise;
 
       expect(result.success).toBe(true);
@@ -589,6 +592,8 @@ describe('PromptGenerator', () => {
       });
 
       await jest.runAllTimersAsync();
+      // Flush any pending promises
+      await Promise.resolve();
       const result = await promise;
 
       expect(result.success).toBe(true);
@@ -611,6 +616,8 @@ describe('PromptGenerator', () => {
       });
 
       await jest.runAllTimersAsync();
+      // Flush any pending promises
+      await Promise.resolve();
       const result = await promise;
 
       expect(result.success).toBe(false);
@@ -645,6 +652,8 @@ describe('PromptGenerator', () => {
       });
 
       await jest.runAllTimersAsync();
+      // Flush any pending promises
+      await Promise.resolve();
       const result = await promise;
 
       expect(result.success).toBe(true);
@@ -678,6 +687,8 @@ describe('PromptGenerator', () => {
       });
 
       await jest.runAllTimersAsync();
+      // Flush any pending promises
+      await Promise.resolve();
       const result = await promise;
 
       expect(result.success).toBe(true);
@@ -699,6 +710,8 @@ describe('PromptGenerator', () => {
       });
 
       await jest.runAllTimersAsync();
+      // Flush any pending promises
+      await Promise.resolve();
       const result = await promise;
 
       expect(result.success).toBe(false);

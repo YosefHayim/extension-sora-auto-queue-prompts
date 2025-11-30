@@ -9,4 +9,6 @@ export default {
       default_popup: "popup.html",
     },
   },
+  // Plasmo automatically detects icons from assets/ or icons/ directory
+  // Icons should be named: icon16.png, icon48.png, icon128.png
 };

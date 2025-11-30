@@ -27,9 +27,7 @@ export function DetectedSettings({ settings, onSync, loading }: DetectedSettings
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FaExclamationCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-              <span className="text-sm text-yellow-800 dark:text-yellow-200">
-                Could not detect settings. Make sure Sora page is open.
-              </span>
+              <span className="text-sm text-yellow-800 dark:text-yellow-200">Could not detect settings. Make sure Sora page is open.</span>
             </div>
             <Button variant="ghost" size="sm" onClick={onSync} disabled={loading}>
               <FaSync className={cn("h-4 w-4", loading && "animate-spin")} />
@@ -56,11 +54,9 @@ export function DetectedSettings({ settings, onSync, loading }: DetectedSettings
 
             {settings.mediaType && (
               <Badge variant="outline" className="gap-1 text-xs">
-                {settings.mediaType === 'video' ? (
+                {settings.mediaType === "video" ?
                   <FaVideo className="h-3 w-3" />
-                ) : (
-                  <FaImage className="h-3 w-3" />
-                )}
+                : <FaImage className="h-3 w-3" />}
                 {settings.mediaType.charAt(0).toUpperCase() + settings.mediaType.slice(1)}
               </Badge>
             )}
@@ -81,11 +77,10 @@ export function DetectedSettings({ settings, onSync, loading }: DetectedSettings
           </div>
 
           <Button variant="ghost" size="sm" onClick={onSync} disabled={loading} title="Sync settings from Sora page">
-            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+            <FaSync className={cn("h-4 w-4", loading && "animate-spin")} />
           </Button>
         </div>
       </CardContent>
     </Card>
   );
 }
-

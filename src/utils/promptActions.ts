@@ -1,7 +1,8 @@
-import { storage } from './storage';
-import { PromptGenerator } from './promptGenerator';
-import type { ApiProvider, GeneratedPrompt, PromptEditAction } from '../types';
-import { generateUniqueId } from '../lib/utils';
+import type { ApiProvider, GeneratedPrompt, PromptEditAction } from "../types";
+
+import { PromptGenerator } from "./promptGenerator";
+import { generateUniqueId } from "../lib/utils";
+import { storage } from "./storage";
 
 export class PromptActions {
   private apiKey: string;
@@ -16,19 +17,19 @@ export class PromptActions {
     try {
       // Set prompt to editing status to pause queue
       await storage.updatePrompt(promptId, {
-        status: 'editing',
+        status: "editing",
         originalText: (await storage.getPrompts()).find((p) => p.id === promptId)?.text,
         text: newText,
       });
 
       // After edit is complete, set back to pending
-      await storage.updatePrompt(promptId, { status: 'pending' });
+      await storage.updatePrompt(promptId, { status: "pending" });
 
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to edit prompt',
+        error: error instanceof Error ? error.message : "Failed to edit prompt",
       };
     }
   }
@@ -40,20 +41,18 @@ export class PromptActions {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to delete prompt',
+        error: error instanceof Error ? error.message : "Failed to delete prompt",
       };
     }
   }
 
-  async refinePrompt(
-    promptId: string
-  ): Promise<{ success: boolean; refined?: string; error?: string }> {
+  async refinePrompt(promptId: string): Promise<{ success: boolean; refined?: string; error?: string }> {
     try {
       const prompts = await storage.getPrompts();
       const prompt = prompts.find((p) => p.id === promptId);
 
       if (!prompt) {
-        return { success: false, error: 'Prompt not found' };
+        return { success: false, error: "Prompt not found" };
       }
 
       const generator = new PromptGenerator(this.apiKey, this.apiProvider);
@@ -73,21 +72,18 @@ export class PromptActions {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to refine prompt',
+        error: error instanceof Error ? error.message : "Failed to refine prompt",
       };
     }
   }
 
-  async duplicatePrompt(
-    promptId: string,
-    count: number = 1
-  ): Promise<{ success: boolean; duplicates?: GeneratedPrompt[]; error?: string }> {
+  async duplicatePrompt(promptId: string, count: number = 1): Promise<{ success: boolean; duplicates?: GeneratedPrompt[]; error?: string }> {
     try {
       const prompts = await storage.getPrompts();
       const prompt = prompts.find((p) => p.id === promptId);
 
       if (!prompt) {
-        return { success: false, error: 'Prompt not found' };
+        return { success: false, error: "Prompt not found" };
       }
 
       const duplicates: GeneratedPrompt[] = [];
@@ -96,7 +92,7 @@ export class PromptActions {
           ...prompt,
           id: generateUniqueId(),
           timestamp: Date.now() + i,
-          status: 'pending',
+          status: "pending",
         });
       }
 
@@ -106,36 +102,29 @@ export class PromptActions {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to duplicate prompt',
+        error: error instanceof Error ? error.message : "Failed to duplicate prompt",
       };
     }
   }
 
-  async generateSimilar(
-    promptId: string,
-    count: number = 3
-  ): Promise<{ success: boolean; similar?: GeneratedPrompt[]; error?: string }> {
+  async generateSimilar(promptId: string, count: number = 3): Promise<{ success: boolean; similar?: GeneratedPrompt[]; error?: string }> {
     try {
       const prompts = await storage.getPrompts();
       const prompt = prompts.find((p) => p.id === promptId);
 
       if (!prompt) {
-        return { success: false, error: 'Prompt not found' };
+        return { success: false, error: "Prompt not found" };
       }
 
       const generator = new PromptGenerator(this.apiKey, this.apiProvider);
-      const result = await generator.generateSimilar(
-        prompt.text,
-        count,
-        prompt.mediaType
-      );
+      const result = await generator.generateSimilar(prompt.text, count, prompt.mediaType);
 
       if (result.success) {
         const similarPrompts: GeneratedPrompt[] = result.prompts.map((text: string, index: number) => ({
           id: generateUniqueId(),
           text,
           timestamp: Date.now() + index,
-          status: 'pending' as const,
+          status: "pending" as const,
           mediaType: prompt.mediaType,
           aspectRatio: prompt.aspectRatio,
           variations: prompt.variations,
@@ -151,35 +140,33 @@ export class PromptActions {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to generate similar prompts',
+        error: error instanceof Error ? error.message : "Failed to generate similar prompts",
       };
     }
   }
 
-  async executeAction(
-    action: PromptEditAction
-  ): Promise<{ success: boolean; result?: any; error?: string }> {
+  async executeAction(action: PromptEditAction): Promise<{ success: boolean; result?: any; error?: string }> {
     switch (action.type) {
-      case 'edit':
+      case "edit":
         if (!action.newText) {
-          return { success: false, error: 'New text is required for edit action' };
+          return { success: false, error: "New text is required for edit action" };
         }
         return await this.editPrompt(action.promptId, action.newText);
 
-      case 'delete':
+      case "delete":
         return await this.deletePrompt(action.promptId);
 
-      case 'refine':
+      case "refine":
         return await this.refinePrompt(action.promptId);
 
-      case 'duplicate':
+      case "duplicate":
         return await this.duplicatePrompt(action.promptId, action.count || 1);
 
-      case 'generate-similar':
+      case "generate-similar":
         return await this.generateSimilar(action.promptId, action.count || 3);
 
       default:
-        return { success: false, error: 'Unknown action type' };
+        return { success: false, error: "Unknown action type" };
     }
   }
 }

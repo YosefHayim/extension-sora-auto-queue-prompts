@@ -25,6 +25,7 @@ declare module '#imports' {
   export { ErrorBoundary, ErrorBoundary } from '../src/components/ErrorBoundary';
   export { ExportDialog } from '../src/components/ExportDialog';
   export { FilterBar } from '../src/components/FilterBar';
+  export { FilterDropdown } from '../src/components/FilterDropdown';
   export { Footer } from '../src/components/Footer';
   export { GenerateDialog } from '../src/components/GenerateDialog';
   export { ManualAddDialog } from '../src/components/ManualAddDialog';
@@ -41,5 +42,5 @@ declare module '#imports' {
   export { PromptGenerator, PromptGenerator } from '../src/utils/promptGenerator';
   export { QueueProcessor, QueueProcessor, queueProcessor } from '../src/utils/queueProcessor';
   export { storage } from '../src/utils/storage';
-  export { cn } from '../src/lib/utils';
+  export { cn, generateUniqueId } from '../src/lib/utils';
 }

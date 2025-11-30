@@ -1,10 +1,9 @@
 import "../src/styles/globals.css";
 
 import * as React from "react";
-import ReactDOM from "react-dom/client";
 
-import { FaBug, FaDownload, FaList, FaMoon, FaPlay, FaCog, FaMagic, FaSun, FaTrash, FaCheckSquare, FaSquare, FaKey, FaSlidersH } from "react-icons/fa";
 import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { FaBug, FaCheckSquare, FaCog, FaDownload, FaKey, FaList, FaMagic, FaMoon, FaPlay, FaSlidersH, FaSquare, FaSun, FaTrash } from "react-icons/fa";
 import type { GeneratedPrompt, PromptConfig, QueueState } from "../src/types";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../src/components/ui/tabs";
@@ -18,14 +17,15 @@ import { EmptyState } from "../src/components/EmptyState";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { ExportDialog } from "../src/components/ExportDialog";
 import { FilterDropdown } from "../src/components/FilterDropdown";
+import { Footer } from "../src/components/Footer";
 import { GenerateDialog } from "../src/components/GenerateDialog";
 import { ManualAddDialog } from "../src/components/ManualAddDialog";
 import { QueueControls } from "../src/components/QueueControls";
+import ReactDOM from "react-dom/client";
 import { SearchBar } from "../src/components/SearchBar";
 import { SettingsDialog } from "../src/components/SettingsDialog";
 import { SortablePromptCard } from "../src/components/SortablePromptCard";
 import { StatusBar } from "../src/components/StatusBar";
-import { Footer } from "../src/components/Footer";
 import { log } from "../src/utils/logger";
 import { storage } from "../src/utils/storage";
 
@@ -646,20 +646,13 @@ function IndexPopup() {
                   className="gap-2"
                   title={selectedPrompts.size === filteredPrompts.length ? "Deselect all" : "Select all"}
                 >
-                  {selectedPrompts.size === filteredPrompts.length ? (
+                  {selectedPrompts.size === filteredPrompts.length ?
                     <FaCheckSquare className="h-4 w-4" />
-                  ) : (
-                    <FaSquare className="h-4 w-4" />
-                  )}
+                  : <FaSquare className="h-4 w-4" />}
                   {selectedPrompts.size > 0 ? `${selectedPrompts.size} selected` : "Select"}
                 </Button>
                 {selectedPrompts.size > 0 && (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={handleProcessSelectedPrompts}
-                    className="gap-2"
-                  >
+                  <Button variant="default" size="sm" onClick={handleProcessSelectedPrompts} className="gap-2">
                     <FaPlay className="h-4 w-4" />
                     Process Selected ({selectedPrompts.size})
                   </Button>
@@ -735,14 +728,7 @@ function IndexPopup() {
         {/* API Settings Tab Content */}
         <TabsContent value="api-settings" className="space-y-4">
           <div className="p-4">
-            <SettingsDialog
-              config={config}
-              isOpen={true}
-              onClose={() => {}}
-              onSave={handleSaveSettings}
-              detectedSettings={detectedSettings}
-              showOnly="api"
-            />
+            <SettingsDialog config={config} isOpen={true} onClose={() => {}} onSave={handleSaveSettings} detectedSettings={detectedSettings} showOnly="api" />
           </div>
         </TabsContent>
 
@@ -815,4 +801,3 @@ if (root) {
 }
 
 export default IndexPopup;
-

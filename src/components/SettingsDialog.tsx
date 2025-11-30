@@ -78,7 +78,6 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
   }, [formData.apiKey]);
 
   // For tab-based usage, always render (isOpen check is for dialog mode)
-  const isDialogMode = showOnly === "all";
 
   function handleChange(field: keyof PromptConfig, value: any) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -198,9 +197,12 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4" onClick={handleBackdropClick}>
-      <Card className={cn("w-full p-6", isDialogMode && "max-w-2xl my-auto max-h-[90vh] overflow-y-auto")} onClick={(e) => e.stopPropagation()}>
+  const isDialogMode = showOnly === "all";
+  
+  if (isDialogMode && !isOpen) return null;
+  
+  const content = (
+    <Card className={cn("w-full p-6", isDialogMode && "max-w-2xl my-auto max-h-[90vh] overflow-y-auto")} onClick={(e) => e.stopPropagation()}>
         {/* Header - only show in dialog mode */}
         {isDialogMode && (
         <div className="flex items-center justify-between mb-6">
@@ -513,6 +515,7 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
               </div>
             </CardContent>
           </Card>
+          )}
 
           {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
 
@@ -532,16 +535,17 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                 </>
               }
             </Button>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancel
-            </Button>
+            {isDialogMode && (
+              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                Cancel
+              </Button>
+            )}
           </div>
         </form>
       </Card>
     );
 
   if (isDialogMode) {
-    if (!isOpen) return null;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={handleBackdropClick}>
         {content}

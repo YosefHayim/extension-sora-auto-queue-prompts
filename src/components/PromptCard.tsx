@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/card"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
+import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import {
   FaCheckCircle,
   FaCheckSquare,
@@ -23,14 +23,14 @@ import {
   FaTrash,
   FaVideo,
 } from "react-icons/fa";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
-import { Badge } from "./ui/badge"
-import { Button } from "./ui/button"
-import type { GeneratedPrompt } from "../types"
-import { Progress } from "./ui/progress"
-import { cn } from "../lib/utils"
-import { log } from "../utils/logger"
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import type { GeneratedPrompt } from "../types";
+import { Progress } from "./ui/progress";
+import { cn } from "../lib/utils";
+import { log } from "../utils/logger";
 
 function formatDuration(ms: number): string {
   if (!ms || ms < 1000) return `${ms || 0}ms`;
@@ -257,7 +257,10 @@ export function PromptCard({
               </Badge>
             )}
             {prompt.enhanced && (
-              <Badge variant="default" className="gap-1 text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500">
+              <Badge
+                variant="default"
+                className="gap-1 text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500"
+              >
                 <FaMagic className="h-3 w-3" />
                 Enhanced
               </Badge>

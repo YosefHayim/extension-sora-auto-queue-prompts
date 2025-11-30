@@ -2,15 +2,32 @@ import * as React from "react";
 
 import type { ApiProvider, DetectedSettings, PromptConfig } from "../types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { FaCheckCircle, FaCog, FaExclamationCircle, FaKey, FaMagic, FaPlayCircle, FaSave, FaSpinner, FaTimes, FaRobot, FaBrain, FaGoogle } from "react-icons/fa";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import {
+  FaBrain,
+  FaCheckCircle,
+  FaChevronDown,
+  FaCog,
+  FaExclamationCircle,
+  FaGoogle,
+  FaImage,
+  FaKey,
+  FaMagic,
+  FaPlayCircle,
+  FaRobot,
+  FaSave,
+  FaSpinner,
+  FaTimes,
+  FaVideo,
+} from "react-icons/fa";
 import { recognizeApiProvider, verifyApiKey } from "../utils/apiKeyUtils";
 
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { log } from "../utils/logger";
 import { cn } from "../lib/utils";
+import { log } from "../utils/logger";
 import { useToast } from "./ui/use-toast";
 
 interface SettingsDialogProps {
@@ -83,6 +100,26 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
 
   function handleChange(field: keyof PromptConfig, value: any) {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  // Auto-save API key when user finishes typing (on blur)
+  async function handleApiKeyBlur() {
+    if (formData.apiKey && formData.apiKey.trim() !== config.apiKey) {
+      try {
+        // Save only the API key and provider if changed
+        const updates: Partial<PromptConfig> = {
+          apiKey: formData.apiKey.trim(),
+        };
+        if (formData.apiProvider) {
+          updates.apiProvider = formData.apiProvider;
+        }
+        await onSave(updates);
+        log.ui.action("SettingsDialog:AutoSaveApiKey");
+      } catch (err) {
+        log.ui.error("SettingsDialog:AutoSaveApiKey", err);
+        // Don't show error to user for auto-save, just log it
+      }
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -222,13 +259,16 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
   }
 
   const isDialogMode = showOnly === "all";
-  
+
   if (isDialogMode && !isOpen) return null;
-  
+
   const content = (
-    <Card className={cn("w-full", isDialogMode ? "p-6 max-w-2xl my-auto max-h-[90vh] overflow-y-auto" : showOnly !== "all" ? "p-0 border-0 shadow-none" : "p-6")} onClick={(e) => e.stopPropagation()}>
-        {/* Header - only show in dialog mode */}
-        {isDialogMode && (
+    <Card
+      className={cn("w-full", isDialogMode ? "p-6 max-w-2xl my-auto max-h-[90vh] overflow-y-auto" : "p-0 border-0 shadow-none")}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header - only show in dialog mode */}
+      {isDialogMode && (
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <FaCog className="h-5 w-5 text-primary" />
@@ -238,279 +278,276 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
             <FaTimes className="h-4 w-4" />
           </Button>
         </div>
-        )}
+      )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* API Configuration */}
-          {(showOnly === "all" || showOnly === "api") && (
-            showOnly === "all" ? (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <FaKey className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-base">API Configuration</CardTitle>
-                  </div>
-                  <CardDescription>Configure your AI API settings for prompt generation (OpenAI, Anthropic, or Google)</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                <Label htmlFor="apiKey">API Key</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="apiKey"
-                    type="password"
-                    placeholder="Enter your API key (auto-detected by pattern)..."
-                    value={formData.apiKey || ""}
-                    onChange={(e) => handleChange("apiKey", e.target.value)}
-                    disabled={loading || verifying}
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleVerifyApiKey}
-                    disabled={loading || verifying || !formData.apiKey || (!formData.apiProvider && !detectedProvider)}
-                    title="Verify API key"
-                  >
-                    {verifying ?
-                      <>
-                        <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
-                        Verifying...
-                      </>
-                    : <>
-                        <FaCheckCircle className="h-4 w-4 mr-2" />
-                        Verify
-                      </>
-                    }
-                  </Button>
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* API Configuration */}
+        {(showOnly === "all" || showOnly === "api") &&
+          (showOnly === "all" ?
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <FaKey className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-base">API Configuration</CardTitle>
                 </div>
-                {detectedProvider && (
-                  <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
-                    <FaCheckCircle className="h-3 w-3" />
-                    <span className="flex items-center gap-1.5">
-                      Detected: {getProviderIcon(detectedProvider)}
-                      {getProviderDisplayName(detectedProvider)}
-                    </span>
-                  </div>
-                )}
-                {verificationStatus && (
-                  <div
-                    className={`flex items-center gap-2 text-xs p-2 rounded-md ${
-                      verificationStatus.valid ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-destructive/10 text-destructive"
-                    }`}
-                  >
-                    {verificationStatus.valid ?
-                      <>
-                        <FaCheckCircle className="h-3 w-3" />
-                        <span>API key verified successfully!</span>
-                      </>
-                    : <>
-                        <FaExclamationCircle className="h-3 w-3" />
-                        <span>{verificationStatus.error || "Verification failed"}</span>
-                      </>
-                    }
-                  </div>
-                )}
-                <div className="flex flex-col gap-1">
-                  <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
-                  {formData.apiProvider && (
-                    <a
-                      href={getProviderApiKeyUrl(formData.apiProvider)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline flex items-center gap-1.5"
+                <CardDescription>Configure your AI API settings for prompt generation (OpenAI, Anthropic, or Google)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="apiKey">API Key</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="apiKey"
+                      type="password"
+                      placeholder="Enter your API key (auto-detected by pattern)..."
+                      value={formData.apiKey || ""}
+                      onChange={(e) => handleChange("apiKey", e.target.value)}
+                      onBlur={handleApiKeyBlur}
+                      disabled={loading || verifying}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleVerifyApiKey}
+                      disabled={loading || verifying || !formData.apiKey || (!formData.apiProvider && !detectedProvider)}
+                      title="Verify API key"
                     >
-                      Get your API key from {getProviderIcon(formData.apiProvider)} {getProviderDisplayName(formData.apiProvider)} →
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="apiProvider">API Provider</Label>
-                <div className="relative">
-                  {formData.apiProvider && (
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                      {getProviderIcon(formData.apiProvider)}
+                      {verifying ?
+                        <>
+                          <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
+                          Verifying...
+                        </>
+                      : <>
+                          <FaCheckCircle className="h-4 w-4 mr-2" />
+                          Verify
+                        </>
+                      }
+                    </Button>
+                  </div>
+                  {detectedProvider && (
+                    <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                      <FaCheckCircle className="h-3 w-3" />
+                      <span className="flex items-center gap-1.5">
+                        Detected: {getProviderIcon(detectedProvider)}
+                        {getProviderDisplayName(detectedProvider)}
+                      </span>
                     </div>
                   )}
-                  <select
-                    id="apiProvider"
-                    value={formData.apiProvider || ""}
-                    onChange={(e) => handleChange("apiProvider", (e.target.value as ApiProvider) || undefined)}
-                    disabled={loading || verifying}
-                    className={cn(
-                      "flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 border-input bg-background",
-                      formData.apiProvider && "pl-9"
+                  {verificationStatus && (
+                    <div
+                      className={`flex items-center gap-2 text-xs p-2 rounded-md ${
+                        verificationStatus.valid ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-destructive/10 text-destructive"
+                      }`}
+                    >
+                      {verificationStatus.valid ?
+                        <>
+                          <FaCheckCircle className="h-3 w-3" />
+                          <span>API key verified successfully!</span>
+                        </>
+                      : <>
+                          <FaExclamationCircle className="h-3 w-3" />
+                          <span>{verificationStatus.error || "Verification failed"}</span>
+                        </>
+                      }
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
+                    {formData.apiProvider && (
+                      <a
+                        href={getProviderApiKeyUrl(formData.apiProvider)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline flex items-center gap-1.5"
+                      >
+                        Get your API key from {getProviderIcon(formData.apiProvider)} {getProviderDisplayName(formData.apiProvider)} →
+                      </a>
                     )}
-                  >
-                    <option value="">Select provider (or auto-detect from key)</option>
-                    <option value="openai">OpenAI (ChatGPT)</option>
-                    <option value="anthropic">Anthropic (Claude)</option>
-                    <option value="google">Google (Gemini)</option>
-                  </select>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {detectedProvider ?
-                    <span className="flex items-center gap-1.5">
-                      Auto-detected as {getProviderIcon(detectedProvider)} {getProviderDisplayName(detectedProvider)}. You can override by selecting a different provider.
-                    </span>
-                  : "If the API key pattern isn't recognized, please select the provider manually."}
-                </p>
-              </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="apiProvider">API Provider</Label>
+                  <div className="relative">
+                    {formData.apiProvider && (
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">{getProviderIcon(formData.apiProvider)}</div>
+                    )}
+                    <select
+                      id="apiProvider"
+                      value={formData.apiProvider || ""}
+                      onChange={(e) => handleChange("apiProvider", (e.target.value as ApiProvider) || undefined)}
+                      disabled={loading || verifying}
+                      className={cn(
+                        "flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 border-input bg-background",
+                        formData.apiProvider && "pl-9"
+                      )}
+                    >
+                      <option value="">Select provider (or auto-detect from key)</option>
+                      <option value="openai">OpenAI (ChatGPT)</option>
+                      <option value="anthropic">Anthropic (Claude)</option>
+                      <option value="google">Google (Gemini)</option>
+                    </select>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {detectedProvider ?
+                      <span className="flex items-center gap-1.5">
+                        Auto-detected as {getProviderIcon(detectedProvider)} {getProviderDisplayName(detectedProvider)}. You can override by selecting a
+                        different provider.
+                      </span>
+                    : "If the API key pattern isn't recognized, please select the provider manually."}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contextPrompt">Default Context Prompt</Label>
+                  <Textarea
+                    id="contextPrompt"
+                    placeholder="e.g., Create cinematic shots of nature landscapes"
+                    value={formData.contextPrompt}
+                    onChange={(e) => handleChange("contextPrompt", e.target.value)}
+                    disabled={loading}
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground">This prompt will be used as the base context for all generated prompts</p>
+                </div>
+              </CardContent>
+            </Card>
+          : <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="contextPrompt">Default Context Prompt</Label>
-                <Textarea
-                  id="contextPrompt"
-                  placeholder="e.g., Create cinematic shots of nature landscapes"
-                  value={formData.contextPrompt}
-                  onChange={(e) => handleChange("contextPrompt", e.target.value)}
-                  disabled={loading}
-                  rows={3}
-                  className="resize-none"
-                />
-                <p className="text-xs text-muted-foreground">This prompt will be used as the base context for all generated prompts</p>
+                <div className="flex items-center gap-2">
+                  <FaKey className="h-4 w-4 text-primary" />
+                  <h3 className="text-base font-semibold">API Configuration</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">Configure your AI API settings for prompt generation (OpenAI, Anthropic, or Google)</p>
               </div>
-                </CardContent>
-              </Card>
-            ) : (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <FaKey className="h-4 w-4 text-primary" />
-                    <h3 className="text-base font-semibold">API Configuration</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Configure your AI API settings for prompt generation (OpenAI, Anthropic, or Google)</p>
-                </div>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="apiKey">API Key</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="apiKey"
-                        type="password"
-                        placeholder="Enter your API key (auto-detected by pattern)..."
-                        value={formData.apiKey || ""}
-                        onChange={(e) => handleChange("apiKey", e.target.value)}
-                        disabled={loading || verifying}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleVerifyApiKey}
-                        disabled={loading || verifying || !formData.apiKey || (!formData.apiProvider && !detectedProvider)}
-                        title="Verify API key"
-                      >
-                        {verifying ?
-                          <>
-                            <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
-                            Verifying...
-                          </>
-                        : <>
-                            <FaCheckCircle className="h-4 w-4 mr-2" />
-                            Verify
-                          </>
-                        }
-                      </Button>
-                    </div>
-                    {detectedProvider && (
-                      <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
-                        <FaCheckCircle className="h-3 w-3" />
-                        <span className="flex items-center gap-1.5">
-                          Detected: {getProviderIcon(detectedProvider)}
-                          {getProviderDisplayName(detectedProvider)}
-                        </span>
-                      </div>
-                    )}
-                    {verificationStatus && (
-                      <div
-                        className={`flex items-center gap-2 text-xs p-2 rounded-md ${
-                          verificationStatus.valid ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-destructive/10 text-destructive"
-                        }`}
-                      >
-                        {verificationStatus.valid ?
-                          <>
-                            <FaCheckCircle className="h-3 w-3" />
-                            <span>API key verified successfully!</span>
-                          </>
-                        : <>
-                            <FaExclamationCircle className="h-3 w-3" />
-                            <span>{verificationStatus.error || "Verification failed"}</span>
-                          </>
-                        }
-                      </div>
-                    )}
-                    <div className="flex flex-col gap-1">
-                      <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
-                      {formData.apiProvider && (
-                        <a
-                          href={getProviderApiKeyUrl(formData.apiProvider)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline flex items-center gap-1.5"
-                        >
-                          Get your API key from {getProviderIcon(formData.apiProvider)} {getProviderDisplayName(formData.apiProvider)} →
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="apiProvider">API Provider</Label>
-                    <div className="relative">
-                      {formData.apiProvider && (
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                          {getProviderIcon(formData.apiProvider)}
-                        </div>
-                      )}
-                      <select
-                        id="apiProvider"
-                        value={formData.apiProvider || ""}
-                        onChange={(e) => handleChange("apiProvider", (e.target.value as ApiProvider) || undefined)}
-                        disabled={loading || verifying}
-                        className={cn(
-                          "flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 border-input bg-background",
-                          formData.apiProvider && "pl-9"
-                        )}
-                      >
-                        <option value="">Select provider (or auto-detect from key)</option>
-                        <option value="openai">OpenAI (ChatGPT)</option>
-                        <option value="anthropic">Anthropic (Claude)</option>
-                        <option value="google">Google (Gemini)</option>
-                      </select>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {detectedProvider ?
-                        <span className="flex items-center gap-1.5">
-                          Auto-detected as {getProviderIcon(detectedProvider)} {getProviderDisplayName(detectedProvider)}. You can override by selecting a different provider.
-                        </span>
-                      : "If the API key pattern isn't recognized, please select the provider manually."}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="contextPrompt">Default Context Prompt</Label>
-                    <Textarea
-                      id="contextPrompt"
-                      placeholder="e.g., Create cinematic shots of nature landscapes"
-                      value={formData.contextPrompt}
-                      onChange={(e) => handleChange("contextPrompt", e.target.value)}
-                      disabled={loading}
-                      rows={3}
-                      className="resize-none"
+                  <Label htmlFor="apiKey">API Key</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="apiKey"
+                      type="password"
+                      placeholder="Enter your API key (auto-detected by pattern)..."
+                      value={formData.apiKey || ""}
+                      onChange={(e) => handleChange("apiKey", e.target.value)}
+                      onBlur={handleApiKeyBlur}
+                      disabled={loading || verifying}
+                      className="flex-1"
                     />
-                    <p className="text-xs text-muted-foreground">This prompt will be used as the base context for all generated prompts</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleVerifyApiKey}
+                      disabled={loading || verifying || !formData.apiKey || (!formData.apiProvider && !detectedProvider)}
+                      title="Verify API key"
+                    >
+                      {verifying ?
+                        <>
+                          <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
+                          Verifying...
+                        </>
+                      : <>
+                          <FaCheckCircle className="h-4 w-4 mr-2" />
+                          Verify
+                        </>
+                      }
+                    </Button>
                   </div>
+                  {detectedProvider && (
+                    <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                      <FaCheckCircle className="h-3 w-3" />
+                      <span className="flex items-center gap-1.5">
+                        Detected: {getProviderIcon(detectedProvider)}
+                        {getProviderDisplayName(detectedProvider)}
+                      </span>
+                    </div>
+                  )}
+                  {verificationStatus && (
+                    <div
+                      className={`flex items-center gap-2 text-xs p-2 rounded-md ${
+                        verificationStatus.valid ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-destructive/10 text-destructive"
+                      }`}
+                    >
+                      {verificationStatus.valid ?
+                        <>
+                          <FaCheckCircle className="h-3 w-3" />
+                          <span>API key verified successfully!</span>
+                        </>
+                      : <>
+                          <FaExclamationCircle className="h-3 w-3" />
+                          <span>{verificationStatus.error || "Verification failed"}</span>
+                        </>
+                      }
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
+                    {formData.apiProvider && (
+                      <a
+                        href={getProviderApiKeyUrl(formData.apiProvider)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline flex items-center gap-1.5"
+                      >
+                        Get your API key from {getProviderIcon(formData.apiProvider)} {getProviderDisplayName(formData.apiProvider)} →
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="apiProvider">API Provider</Label>
+                  <div className="relative">
+                    {formData.apiProvider && (
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">{getProviderIcon(formData.apiProvider)}</div>
+                    )}
+                    <select
+                      id="apiProvider"
+                      value={formData.apiProvider || ""}
+                      onChange={(e) => handleChange("apiProvider", (e.target.value as ApiProvider) || undefined)}
+                      disabled={loading || verifying}
+                      className={cn(
+                        "flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 border-input bg-background",
+                        formData.apiProvider && "pl-9"
+                      )}
+                    >
+                      <option value="">Select provider (or auto-detect from key)</option>
+                      <option value="openai">OpenAI (ChatGPT)</option>
+                      <option value="anthropic">Anthropic (Claude)</option>
+                      <option value="google">Google (Gemini)</option>
+                    </select>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {detectedProvider ?
+                      <span className="flex items-center gap-1.5">
+                        Auto-detected as {getProviderIcon(detectedProvider)} {getProviderDisplayName(detectedProvider)}. You can override by selecting a
+                        different provider.
+                      </span>
+                    : "If the API key pattern isn't recognized, please select the provider manually."}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contextPrompt">Default Context Prompt</Label>
+                  <Textarea
+                    id="contextPrompt"
+                    placeholder="e.g., Create cinematic shots of nature landscapes"
+                    value={formData.contextPrompt}
+                    onChange={(e) => handleChange("contextPrompt", e.target.value)}
+                    disabled={loading}
+                    rows={3}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-muted-foreground">This prompt will be used as the base context for all generated prompts</p>
                 </div>
               </div>
-            )
-          )}
+            </div>)}
 
-          {/* Sora Generation Settings */}
-          {(showOnly === "all" || showOnly === "generation") && (
+        {/* Sora Generation Settings */}
+        {(showOnly === "all" || showOnly === "generation") && (
           <Card className={detectedSettings?.success && (detectedSettings.mediaType || detectedSettings.variations) ? "border-green-500 border-2" : ""}>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -531,19 +568,38 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                   <div className="flex items-center gap-2">
                     {detectedSettings?.mediaType && <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Detected)</span>}
                   </div>
-                  <select
-                    id="mediaType"
-                    value={formData.mediaType}
-                    onChange={(e) => handleChange("mediaType", e.target.value as "video" | "image")}
-                    disabled={loading}
-                    className={`
-                      flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
-                      ${detectedSettings?.mediaType ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20" : "border-input bg-background"}
-                    `}
-                  >
-                    <option value="video">Video</option>
-                    <option value="image">Image</option>
-                  </select>
+                  <DropdownMenu className="w-full">
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={loading}
+                        className={cn(
+                          "flex h-10 w-full justify-between rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+                          detectedSettings?.mediaType ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20" : "border-input bg-background"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          {formData.mediaType === "video" ?
+                            <FaVideo className="h-4 w-4" />
+                          : <FaImage className="h-4 w-4" />}
+                        </div>
+                        <FaChevronDown className="h-3 w-3 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="min-w-[8rem]">
+                      <DropdownMenuItem onSelect={() => handleChange("mediaType", "video")} className="gap-2 cursor-pointer">
+                        <FaVideo className="h-4 w-4" />
+                        <span>Video</span>
+                        {formData.mediaType === "video" && <span className="ml-auto text-xs">✓</span>}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleChange("mediaType", "image")} className="gap-2 cursor-pointer">
+                        <FaImage className="h-4 w-4" />
+                        <span>Image</span>
+                        {formData.mediaType === "image" && <span className="ml-auto text-xs">✓</span>}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div className="space-y-2">
@@ -596,10 +652,10 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
               </div>
             </CardContent>
           </Card>
-          )}
+        )}
 
-          {/* Queue Processing Settings */}
-          {(showOnly === "all" || showOnly === "generation") && (
+        {/* Queue Processing Settings */}
+        {(showOnly === "all" || showOnly === "generation") && (
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -687,35 +743,35 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
               </div>
             </CardContent>
           </Card>
-          )}
+        )}
 
-          {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
+        {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
 
-          {success && <div className="p-3 text-sm bg-green-500/10 text-green-600 rounded-md">{success}</div>}
+        {success && <div className="p-3 text-sm bg-green-500/10 text-green-600 rounded-md">{success}</div>}
 
-          {/* Actions */}
-          <div className="flex gap-2">
-            <Button type="submit" className="flex-1" disabled={loading}>
-              {loading ?
-                <>
-                  <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
-                  Saving Settings...
-                </>
-              : <>
-                  <FaSave className="h-4 w-4 mr-2" />
-                  Save Settings
-                </>
-              }
+        {/* Actions */}
+        <div className="flex gap-2">
+          <Button type="submit" className="flex-1" disabled={loading}>
+            {loading ?
+              <>
+                <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
+                Saving Settings...
+              </>
+            : <>
+                <FaSave className="h-4 w-4 mr-2" />
+                Save Settings
+              </>
+            }
+          </Button>
+          {isDialogMode && (
+            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+              Cancel
             </Button>
-            {isDialogMode && (
-              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-                Cancel
-              </Button>
-            )}
-          </div>
-        </form>
-      </Card>
-    );
+          )}
+        </div>
+      </form>
+    </Card>
+  );
 
   if (isDialogMode) {
     return (

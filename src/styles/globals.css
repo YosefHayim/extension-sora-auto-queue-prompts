@@ -68,15 +68,6 @@
 
 .popup-container header {
   position: relative;
-  z-index: 100;
-  pointer-events: auto;
-}
-
-.popup-container header button {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  position: relative;
-  z-index: 102;
 }
 
 .popup-container::-webkit-scrollbar {

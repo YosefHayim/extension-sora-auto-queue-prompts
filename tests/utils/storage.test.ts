@@ -14,7 +14,7 @@ describe('Storage Utility', () => {
       expect(config).toEqual({
         contextPrompt: '',
         apiKey: '',
-        batchSize: 50,
+        batchSize: 10,
         mediaType: 'image',
         variationCount: 2,
         autoRun: false,

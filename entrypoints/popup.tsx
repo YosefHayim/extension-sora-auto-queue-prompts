@@ -63,11 +63,14 @@ function IndexPopup() {
     loadData();
     detectSettingsFromSora();
 
-    // Load dark mode preference
-    const savedDarkMode = localStorage.getItem("darkMode") === "true";
-    setDarkMode(savedDarkMode);
-    if (savedDarkMode) {
+    // Load dark mode preference (default to dark theme)
+    const savedDarkMode = localStorage.getItem("darkMode");
+    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === "true";
+    setDarkMode(isDarkMode);
+    if (isDarkMode) {
       document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
 
     // Listen for storage changes for real-time updates (replaces 2-second polling)
@@ -597,14 +600,14 @@ function IndexPopup() {
   return (
     <div className="popup-container bg-background space-y-4 relative">
       {/* Header */}
-      <header className="border-b pb-3 space-y-2 relative z-[100] bg-background">
-        <div className="flex items-center justify-between relative z-[101]">
+      <header className="border-b pb-3 space-y-2 bg-background">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold text-foreground">Sora Auto Queue</h1>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-7 w-7 relative z-[102]" 
+              className="h-7 w-7" 
               onClick={(e) => {
                 e.stopPropagation();
                 toggleDarkMode();
@@ -618,14 +621,14 @@ function IndexPopup() {
             </Button>
           </div>
 
-          <div className="flex gap-1.5 relative z-[102]">
+          <div className="flex gap-1.5 items-center">
             <Button 
               onClick={(e) => {
                 e.stopPropagation();
                 handleGenerate();
               }} 
               size="sm" 
-              className="h-8 relative z-[103]"
+              className="h-9 min-h-[36px] px-3 py-2"
               type="button"
             >
               <FaMagic className="h-3.5 w-3.5 mr-1.5" />
@@ -634,7 +637,7 @@ function IndexPopup() {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 relative z-[103]" 
+              className="h-9 w-9 min-h-[36px] min-w-[36px]" 
               onClick={(e) => {
                 e.stopPropagation();
                 handleSettings();

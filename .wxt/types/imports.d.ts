@@ -11,6 +11,7 @@ declare global {
   const ErrorBoundary: typeof import('/Applications/Github/extension-sora-auto-queue-prompts/src/components/ErrorBoundary').ErrorBoundary
   const ExportDialog: typeof import('/Applications/Github/extension-sora-auto-queue-prompts/src/components/ExportDialog').ExportDialog
   const FilterBar: typeof import('/Applications/Github/extension-sora-auto-queue-prompts/src/components/FilterBar').FilterBar
+  const FilterDropdown: typeof import('/Applications/Github/extension-sora-auto-queue-prompts/src/components/FilterDropdown').FilterDropdown
   const Footer: typeof import('/Applications/Github/extension-sora-auto-queue-prompts/src/components/Footer').Footer
   const GenerateDialog: typeof import('/Applications/Github/extension-sora-auto-queue-prompts/src/components/GenerateDialog').GenerateDialog
   const InvalidMatchPattern: typeof import('wxt/utils/match-patterns').InvalidMatchPattern
@@ -36,6 +37,7 @@ declare global {
   const defineUnlistedScript: typeof import('wxt/utils/define-unlisted-script').defineUnlistedScript
   const defineWxtPlugin: typeof import('wxt/utils/define-wxt-plugin').defineWxtPlugin
   const fakeBrowser: typeof import('wxt/testing').fakeBrowser
+  const generateUniqueId: typeof import('/Applications/Github/extension-sora-auto-queue-prompts/src/lib/utils').generateUniqueId
   const injectScript: typeof import('wxt/utils/inject-script').injectScript
   const log: typeof import('/Applications/Github/extension-sora-auto-queue-prompts/src/utils/logger').log
   const logger: typeof import('/Applications/Github/extension-sora-auto-queue-prompts/src/utils/logger').logger

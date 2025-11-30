@@ -1,20 +1,10 @@
 import * as React from "react";
-import {
-  FaFilter,
-  FaTimes,
-  FaList,
-  FaClock,
-  FaSpinner,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaTh,
-  FaVideo,
-  FaImage,
-} from "react-icons/fa";
+
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { FaCheckCircle, FaClock, FaFilter, FaImage, FaList, FaSpinner, FaTh, FaTimes, FaTimesCircle, FaVideo } from "react-icons/fa";
 
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { cn } from "../lib/utils";
 
 type StatusFilter = "all" | "pending" | "processing" | "completed" | "failed";
@@ -109,11 +99,7 @@ export function FilterDropdown({
             const isActive = statusFilter === status;
 
             return (
-              <DropdownMenuItem
-                key={status}
-                onSelect={() => onStatusFilterChange(status)}
-                className={cn("gap-2 cursor-pointer", isActive && "bg-accent")}
-              >
+              <DropdownMenuItem key={status} onSelect={() => onStatusFilterChange(status)} className={cn("gap-2 cursor-pointer", isActive && "bg-accent")}>
                 <Icon className={cn("h-4 w-4", config.color, status === "processing" && isActive && "animate-spin")} />
                 <span>{config.label}</span>
                 {isActive && <span className="ml-auto text-xs">✓</span>}
@@ -128,11 +114,7 @@ export function FilterDropdown({
             const isActive = mediaTypeFilter === type;
 
             return (
-              <DropdownMenuItem
-                key={type}
-                onSelect={() => onMediaTypeFilterChange(type)}
-                className={cn("gap-2 cursor-pointer", isActive && "bg-accent")}
-              >
+              <DropdownMenuItem key={type} onSelect={() => onMediaTypeFilterChange(type)} className={cn("gap-2 cursor-pointer", isActive && "bg-accent")}>
                 <Icon className={cn("h-4 w-4", config.color)} />
                 <span>{config.label}</span>
                 {isActive && <span className="ml-auto text-xs">✓</span>}
@@ -151,13 +133,9 @@ export function FilterDropdown({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Badge
-        variant="secondary"
-        className="text-xs bg-muted text-muted-foreground border border-border"
-      >
+      <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground border border-border">
         {filteredCount === 1 ? "1 prompt" : `${filteredCount} prompts`}
       </Badge>
     </div>
   );
 }
-

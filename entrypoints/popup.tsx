@@ -26,6 +26,7 @@ import { SearchBar } from "../src/components/SearchBar";
 import { SettingsDialog } from "../src/components/SettingsDialog";
 import { SortablePromptCard } from "../src/components/SortablePromptCard";
 import { StatusBar } from "../src/components/StatusBar";
+import { Toaster } from "../src/components/ui/toaster";
 import { log } from "../src/utils/logger";
 import { storage } from "../src/utils/storage";
 
@@ -459,7 +460,11 @@ function IndexPopup() {
     setSettingsDialogOpen(true);
   }
 
-  async function handleGeneratePrompts(count: number, context: string) {
+  async function handleGeneratePrompts(
+    count: number,
+    context: string,
+    onProgress?: (current: number, total: number) => void
+  ) {
     if (!config) return;
 
     log.ui.action("handleGeneratePrompts", { count, contextLength: context.length });
@@ -469,24 +474,53 @@ function IndexPopup() {
     const aspectRatio = detectedSettings?.aspectRatio;
     const variations = detectedSettings?.variations;
 
-    const response = await chrome.runtime.sendMessage({
-      action: "generatePrompts",
-      data: {
-        context,
-        count,
-        mediaType,
-        useSecretPrompt: config.useSecretPrompt,
-        aspectRatio,
-        variations,
-      },
-    });
+    // Generate prompts in batches to show progress
+    const batchSize = config.batchSize || 10;
+    const batches = Math.ceil(count / batchSize);
+    let totalGenerated = 0;
 
-    if (response.success) {
+    try {
+      for (let i = 0; i < batches; i++) {
+        // Calculate how many to request in this batch
+        const remainingCount = count - totalGenerated;
+        const batchCount = Math.min(remainingCount, batchSize);
+        
+        const response = await chrome.runtime.sendMessage({
+          action: "generatePrompts",
+          data: {
+            context,
+            count: batchCount,
+            mediaType,
+            useSecretPrompt: config.useSecretPrompt,
+            aspectRatio,
+            variations,
+          },
+        });
+
+        if (response.success) {
+          const actualCount = response.count || 0;
+          totalGenerated += actualCount;
+          
+          // Update progress with actual counts
+          if (onProgress) {
+            onProgress(totalGenerated, count);
+          }
+          
+          // Small delay between batches to avoid rate limiting
+          if (i < batches - 1 && totalGenerated < count) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+        } else {
+          log.ui.error("handleGeneratePrompts", response.error);
+          throw new Error(response.error || "Failed to generate prompts");
+        }
+      }
+
       await loadData();
-      log.ui.action("handleGeneratePrompts:success", { count: response.count });
-    } else {
-      log.ui.error("handleGeneratePrompts", response.error);
-      throw new Error(response.error || "Failed to generate prompts");
+      log.ui.action("handleGeneratePrompts:success", { count: totalGenerated });
+    } catch (error) {
+      log.ui.error("handleGeneratePrompts", error);
+      throw error;
     }
   }
 
@@ -563,28 +597,29 @@ function IndexPopup() {
   return (
     <div className="popup-container bg-background space-y-4">
       {/* Header */}
-      <header className="flex items-center justify-between border-b pb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-foreground">Sora Auto Queue</h1>
-            <Button variant="ghost" size="icon" onClick={toggleDarkMode} title="Toggle dark mode">
+      <header className="border-b pb-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-semibold text-foreground">Sora Auto Queue</h1>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleDarkMode} title="Toggle dark mode">
               {darkMode ?
-                <FaSun className="h-4 w-4" />
-              : <FaMoon className="h-4 w-4" />}
+                <FaSun className="h-3.5 w-3.5" />
+              : <FaMoon className="h-3.5 w-3.5" />}
             </Button>
           </div>
-          <StatusBar pendingCount={pendingCount} processingCount={processingCount} completedCount={completedCount} />
-        </div>
 
-        <div className="flex gap-2">
-          <Button onClick={handleGenerate} size="sm">
-            <FaMagic className="h-4 w-4 mr-2" />
-            Generate
-          </Button>
-          <Button variant="outline" size="icon" onClick={handleSettings} title="Settings">
-            <FaCog className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-1.5">
+            <Button onClick={handleGenerate} size="sm" className="h-8">
+              <FaMagic className="h-3.5 w-3.5 mr-1.5" />
+              Generate
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleSettings} title="Settings">
+              <FaCog className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
+        
+        <StatusBar pendingCount={pendingCount} processingCount={processingCount} completedCount={completedCount} />
       </header>
 
       {/* Tabs Navigation */}
@@ -786,6 +821,9 @@ function IndexPopup() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Toast Notifications */}
+      <Toaster />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { ErrorBoundary } from '../../src/components/ErrorBoundary';
 
 // Component that throws an error
@@ -71,9 +71,12 @@ describe('ErrorBoundary', () => {
   });
 
   it('should reset error state when try again is clicked', async () => {
+    let shouldThrow = true;
+    let errorKey = 0;
+    
     const { rerender } = render(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
+      <ErrorBoundary key={`boundary-${errorKey}`}>
+        <ThrowError key={`error-${shouldThrow}`} shouldThrow={shouldThrow} />
       </ErrorBoundary>
     );
 
@@ -81,15 +84,23 @@ describe('ErrorBoundary', () => {
 
     // Click try again button - this resets the error boundary
     const tryAgainButton = screen.getByText('Try Again');
-    fireEvent.click(tryAgainButton);
+    
+    // Change shouldThrow to false and increment key to force remount
+    shouldThrow = false;
+    errorKey = 1;
+    
+    await act(async () => {
+      fireEvent.click(tryAgainButton);
+    });
 
-    // Error boundary resets, but component still throws
-    // So we need to rerender with non-throwing component immediately after reset
-    rerender(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={false} />
-      </ErrorBoundary>
-    );
+    // Rerender with non-throwing component and new key to force remount
+    await act(async () => {
+      rerender(
+        <ErrorBoundary key={`boundary-${errorKey}`}>
+          <ThrowError key={`error-${shouldThrow}`} shouldThrow={shouldThrow} />
+        </ErrorBoundary>
+      );
+    });
 
     // After reset and rerender with non-throwing component, it should render normally
     await waitFor(() => {

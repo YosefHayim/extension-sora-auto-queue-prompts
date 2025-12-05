@@ -68,6 +68,7 @@ const DropdownMenuTrigger = React.forwardRef<
     throw new Error("DropdownMenuTrigger must be used within DropdownMenu");
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
     context.setOpen(!context.open);
     onClick?.(e);
   };
@@ -101,11 +102,12 @@ const DropdownMenuContent = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+        "absolute z-[110] min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
         align === "end" ? "right-0" : "left-0",
         "mt-2",
         className,
       )}
+      onClick={(e) => e.stopPropagation()}
       {...props}
     />
   );

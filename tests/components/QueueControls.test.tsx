@@ -1,9 +1,9 @@
 import * as React from "react";
 
+import type { GeneratedPrompt, QueueState } from "../../src/types";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { QueueControls } from "../../src/components/QueueControls";
-import type { QueueState } from "../../src/types";
 
 describe("QueueControls", () => {
   const mockOnStart = jest.fn();
@@ -188,6 +188,130 @@ describe("QueueControls", () => {
 
     expect(screen.getByText("70% complete")).toBeInTheDocument();
     expect(screen.getByText("3 remaining")).toBeInTheDocument();
+  });
+
+  it("should include current prompt progress in calculation", () => {
+    const queueState = createQueueState({
+      isRunning: true,
+      processedCount: 5,
+      totalCount: 10,
+      currentPromptId: "prompt-6",
+    });
+    const prompts: GeneratedPrompt[] = [
+      {
+        id: "prompt-6",
+        text: "Test prompt",
+        timestamp: Date.now(),
+        status: "processing",
+        mediaType: "video",
+        startTime: Date.now() - 30000,
+        progress: 50, // 50% progress
+      },
+    ];
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        prompts={prompts}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    // Should show 55% complete (5 completed + 0.5 from current prompt = 5.5/10 = 55%)
+    expect(screen.getByText("55% complete")).toBeInTheDocument();
+  });
+
+  it("should handle progress calculation with no current prompt", () => {
+    const queueState = createQueueState({
+      isRunning: true,
+      processedCount: 5,
+      totalCount: 10,
+      currentPromptId: null,
+    });
+    const prompts: GeneratedPrompt[] = [];
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        prompts={prompts}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    // Should show 50% complete (5/10 = 50%)
+    expect(screen.getByText("50% complete")).toBeInTheDocument();
+  });
+
+  it("should handle progress calculation when current prompt is not processing", () => {
+    const queueState = createQueueState({
+      isRunning: true,
+      processedCount: 5,
+      totalCount: 10,
+      currentPromptId: "prompt-6",
+    });
+    const prompts: GeneratedPrompt[] = [
+      {
+        id: "prompt-6",
+        text: "Test prompt",
+        timestamp: Date.now(),
+        status: "pending",
+        mediaType: "video",
+      },
+    ];
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        prompts={prompts}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    // Should show 50% complete (5/10 = 50%, no progress from pending prompt)
+    expect(screen.getByText("50% complete")).toBeInTheDocument();
+  });
+
+  it("should handle progress calculation when current prompt has no progress value", () => {
+    const queueState = createQueueState({
+      isRunning: true,
+      processedCount: 5,
+      totalCount: 10,
+      currentPromptId: "prompt-6",
+    });
+    const prompts: GeneratedPrompt[] = [
+      {
+        id: "prompt-6",
+        text: "Test prompt",
+        timestamp: Date.now(),
+        status: "processing",
+        mediaType: "video",
+        startTime: Date.now() - 30000,
+        progress: undefined,
+      },
+    ];
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        prompts={prompts}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    // Should show 50% complete (5/10 = 50%, no progress value available)
+    expect(screen.getByText("50% complete")).toBeInTheDocument();
   });
 
   it("should show hover card for start button", () => {

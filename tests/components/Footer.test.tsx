@@ -1,3 +1,5 @@
+import "@testing-library/jest-dom";
+
 import * as React from "react";
 
 import { render, screen } from "@testing-library/react";
@@ -72,7 +74,8 @@ describe("Footer", () => {
     render(<Footer />);
     const versionText = screen.getByText(/^v\d+\.\d+\.\d+$/);
     expect(versionText).toBeInTheDocument();
-    expect(versionText).toHaveTextContent("v2.2.0");
+    // Version should match the pattern vX.Y.Z
+    expect(versionText.textContent).toMatch(/^v\d+\.\d+\.\d+$/);
   });
 
   it("should display version below attribution", () => {

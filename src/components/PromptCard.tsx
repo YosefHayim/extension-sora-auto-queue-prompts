@@ -156,6 +156,21 @@ export function PromptCard({
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+  const [currentTime, setCurrentTime] = React.useState(Date.now());
+
+  // Update current time for processing prompts to refresh progress bar and time displays
+  React.useEffect(() => {
+    const isProcessing = prompt.status === "processing";
+    if (!isProcessing) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000); // Update every second
+
+    return () => clearInterval(interval);
+  }, [prompt.status]);
 
   const shouldTruncate = prompt.text.length > MAX_TEXT_LENGTH;
   const displayText = isExpanded || !shouldTruncate ? prompt.text : prompt.text.substring(0, MAX_TEXT_LENGTH) + "...";
@@ -289,7 +304,7 @@ export function PromptCard({
     isProcessing && prompt.startTime ?
       prompt.startTime + 2.5 * 60 * 1000 // 2.5 minutes average
     : null;
-  const estimatedTimeRemaining = estimatedCompletion ? Math.max(0, estimatedCompletion - Date.now()) : null;
+  const estimatedTimeRemaining = estimatedCompletion ? Math.max(0, estimatedCompletion - currentTime) : null;
 
   return (
     <Card
@@ -402,7 +417,7 @@ export function PromptCard({
                 value={
                   prompt.progress !== undefined ? prompt.progress
                   : prompt.startTime ?
-                    Math.min(90, ((Date.now() - prompt.startTime) / (2.5 * 60 * 1000)) * 100)
+                    Math.min(90, ((currentTime - prompt.startTime) / (2.5 * 60 * 1000)) * 100)
                   : 0
                 }
                 className="h-1"
@@ -423,7 +438,7 @@ export function PromptCard({
             {isProcessing && prompt.startTime && (
               <span className="flex items-center gap-1">
                 <FaClock className="h-2.5 w-2.5 animate-pulse" />
-                {formatDuration(Date.now() - prompt.startTime)}
+                {formatDuration(currentTime - prompt.startTime)}
               </span>
             )}
           </div>

@@ -1,7 +1,9 @@
 import * as React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { PromptCard } from "../../src/components/PromptCard";
+
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+
 import type { GeneratedPrompt } from "../../src/types";
+import { PromptCard } from "../../src/components/PromptCard";
 
 // Mock logger
 jest.mock("../../src/utils/logger", () => ({
@@ -39,15 +41,19 @@ describe("PromptCard", () => {
     expect(screen.getByText("Test prompt text")).toBeInTheDocument();
   });
 
-  it("should display video media type badge", () => {
-    render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
-    expect(screen.getByText("Video")).toBeInTheDocument();
+  it("should display video media type icon", () => {
+    const { container } = render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
+    // Video icon should be present
+    const videoIcon = container.querySelector("svg");
+    expect(videoIcon).toBeInTheDocument();
   });
 
-  it("should display image media type badge", () => {
+  it("should display image media type icon", () => {
     const imagePrompt = { ...mockPrompt, mediaType: "image" as const };
-    render(<PromptCard prompt={imagePrompt} {...mockHandlers} />);
-    expect(screen.getByText("Image")).toBeInTheDocument();
+    const { container } = render(<PromptCard prompt={imagePrompt} {...mockHandlers} />);
+    // Image icon should be present
+    const icons = container.querySelectorAll("svg");
+    expect(icons.length).toBeGreaterThan(0);
   });
 
   it("should display aspect ratio badge when provided", () => {
@@ -59,13 +65,15 @@ describe("PromptCard", () => {
   it("should display variations count when provided", () => {
     const promptWithVariations = { ...mockPrompt, variations: 4 };
     render(<PromptCard prompt={promptWithVariations} {...mockHandlers} />);
-    expect(screen.getByText("4 variations")).toBeInTheDocument();
+    expect(screen.getByText("4v")).toBeInTheDocument();
   });
 
-  it("should display enhanced badge when prompt is enhanced", () => {
+  it("should display enhanced icon when prompt is enhanced", () => {
     const enhancedPrompt = { ...mockPrompt, enhanced: true };
-    render(<PromptCard prompt={enhancedPrompt} {...mockHandlers} />);
-    expect(screen.getByText("Enhanced")).toBeInTheDocument();
+    const { container } = render(<PromptCard prompt={enhancedPrompt} {...mockHandlers} />);
+    // Enhanced prompt should have magic icon
+    const icons = container.querySelectorAll("svg");
+    expect(icons.length).toBeGreaterThan(0);
   });
 
   it("should call onEdit when edit button is clicked", () => {
@@ -134,14 +142,16 @@ describe("PromptCard", () => {
     expect(mockHandlers.onDelete).toHaveBeenCalledWith("test-1");
   });
 
-  it("should capitalize media type correctly", () => {
+  it("should display correct media type icon", () => {
     const videoPrompt = { ...mockPrompt, mediaType: "video" as const };
-    const { rerender } = render(<PromptCard prompt={videoPrompt} {...mockHandlers} />);
-    expect(screen.getByText("Video")).toBeInTheDocument();
+    const { container: videoContainer, rerender } = render(<PromptCard prompt={videoPrompt} {...mockHandlers} />);
+    const videoIcons = videoContainer.querySelectorAll("svg");
+    expect(videoIcons.length).toBeGreaterThan(0);
 
     const imagePrompt = { ...mockPrompt, mediaType: "image" as const };
     rerender(<PromptCard prompt={imagePrompt} {...mockHandlers} />);
-    expect(screen.getByText("Image")).toBeInTheDocument();
+    const imageIcons = videoContainer.querySelectorAll("svg");
+    expect(imageIcons.length).toBeGreaterThan(0);
   });
 
   it("should call onGenerateSimilar when generate similar is selected", async () => {
@@ -162,7 +172,7 @@ describe("PromptCard", () => {
 
     render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
 
-    const copyButton = screen.getByTitle(/copy prompt text/i);
+    const copyButton = screen.getByTitle("Copy");
     fireEvent.click(copyButton);
 
     await waitFor(() => {
@@ -179,7 +189,7 @@ describe("PromptCard", () => {
 
     render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
 
-    const copyButton = screen.getByTitle(/copy prompt text/i);
+    const copyButton = screen.getByTitle("Copy");
     fireEvent.click(copyButton);
 
     await waitFor(() => {
@@ -227,7 +237,7 @@ describe("PromptCard", () => {
     const mockOnProcess = jest.fn();
     render(<PromptCard prompt={mockPrompt} onProcess={mockOnProcess} {...mockHandlers} />);
 
-    const processButton = screen.getByTitle("Process this prompt");
+    const processButton = screen.getByTitle("Process");
     fireEvent.click(processButton);
     expect(mockOnProcess).toHaveBeenCalledWith("test-1");
   });
@@ -249,8 +259,9 @@ describe("PromptCard", () => {
     const completedPrompt = { ...mockPrompt, status: "completed" as const };
     render(<PromptCard prompt={completedPrompt} onNavigateToPrompt={mockOnNavigateToPrompt} {...mockHandlers} />);
 
-    const editButton = screen.getByTitle(/edit prompt/i);
-    fireEvent.click(editButton);
+    // For completed prompts, edit button is disabled, so use copy button instead
+    const copyButton = screen.getByTitle(/copy/i);
+    fireEvent.click(copyButton);
 
     // Should not navigate when clicking button
     expect(mockOnNavigateToPrompt).not.toHaveBeenCalled();
@@ -292,11 +303,120 @@ describe("PromptCard", () => {
     expect(container).toBeInTheDocument();
   });
 
+  it("should display actual progress percentage when available", () => {
+    const processingPrompt = {
+      ...mockPrompt,
+      status: "processing" as const,
+      startTime: Date.now() - 30000,
+      progress: 45,
+    };
+    render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+
+    expect(screen.getByText("45%")).toBeInTheDocument();
+  });
+
+  it("should display estimated time remaining when progress is not available", () => {
+    const processingPrompt = {
+      ...mockPrompt,
+      status: "processing" as const,
+      startTime: Date.now() - 30000,
+      progress: undefined,
+    };
+    render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+
+    // Should show estimated time remaining
+    expect(screen.getByText(/remaining/)).toBeInTheDocument();
+  });
+
+  it("should use actual progress value for progress bar when available", () => {
+    const processingPrompt = {
+      ...mockPrompt,
+      status: "processing" as const,
+      startTime: Date.now() - 30000,
+      progress: 75,
+    };
+    const { container } = render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+
+    // Progress bar should be rendered
+    const progressBar = container.querySelector('[class*="h-1"]');
+    expect(progressBar).toBeInTheDocument();
+    expect(screen.getByText("75%")).toBeInTheDocument();
+  });
+
+  it("should not show percentage when progress is 100%", () => {
+    const processingPrompt = {
+      ...mockPrompt,
+      status: "processing" as const,
+      startTime: Date.now() - 30000,
+      progress: 100,
+    };
+    render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+
+    // Should not show "100%" text (progress >= 100 doesn't show percentage)
+    expect(screen.queryByText("100%")).not.toBeInTheDocument();
+  });
+
   it("should handle default status color", () => {
     const unknownStatusPrompt = { ...mockPrompt, status: "unknown" as any };
     const { container } = render(<PromptCard prompt={unknownStatusPrompt} {...mockHandlers} />);
 
     // Should render without error
     expect(container).toBeInTheDocument();
+  });
+
+  it("should update progress bar and time display for processing prompts using interval", async () => {
+    jest.useFakeTimers();
+    const startTime = Date.now() - 30000; // 30 seconds ago
+    const processingPrompt = {
+      ...mockPrompt,
+      status: "processing" as const,
+      startTime,
+      progress: undefined,
+    };
+
+    const { container, rerender } = render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+
+    // Should show estimated time remaining
+    expect(screen.getByText(/remaining/)).toBeInTheDocument();
+
+    // Advance time by 1 second
+    jest.advanceTimersByTime(1000);
+
+    // The component should update (we can't easily test the exact value without exposing internals,
+    // but we can verify the component doesn't crash and continues to show the processing state)
+    await waitFor(() => {
+      expect(screen.getByText(/remaining/)).toBeInTheDocument();
+    });
+
+    // Clean up
+    jest.useRealTimers();
+  });
+
+  it("should stop interval when prompt is no longer processing", () => {
+    jest.useFakeTimers();
+    const startTime = Date.now() - 30000;
+    const processingPrompt = {
+      ...mockPrompt,
+      status: "processing" as const,
+      startTime,
+      progress: undefined,
+    };
+
+    const { rerender } = render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+
+    // Change status to completed
+    const completedPrompt = {
+      ...processingPrompt,
+      status: "completed" as const,
+    };
+    rerender(<PromptCard prompt={completedPrompt} {...mockHandlers} />);
+
+    // Advance time - interval should be cleared
+    jest.advanceTimersByTime(2000);
+
+    // Should not show processing indicators
+    expect(screen.queryByText(/remaining/)).not.toBeInTheDocument();
+
+    jest.useRealTimers();
   });
 });

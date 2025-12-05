@@ -344,7 +344,9 @@ describe("QueueControls", () => {
 
   it("should show status icon with hover tooltip when stopped", async () => {
     const queueState = createQueueState({ isRunning: false });
-    const { container } = render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    const { container } = render(
+      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+    );
 
     // Verify the status icon is present (stop icon for stopped state)
     // The HoverCard structure should exist even if content is not visible until hover
@@ -354,7 +356,9 @@ describe("QueueControls", () => {
 
   it("should show status icon with hover tooltip when running", async () => {
     const queueState = createQueueState({ isRunning: true, isPaused: false });
-    const { container } = render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    const { container } = render(
+      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+    );
 
     // Verify the status icon is present (play icon for running state)
     const statusIconContainer = container.querySelector(".cursor-help");
@@ -363,7 +367,9 @@ describe("QueueControls", () => {
 
   it("should show status icon with hover tooltip when paused", async () => {
     const queueState = createQueueState({ isRunning: true, isPaused: true });
-    const { container } = render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    const { container } = render(
+      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+    );
 
     // Verify the status icon is present (pause icon for paused state)
     const statusIconContainer = container.querySelector(".cursor-help");

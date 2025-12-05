@@ -2,41 +2,11 @@ import "../src/styles/globals.css";
 
 import * as React from "react";
 
-import {
-  DndContext,
-  DragEndEvent,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  FaBug,
-  FaCheckSquare,
-  FaCog,
-  FaDownload,
-  FaKey,
-  FaList,
-  FaMagic,
-  FaMoon,
-  FaPlay,
-  FaSlidersH,
-  FaSquare,
-  FaSun,
-  FaTrash,
-} from "react-icons/fa";
+import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { FaBug, FaCheckSquare, FaCog, FaDownload, FaKey, FaList, FaMagic, FaMoon, FaPlay, FaSlidersH, FaSquare, FaSun, FaTrash } from "react-icons/fa";
 import type { GeneratedPrompt, PromptConfig, QueueState } from "../src/types";
-import {
-  SortableContext,
-  arrayMove,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../src/components/ui/tabs";
+import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../src/components/ui/tabs";
 
 import { Button } from "../src/components/ui/button";
 import { CSVImportDialog } from "../src/components/CSVImportDialog";
@@ -70,23 +40,16 @@ function IndexPopup() {
   const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
   const [manualDialogOpen, setManualDialogOpen] = React.useState(false);
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
-  const [editingPrompt, setEditingPrompt] =
-    React.useState<GeneratedPrompt | null>(null);
+  const [editingPrompt, setEditingPrompt] = React.useState<GeneratedPrompt | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState<
-    "all" | "pending" | "processing" | "completed" | "failed"
-  >("all");
-  const [mediaTypeFilter, setMediaTypeFilter] = React.useState<
-    "all" | "video" | "image"
-  >("all");
+  const [statusFilter, setStatusFilter] = React.useState<"all" | "pending" | "processing" | "completed" | "failed">("all");
+  const [mediaTypeFilter, setMediaTypeFilter] = React.useState<"all" | "video" | "image">("all");
   const [darkMode, setDarkMode] = React.useState(false);
-  const [detectedSettings, setDetectedSettings] =
-    React.useState<DetectedSettingsType | null>(null);
+  const [detectedSettings, setDetectedSettings] = React.useState<DetectedSettingsType | null>(null);
   const [detectingSettings, setDetectingSettings] = React.useState(false);
-  const [selectedPrompts, setSelectedPrompts] = React.useState<Set<string>>(
-    new Set(),
-  );
+  const [selectedPrompts, setSelectedPrompts] = React.useState<Set<string>>(new Set());
+  const [enabledPrompts, setEnabledPrompts] = React.useState<Set<string>>(new Set());
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -94,7 +57,7 @@ function IndexPopup() {
       activationConstraint: {
         distance: 8, // 8px movement before drag starts (prevents accidental drags)
       },
-    }),
+    })
   );
 
   React.useEffect(() => {
@@ -114,10 +77,7 @@ function IndexPopup() {
     // Listen for storage changes for real-time updates (replaces 2-second polling)
     let debounceTimer: NodeJS.Timeout | null = null;
 
-    const handleStorageChange = (
-      changes: { [key: string]: chrome.storage.StorageChange },
-      areaName: chrome.storage.AreaName,
-    ) => {
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: chrome.storage.AreaName) => {
       if (areaName !== "local") return;
 
       // Check if relevant keys changed
@@ -164,9 +124,7 @@ function IndexPopup() {
       // Cmd/Ctrl + K for search
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        const searchInput = document.querySelector(
-          'input[type="text"]',
-        ) as HTMLInputElement;
+        const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
         searchInput?.focus();
       }
       // Cmd/Ctrl + N for new prompt
@@ -187,20 +145,11 @@ function IndexPopup() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    generateDialogOpen,
-    csvDialogOpen,
-    settingsDialogOpen,
-    manualDialogOpen,
-    editDialogOpen,
-    exportDialogOpen,
-  ]);
+  }, [generateDialogOpen, csvDialogOpen, settingsDialogOpen, manualDialogOpen, editDialogOpen, exportDialogOpen]);
 
   async function loadData() {
     try {
-      const [loadedConfig, loadedPrompts, loadedQueueState] = await Promise.all(
-        [storage.getConfig(), storage.getPrompts(), storage.getQueueState()],
-      );
+      const [loadedConfig, loadedPrompts, loadedQueueState] = await Promise.all([storage.getConfig(), storage.getPrompts(), storage.getQueueState()]);
       setConfig(loadedConfig);
       setPrompts(loadedPrompts);
       setQueueState(loadedQueueState);
@@ -236,9 +185,7 @@ function IndexPopup() {
 
   // Count prompts by status
   const pendingCount = prompts.filter((p) => p.status === "pending").length;
-  const processingCount = prompts.filter(
-    (p) => p.status === "processing",
-  ).length;
+  const processingCount = prompts.filter((p) => p.status === "processing").length;
   const completedCount = prompts.filter((p) => p.status === "completed").length;
 
   // Toggle dark mode
@@ -271,8 +218,7 @@ function IndexPopup() {
         aspectRatio: null,
         variations: null,
         success: false,
-        error:
-          error instanceof Error ? error.message : "Failed to detect settings",
+        error: error instanceof Error ? error.message : "Failed to detect settings",
       });
     } finally {
       setDetectingSettings(false);
@@ -327,9 +273,7 @@ function IndexPopup() {
   }
 
   async function handleCleanCompletedAndFailed() {
-    const completedCount = prompts.filter(
-      (p) => p.status === "completed",
-    ).length;
+    const completedCount = prompts.filter((p) => p.status === "completed").length;
     const failedCount = prompts.filter((p) => p.status === "failed").length;
     const totalToDelete = completedCount + failedCount;
 
@@ -338,7 +282,7 @@ function IndexPopup() {
     }
 
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${totalToDelete} prompt(s)? (${completedCount} completed, ${failedCount} failed) This action cannot be undone.`,
+      `Are you sure you want to delete ${totalToDelete} prompt(s)? (${completedCount} completed, ${failedCount} failed) This action cannot be undone.`
     );
 
     if (!confirmed) {
@@ -503,6 +447,19 @@ function IndexPopup() {
     });
   }
 
+  function handleTogglePromptEnabled(promptId: string) {
+    setEnabledPrompts((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(promptId)) {
+        newSet.delete(promptId);
+      } else {
+        newSet.add(promptId);
+      }
+      return newSet;
+    });
+    log.ui.action("handleTogglePromptEnabled", { promptId });
+  }
+
   function handleSelectAll() {
     if (selectedPrompts.size === filteredPrompts.length) {
       setSelectedPrompts(new Set());
@@ -517,9 +474,7 @@ function IndexPopup() {
     }
 
     // Confirm deletion
-    const confirmed = window.confirm(
-      `Are you sure you want to delete all ${prompts.length} prompt(s)? This action cannot be undone.`,
-    );
+    const confirmed = window.confirm(`Are you sure you want to delete all ${prompts.length} prompt(s)? This action cannot be undone.`);
 
     if (!confirmed) {
       return;
@@ -567,11 +522,7 @@ function IndexPopup() {
     setSettingsDialogOpen(true);
   }
 
-  async function handleGeneratePrompts(
-    count: number,
-    context: string,
-    onProgress?: (current: number, total: number) => void,
-  ) {
+  async function handleGeneratePrompts(count: number, context: string, onProgress?: (current: number, total: number) => void) {
     if (!config) return;
 
     log.ui.action("handleGeneratePrompts", {
@@ -699,9 +650,7 @@ function IndexPopup() {
   if (!config || !queueState) {
     return (
       <div className="popup-container flex items-center justify-center">
-        <div className="text-sm text-destructive">
-          Failed to load configuration
-        </div>
+        <div className="text-sm text-destructive">Failed to load configuration</div>
       </div>
     );
   }
@@ -712,9 +661,7 @@ function IndexPopup() {
       <header className="border-b pb-3 space-y-2 bg-background">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold text-foreground">
-              Sora Auto Queue
-            </h1>
+            <h1 className="text-lg font-semibold text-foreground">Sora Auto Queue</h1>
             <Button
               variant="ghost"
               size="icon"
@@ -726,11 +673,9 @@ function IndexPopup() {
               title="Toggle dark mode"
               type="button"
             >
-              {darkMode ? (
+              {darkMode ?
                 <FaSun className="h-3.5 w-3.5" />
-              ) : (
-                <FaMoon className="h-3.5 w-3.5" />
-              )}
+              : <FaMoon className="h-3.5 w-3.5" />}
             </Button>
           </div>
 
@@ -763,11 +708,7 @@ function IndexPopup() {
           </div>
         </div>
 
-        <StatusBar
-          pendingCount={pendingCount}
-          processingCount={processingCount}
-          completedCount={completedCount}
-        />
+        <StatusBar pendingCount={pendingCount} processingCount={processingCount} completedCount={completedCount} />
       </header>
 
       {/* Tabs Navigation */}
@@ -793,14 +734,13 @@ function IndexPopup() {
           <QueueControls
             queueState={queueState}
             totalCount={prompts.length}
+            prompts={prompts}
             onStart={handleStartQueue}
             onPause={handlePauseQueue}
             onResume={handleResumeQueue}
             onStop={handleStopQueue}
             onCleanCompletedAndFailed={handleCleanCompletedAndFailed}
-            completedCount={
-              prompts.filter((p) => p.status === "completed").length
-            }
+            completedCount={prompts.filter((p) => p.status === "completed").length}
             failedCount={prompts.filter((p) => p.status === "failed").length}
           />
 
@@ -832,61 +772,36 @@ function IndexPopup() {
                   size="sm"
                   onClick={handleSelectAll}
                   className="gap-2"
-                  title={
-                    selectedPrompts.size === filteredPrompts.length
-                      ? "Deselect all"
-                      : "Select all"
-                  }
+                  title={selectedPrompts.size === filteredPrompts.length ? "Deselect all" : "Select all"}
                 >
-                  {selectedPrompts.size === filteredPrompts.length ? (
+                  {selectedPrompts.size === filteredPrompts.length ?
                     <FaCheckSquare className="h-4 w-4" />
-                  ) : (
-                    <FaSquare className="h-4 w-4" />
-                  )}
-                  {selectedPrompts.size > 0
-                    ? `${selectedPrompts.size} selected`
-                    : "Select"}
+                  : <FaSquare className="h-4 w-4" />}
+                  {selectedPrompts.size > 0 ? `${selectedPrompts.size} selected` : "Select"}
                 </Button>
                 {selectedPrompts.size > 0 && (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={handleProcessSelectedPrompts}
-                    className="gap-2"
-                  >
+                  <Button variant="default" size="sm" onClick={handleProcessSelectedPrompts} className="gap-2">
                     <FaPlay className="h-4 w-4" />
                     Process Selected ({selectedPrompts.size})
                   </Button>
                 )}
                 <div className="text-sm text-muted-foreground">
-                  {filteredPrompts.length === prompts.length ? (
+                  {filteredPrompts.length === prompts.length ?
                     <span>
                       {prompts.length} prompt{prompts.length !== 1 ? "s" : ""}
                     </span>
-                  ) : (
-                    <span>
-                      Showing {filteredPrompts.length} of {prompts.length}{" "}
-                      prompt{prompts.length !== 1 ? "s" : ""}
+                  : <span>
+                      Showing {filteredPrompts.length} of {prompts.length} prompt{prompts.length !== 1 ? "s" : ""}
                     </span>
-                  )}
+                  }
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setExportDialogOpen(true)}
-                  className="gap-2"
-                >
+                <Button variant="outline" size="sm" onClick={() => setExportDialogOpen(true)} className="gap-2">
                   <FaDownload className="h-4 w-4" />
                   Export
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteAllPrompts}
-                  className="gap-2"
-                >
+                <Button variant="destructive" size="sm" onClick={handleDeleteAllPrompts} className="gap-2">
                   <FaTrash className="h-4 w-4" />
                   Delete All
                 </Button>
@@ -896,17 +811,11 @@ function IndexPopup() {
 
           {/* Prompt List */}
           <div className="space-y-3">
-            {prompts.length === 0 ? (
-              <EmptyState
-                onGenerate={handleGenerate}
-                onImport={handleImport}
-                onManual={handleManual}
-              />
-            ) : filteredPrompts.length === 0 ? (
+            {prompts.length === 0 ?
+              <EmptyState onGenerate={handleGenerate} onImport={handleImport} onManual={handleManual} />
+            : filteredPrompts.length === 0 ?
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-2">
-                  No prompts match your filters
-                </p>
+                <p className="text-muted-foreground mb-2">No prompts match your filters</p>
                 <Button
                   variant="outline"
                   size="sm"
@@ -919,23 +828,17 @@ function IndexPopup() {
                   Clear Filters
                 </Button>
               </div>
-            ) : (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={filteredPrompts.map((p) => p.id)}
-                  strategy={verticalListSortingStrategy}
-                >
+            : <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={filteredPrompts.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-3">
                     {filteredPrompts.map((prompt) => (
                       <SortablePromptCard
                         key={prompt.id}
                         prompt={prompt}
                         isSelected={selectedPrompts.has(prompt.id)}
+                        isEnabled={!enabledPrompts.has(prompt.id)}
                         onToggleSelection={handleTogglePromptSelection}
+                        onToggleEnabled={handleTogglePromptEnabled}
                         onProcess={handleProcessPrompt}
                         onNavigateToPrompt={handleNavigateToPrompt}
                         onEdit={handleEditPrompt}
@@ -949,21 +852,14 @@ function IndexPopup() {
                   </div>
                 </SortableContext>
               </DndContext>
-            )}
+            }
           </div>
         </TabsContent>
 
         {/* API Settings Tab Content */}
         <TabsContent value="api-settings" className="space-y-4">
           <div className="p-4">
-            <SettingsDialog
-              config={config}
-              isOpen={true}
-              onClose={() => {}}
-              onSave={handleSaveSettings}
-              detectedSettings={detectedSettings}
-              showOnly="api"
-            />
+            <SettingsDialog config={config} isOpen={true} onClose={() => {}} onSave={handleSaveSettings} detectedSettings={detectedSettings} showOnly="api" />
           </div>
         </TabsContent>
 
@@ -993,19 +889,9 @@ function IndexPopup() {
             detectedSettings={detectedSettings}
           />
 
-          <CSVImportDialog
-            config={config}
-            isOpen={csvDialogOpen}
-            onClose={() => setCsvDialogOpen(false)}
-            onImport={handleImportCSV}
-          />
+          <CSVImportDialog config={config} isOpen={csvDialogOpen} onClose={() => setCsvDialogOpen(false)} onImport={handleImportCSV} />
 
-          <ManualAddDialog
-            config={config}
-            isOpen={manualDialogOpen}
-            onClose={() => setManualDialogOpen(false)}
-            onAdd={handleManualAdd}
-          />
+          <ManualAddDialog config={config} isOpen={manualDialogOpen} onClose={() => setManualDialogOpen(false)} onAdd={handleManualAdd} />
 
           <SettingsDialog
             config={config}
@@ -1025,11 +911,7 @@ function IndexPopup() {
             onSave={handleSaveEditedPrompt}
           />
 
-          <ExportDialog
-            isOpen={exportDialogOpen}
-            onClose={() => setExportDialogOpen(false)}
-            prompts={filteredPrompts.length > 0 ? filteredPrompts : prompts}
-          />
+          <ExportDialog isOpen={exportDialogOpen} onClose={() => setExportDialogOpen(false)} prompts={filteredPrompts.length > 0 ? filteredPrompts : prompts} />
         </>
       )}
 
@@ -1048,7 +930,7 @@ if (root) {
   ReactDOM.createRoot(root).render(
     <ErrorBoundary>
       <IndexPopup />
-    </ErrorBoundary>,
+    </ErrorBoundary>
   );
 }
 

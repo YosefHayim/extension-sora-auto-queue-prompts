@@ -2,12 +2,12 @@ import * as React from "react";
 
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { FaChevronDown, FaChevronUp, FaClock, FaPause, FaPlay, FaStop, FaTrash } from "react-icons/fa";
+import type { GeneratedPrompt, QueueState } from "../types";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
-import type { QueueState } from "../types";
 import { cn } from "../lib/utils";
 import { log } from "../utils/logger";
 
@@ -26,6 +26,7 @@ function formatDuration(ms: number): string {
 interface QueueControlsProps {
   queueState: QueueState;
   totalCount: number;
+  prompts?: GeneratedPrompt[]; // Optional prompts array to calculate current progress
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -38,6 +39,7 @@ interface QueueControlsProps {
 export function QueueControls({
   queueState,
   totalCount,
+  prompts = [],
   onStart,
   onPause,
   onResume,
@@ -46,7 +48,26 @@ export function QueueControls({
   completedCount = 0,
   failedCount = 0,
 }: QueueControlsProps) {
-  const progress = totalCount > 0 ? (queueState.processedCount / totalCount) * 100 : 0;
+  // Calculate progress including current processing prompt's progress
+  const calculateProgress = (): number => {
+    if (totalCount === 0) return 0;
+
+    // Base progress from completed/failed prompts
+    let baseProgress = queueState.processedCount;
+
+    // If there's a currently processing prompt, add its progress contribution
+    if (queueState.currentPromptId && prompts.length > 0) {
+      const currentPrompt = prompts.find((p) => p.id === queueState.currentPromptId);
+      if (currentPrompt && currentPrompt.status === "processing" && currentPrompt.progress !== undefined) {
+        // Add the current prompt's progress as a fraction (0-1) of one prompt
+        baseProgress += currentPrompt.progress / 100;
+      }
+    }
+
+    return (baseProgress / totalCount) * 100;
+  };
+
+  const progress = calculateProgress();
   const [elapsedTime, setElapsedTime] = React.useState<number>(0);
   const [isCollapsed, setIsCollapsed] = React.useState<boolean>(false);
 

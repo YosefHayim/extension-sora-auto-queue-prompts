@@ -1,5 +1,7 @@
 import * as React from "react";
+
 import { render, screen } from "@testing-library/react";
+
 import { Footer } from "../../src/components/Footer";
 
 describe("Footer", () => {
@@ -52,7 +54,7 @@ describe("Footer", () => {
     render(<Footer />);
     const githubLink = screen.getByLabelText("GitHub profile");
     const linkedinLink = screen.getByLabelText("LinkedIn profile");
-    
+
     expect(githubLink).toHaveAttribute("aria-label", "GitHub profile");
     expect(linkedinLink).toHaveAttribute("aria-label", "LinkedIn profile");
   });
@@ -61,9 +63,24 @@ describe("Footer", () => {
     render(<Footer />);
     const githubLink = screen.getByLabelText("GitHub profile");
     const linkedinLink = screen.getByLabelText("LinkedIn profile");
-    
+
     expect(githubLink).toHaveClass("hover:text-foreground");
     expect(linkedinLink).toHaveClass("hover:text-foreground");
   });
-});
 
+  it("should render version number", () => {
+    render(<Footer />);
+    const versionText = screen.getByText(/^v\d+\.\d+\.\d+$/);
+    expect(versionText).toBeInTheDocument();
+    expect(versionText).toHaveTextContent("v2.2.0");
+  });
+
+  it("should display version below attribution", () => {
+    const { container } = render(<Footer />);
+    const footer = container.querySelector("footer");
+    expect(footer).toHaveClass("flex", "flex-col");
+
+    const versionText = screen.getByText(/^v\d+\.\d+\.\d+$/);
+    expect(versionText).toHaveClass("text-xs", "text-muted-foreground");
+  });
+});

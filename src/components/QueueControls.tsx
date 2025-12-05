@@ -113,15 +113,27 @@ export function QueueControls({
                 <FaChevronDown className="h-3 w-3" />
               : <FaChevronUp className="h-3 w-3" />}
             </Button>
-            {/* Small status circle */}
-            <div
-              className={cn(
-                "h-3 w-3 rounded-full flex-shrink-0",
-                queueState.isRunning && !queueState.isPaused && "bg-green-500 animate-pulse",
-                queueState.isRunning && queueState.isPaused && "bg-yellow-500",
-                !queueState.isRunning && "bg-gray-500"
-              )}
-            />
+            {/* Status icon with hover tooltip */}
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <div className="flex-shrink-0 cursor-help">
+                  {queueState.isRunning && !queueState.isPaused ?
+                    <FaPlay className={cn("h-3 w-3 text-green-500")} />
+                  : queueState.isRunning && queueState.isPaused ?
+                    <FaPause className={cn("h-3 w-3 text-yellow-500")} />
+                  : <FaStop className={cn("h-3 w-3 text-gray-500")} />}
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-auto p-2">
+                <p className="text-xs font-medium">
+                  {queueState.isRunning && !queueState.isPaused ?
+                    "Running"
+                  : queueState.isRunning && queueState.isPaused ?
+                    "Paused"
+                  : "Stopped"}
+                </p>
+              </HoverCardContent>
+            </HoverCard>
             <span className="text-sm font-medium text-foreground">
               {queueState.processedCount} / {totalCount} prompts
             </span>

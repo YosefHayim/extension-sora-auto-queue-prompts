@@ -28,7 +28,8 @@
     "entrypoints/**/*.ts",
     "entrypoints/**/*.tsx",
     "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/**/*.tsx",
+    ".wxt/types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",

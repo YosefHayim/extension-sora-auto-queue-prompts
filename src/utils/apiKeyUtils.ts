@@ -11,14 +11,15 @@ export function recognizeApiProvider(apiKey: string): ApiProvider | null {
 
   const trimmedKey = apiKey.trim();
 
+  // Anthropic: starts with "sk-ant-" and typically 50+ characters
+  // Check this before OpenAI since "sk-ant-" also starts with "sk-"
+  if (trimmedKey.startsWith("sk-ant-") && trimmedKey.length >= 20) {
+    return "anthropic";
+  }
+
   // OpenAI: starts with "sk-" and typically 51+ characters
   if (trimmedKey.startsWith("sk-") && trimmedKey.length >= 20) {
     return "openai";
-  }
-
-  // Anthropic: starts with "sk-ant-" and typically 50+ characters
-  if (trimmedKey.startsWith("sk-ant-") && trimmedKey.length >= 20) {
-    return "anthropic";
   }
 
   // Google Gemini: typically starts with "AIza" or is a long alphanumeric string
@@ -35,10 +36,7 @@ export function recognizeApiProvider(apiKey: string): ApiProvider | null {
 /**
  * Verifies an API key by making a simple request to the provider's API
  */
-export async function verifyApiKey(
-  apiKey: string,
-  provider: ApiProvider,
-): Promise<{ valid: boolean; error?: string }> {
+export async function verifyApiKey(apiKey: string, provider: ApiProvider): Promise<{ valid: boolean; error?: string }> {
   if (!apiKey || apiKey.trim().length === 0) {
     return { valid: false, error: "API key is empty" };
   }
@@ -70,9 +68,7 @@ export async function verifyApiKey(
  * Verifies OpenAI API key by listing models
  * Endpoint: GET https://api.openai.com/v1/models
  */
-async function verifyOpenAIKey(
-  apiKey: string,
-): Promise<{ valid: boolean; error?: string }> {
+async function verifyOpenAIKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
   try {
     const response = await fetch("https://api.openai.com/v1/models", {
       method: "GET",
@@ -97,9 +93,7 @@ async function verifyOpenAIKey(
       const errorData = await response.json().catch(() => ({}));
       return {
         valid: false,
-        error:
-          errorData.error?.message ||
-          `API request failed with status ${response.status}`,
+        error: errorData.error?.message || `API request failed with status ${response.status}`,
       };
     }
 
@@ -118,9 +112,7 @@ async function verifyOpenAIKey(
  * Endpoint: POST https://api.anthropic.com/v1/messages
  * We use a minimal request to verify the key
  */
-async function verifyAnthropicKey(
-  apiKey: string,
-): Promise<{ valid: boolean; error?: string }> {
+async function verifyAnthropicKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
   try {
     // Anthropic doesn't have a simple "list models" endpoint
     // We'll make a minimal message request to verify the key
@@ -165,9 +157,7 @@ async function verifyAnthropicKey(
       const errorData = await response.json().catch(() => ({}));
       return {
         valid: false,
-        error:
-          errorData.error?.message ||
-          `API request failed with status ${response.status}`,
+        error: errorData.error?.message || `API request failed with status ${response.status}`,
       };
     }
 
@@ -185,19 +175,14 @@ async function verifyAnthropicKey(
  * Verifies Google Gemini API key by listing models
  * Endpoint: GET https://generativelanguage.googleapis.com/v1/models?key={API_KEY}
  */
-async function verifyGoogleKey(
-  apiKey: string,
-): Promise<{ valid: boolean; error?: string }> {
+async function verifyGoogleKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+    });
 
     if (response.status === 400) {
       const errorData = await response.json().catch(() => ({}));
@@ -228,9 +213,7 @@ async function verifyGoogleKey(
       const errorData = await response.json().catch(() => ({}));
       return {
         valid: false,
-        error:
-          errorData.error?.message ||
-          `API request failed with status ${response.status}`,
+        error: errorData.error?.message || `API request failed with status ${response.status}`,
       };
     }
 

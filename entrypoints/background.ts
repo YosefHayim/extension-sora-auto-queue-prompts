@@ -1,4 +1,9 @@
-import type { AspectRatio, GeneratedPrompt, PresetType, PromptEditAction } from "../src/types";
+import type {
+  AspectRatio,
+  GeneratedPrompt,
+  PresetType,
+  PromptEditAction,
+} from "../src/types";
 import { log, logger } from "../src/utils/logger";
 
 import { PromptActions } from "../src/utils/promptActions";
@@ -21,7 +26,8 @@ class NetworkMonitor {
     }
   > = new Map();
 
-  private readonly DATADOG_PATTERN = "https://browser-intake-datadoghq.com/api/v2/rum";
+  private readonly DATADOG_PATTERN =
+    "https://browser-intake-datadoghq.com/api/v2/rum";
   private readonly SILENCE_THRESHOLD = 30000; // 30 seconds
   private readonly CHECK_INTERVAL = 5000; // Check every 5 seconds
 
@@ -42,7 +48,7 @@ class NetworkMonitor {
           this.handleRequest(details.tabId);
         }
       },
-      { urls: ["https://browser-intake-datadoghq.com/*"] }
+      { urls: ["https://browser-intake-datadoghq.com/*"] },
     );
   }
 
@@ -50,14 +56,21 @@ class NetworkMonitor {
     const monitored = this.monitoredTabs.get(tabId);
     if (monitored) {
       monitored.lastRequestTime = Date.now();
-      logger.debug("networkMonitor", `DataDog request detected for tab ${tabId}`, {
-        lastRequestTime: new Date(monitored.lastRequestTime).toISOString(),
-      });
+      logger.debug(
+        "networkMonitor",
+        `DataDog request detected for tab ${tabId}`,
+        {
+          lastRequestTime: new Date(monitored.lastRequestTime).toISOString(),
+        },
+      );
     }
   }
 
   startMonitoring(tabId: number, onComplete: () => void) {
-    logger.info("networkMonitor", `Starting network monitoring for tab ${tabId}`);
+    logger.info(
+      "networkMonitor",
+      `Starting network monitoring for tab ${tabId}`,
+    );
 
     // Clear any existing monitoring for this tab
     this.stopMonitoring(tabId);
@@ -86,7 +99,10 @@ class NetworkMonitor {
     });
 
     if (timeSinceLastRequest >= this.SILENCE_THRESHOLD) {
-      logger.info("networkMonitor", `Generation completed for tab ${tabId} - no requests for 30s`);
+      logger.info(
+        "networkMonitor",
+        `Generation completed for tab ${tabId} - no requests for 30s`,
+      );
       this.stopMonitoring(tabId);
       monitored.onComplete();
     }
@@ -95,7 +111,10 @@ class NetworkMonitor {
   stopMonitoring(tabId: number) {
     const monitored = this.monitoredTabs.get(tabId);
     if (monitored) {
-      logger.info("networkMonitor", `Stopping network monitoring for tab ${tabId}`);
+      logger.info(
+        "networkMonitor",
+        `Stopping network monitoring for tab ${tabId}`,
+      );
       if (monitored.checkInterval !== null) {
         clearInterval(monitored.checkInterval as unknown as number);
       }
@@ -140,15 +159,19 @@ export default defineBackground(() => {
 
         // Set title for hover tooltip
         const statusText =
-          remaining > 0 ?
-            `Queue running: ${processedCount}/${totalCount} processed, ${remaining} remaining`
-          : `Queue running: ${processedCount}/${totalCount} processed`;
-        await chrome.action.setTitle({ title: `Sora Auto Queue - ${statusText}` });
+          remaining > 0
+            ? `Queue running: ${processedCount}/${totalCount} processed, ${remaining} remaining`
+            : `Queue running: ${processedCount}/${totalCount} processed`;
+        await chrome.action.setTitle({
+          title: `Sora Auto Queue - ${statusText}`,
+        });
       } else if (queueState.isRunning && queueState.isPaused) {
         // Queue is paused - show yellow badge
         await chrome.action.setBadgeText({ text: "⏸" });
         await chrome.action.setBadgeBackgroundColor({ color: "#eab308" }); // yellow-500
-        await chrome.action.setTitle({ title: "Sora Auto Queue - Queue is paused" });
+        await chrome.action.setTitle({
+          title: "Sora Auto Queue - Queue is paused",
+        });
       } else {
         // Queue is stopped - clear badge
         await chrome.action.setBadgeText({ text: "" });
@@ -177,12 +200,18 @@ export default defineBackground(() => {
           await storage.updatePrompt(prompt.id, { status: "pending" });
         }
 
-        logger.info("queue", `Successfully recovered ${stalePrompts.length} prompts to pending status`);
+        logger.info(
+          "queue",
+          `Successfully recovered ${stalePrompts.length} prompts to pending status`,
+        );
       } else {
         logger.debug("queue", "No stale prompts found - queue is clean");
       }
     } catch (error) {
-      log.extension.error("recoverStalePrompts", error instanceof Error ? error : new Error("Unknown error"));
+      log.extension.error(
+        "recoverStalePrompts",
+        error instanceof Error ? error : new Error("Unknown error"),
+      );
     }
   }
 
@@ -221,7 +250,9 @@ export default defineBackground(() => {
   // Handle messages from popup and content scripts
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const handler = async () => {
-      logger.debug("background", `Message received: ${request.action}`, { data: request.data });
+      logger.debug("background", `Message received: ${request.action}`, {
+        data: request.data,
+      });
 
       try {
         switch (request.action) {
@@ -270,7 +301,10 @@ export default defineBackground(() => {
             return await handleEnhancePrompt(request.data);
 
           case "getLogs":
-            return { success: true, logs: await logger.getLogs(request.filter) };
+            return {
+              success: true,
+              logs: await logger.getLogs(request.filter),
+            };
 
           case "clearLogs":
             await logger.clearLogs();
@@ -302,11 +336,16 @@ export default defineBackground(() => {
             return { success: true };
 
           case "startNetworkMonitoring":
-            return await handleStartNetworkMonitoring(request.tabId, sender.tab?.id);
+            return await handleStartNetworkMonitoring(
+              request.tabId,
+              sender.tab?.id,
+            );
 
           case "stopNetworkMonitoring":
             if (networkMonitor) {
-              networkMonitor.stopMonitoring(request.tabId || sender.tab?.id || 0);
+              networkMonitor.stopMonitoring(
+                request.tabId || sender.tab?.id || 0,
+              );
             }
             return { success: true };
 
@@ -331,7 +370,10 @@ export default defineBackground(() => {
     return true; // Will respond asynchronously
   });
 
-  async function handleStartNetworkMonitoring(requestTabId: number | undefined, senderTabId: number | undefined) {
+  async function handleStartNetworkMonitoring(
+    requestTabId: number | undefined,
+    senderTabId: number | undefined,
+  ) {
     const tabId = requestTabId || senderTabId;
 
     if (!tabId) {
@@ -348,10 +390,17 @@ export default defineBackground(() => {
           await chrome.tabs.sendMessage(tabId, {
             action: "generationComplete",
           });
-          logger.info("background", `Notified tab ${tabId} that generation is complete`);
+          logger.info(
+            "background",
+            `Notified tab ${tabId} that generation is complete`,
+          );
           resolve({ success: true });
         } catch (error) {
-          logger.error("background", `Failed to notify tab ${tabId} of completion`, { error });
+          logger.error(
+            "background",
+            `Failed to notify tab ${tabId} of completion`,
+            { error },
+          );
           resolve({ success: false });
         }
       });
@@ -370,7 +419,10 @@ export default defineBackground(() => {
     variations?: number;
     preset?: string;
   }) {
-    logger.info("background", "Generating prompts", { count: data.count, mediaType: data.mediaType });
+    logger.info("background", "Generating prompts", {
+      count: data.count,
+      mediaType: data.mediaType,
+    });
 
     const config = await storage.getConfig();
     const generator = new PromptGenerator(config.apiKey, config.apiProvider);
@@ -405,7 +457,9 @@ export default defineBackground(() => {
       return { success: true, count: prompts.length };
     }
 
-    logger.error("background", "Failed to generate prompts", { error: result.error });
+    logger.error("background", "Failed to generate prompts", {
+      error: result.error,
+    });
     return { success: false, error: result.error };
   }
 
@@ -455,10 +509,16 @@ export default defineBackground(() => {
     const allPrompts = await storage.getPrompts();
     const pendingPrompts = allPrompts.filter((p) => p.status === "pending");
 
-    if (queueState.isRunning && !queueState.isPaused && pendingPrompts.length > 0) {
+    if (
+      queueState.isRunning &&
+      !queueState.isPaused &&
+      pendingPrompts.length > 0
+    ) {
       // Recalculate processed count based on actual prompt statuses
       const allPrompts = await storage.getPrompts();
-      const completedCount = allPrompts.filter((p) => p.status === "completed" || p.status === "failed").length;
+      const completedCount = allPrompts.filter(
+        (p) => p.status === "completed" || p.status === "failed",
+      ).length;
       await storage.setQueueState({ processedCount: completedCount });
       await updateExtensionBadge();
 
@@ -466,7 +526,8 @@ export default defineBackground(() => {
       const config = await storage.getConfig();
       const minDelay = config.minDelayMs || 2000;
       const maxDelay = config.maxDelayMs || 5000;
-      const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+      const delay =
+        Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
       // Schedule next prompt processing
       setTimeout(async () => {
@@ -476,7 +537,9 @@ export default defineBackground(() => {
       // All prompts completed, stop queue and reset timer
       // Recalculate final count before stopping
       const allPrompts = await storage.getPrompts();
-      const finalProcessedCount = allPrompts.filter((p) => p.status === "completed" || p.status === "failed").length;
+      const finalProcessedCount = allPrompts.filter(
+        (p) => p.status === "completed" || p.status === "failed",
+      ).length;
       await storage.setQueueState({ processedCount: finalProcessedCount });
       await queueProcessor.stopQueue();
       await updateExtensionBadge();
@@ -486,15 +549,22 @@ export default defineBackground(() => {
   }
 
   async function handlePromptAction(action: PromptEditAction) {
-    logger.info("background", `Prompt action: ${action.type}`, { promptId: action.promptId });
+    logger.info("background", `Prompt action: ${action.type}`, {
+      promptId: action.promptId,
+    });
 
     const config = await storage.getConfig();
 
     // Check if API key is required for this action type
     const apiKeyRequired = ["refine", "generate-similar"].includes(action.type);
     if (apiKeyRequired && !config.apiKey) {
-      const errorMsg = "API key is required for this action. Please configure it in Settings.";
-      logger.error("background", `Prompt action ${action.type} failed - no API key`, { promptId: action.promptId });
+      const errorMsg =
+        "API key is required for this action. Please configure it in Settings.";
+      logger.error(
+        "background",
+        `Prompt action ${action.type} failed - no API key`,
+        { promptId: action.promptId },
+      );
       return {
         success: false,
         error: errorMsg,
@@ -506,16 +576,26 @@ export default defineBackground(() => {
     const result = await promptActions.executeAction(action);
 
     if (result.success) {
-      logger.info("background", `Prompt action ${action.type} completed`, { promptId: action.promptId });
+      logger.info("background", `Prompt action ${action.type} completed`, {
+        promptId: action.promptId,
+      });
     } else {
-      logger.error("background", `Prompt action ${action.type} failed`, { promptId: action.promptId, error: result.error });
+      logger.error("background", `Prompt action ${action.type} failed`, {
+        promptId: action.promptId,
+        error: result.error,
+      });
     }
 
     return result;
   }
 
-  async function handleEnhancePrompt(data: { text: string; mediaType: "video" | "image" }) {
-    logger.info("background", "Enhancing prompt", { mediaType: data.mediaType });
+  async function handleEnhancePrompt(data: {
+    text: string;
+    mediaType: "video" | "image";
+  }) {
+    logger.info("background", "Enhancing prompt", {
+      mediaType: data.mediaType,
+    });
 
     const config = await storage.getConfig();
     const generator = new PromptGenerator(config.apiKey, config.apiProvider);
@@ -525,7 +605,9 @@ export default defineBackground(() => {
     if (result.success) {
       logger.info("background", "Prompt enhanced successfully");
     } else {
-      logger.error("background", "Failed to enhance prompt", { error: result.error });
+      logger.error("background", "Failed to enhance prompt", {
+        error: result.error,
+      });
     }
 
     return result;
@@ -566,7 +648,9 @@ export default defineBackground(() => {
       await queueProcessor["ensureContentScriptLoaded"](soraTab.id);
 
       // Send detectSettings message
-      const response = await chrome.tabs.sendMessage(soraTab.id, { action: "detectSettings" });
+      const response = await chrome.tabs.sendMessage(soraTab.id, {
+        action: "detectSettings",
+      });
 
       if (response && response.success !== undefined) {
         logger.info("background", "Settings detected", response);
@@ -594,7 +678,9 @@ export default defineBackground(() => {
 
   async function handleNavigateToPrompt(promptText: string) {
     try {
-      logger.info("background", "Navigating to prompt", { promptLength: promptText.length });
+      logger.info("background", "Navigating to prompt", {
+        promptLength: promptText.length,
+      });
 
       // Find the Sora tab
       let tabs = await chrome.tabs.query({ url: "*://sora.com/*" });
@@ -603,7 +689,10 @@ export default defineBackground(() => {
       }
 
       if (tabs.length === 0) {
-        return { success: false, error: "No Sora tab found. Please open sora.com in a browser tab." };
+        return {
+          success: false,
+          error: "No Sora tab found. Please open sora.com in a browser tab.",
+        };
       }
 
       const soraTab = tabs[0];
@@ -628,11 +717,18 @@ export default defineBackground(() => {
           logger.info("background", "Successfully navigated to prompt");
           return { success: true };
         } else {
-          logger.warn("background", "Content script navigation failed", { error: response?.error });
-          return { success: false, error: response?.error || "Failed to navigate to prompt" };
+          logger.warn("background", "Content script navigation failed", {
+            error: response?.error,
+          });
+          return {
+            success: false,
+            error: response?.error || "Failed to navigate to prompt",
+          };
         }
       } catch (error) {
-        logger.error("background", "Failed to send navigate message", { error });
+        logger.error("background", "Failed to send navigate message", {
+          error,
+        });
         // Try to inject content script if not loaded
         const manifest = chrome.runtime.getManifest();
         const contentScripts = manifest.content_scripts || [];
@@ -650,14 +746,21 @@ export default defineBackground(() => {
               action: "navigateToPrompt",
               promptText: promptText,
             });
-            return retryResponse || { success: false, error: "Content script not responding" };
+            return (
+              retryResponse || {
+                success: false,
+                error: "Content script not responding",
+              }
+            );
           }
         }
         return { success: false, error: "Content script not loaded" };
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      logger.error("background", "Navigate to prompt failed", { error: errorMsg });
+      logger.error("background", "Navigate to prompt failed", {
+        error: errorMsg,
+      });
       return { success: false, error: errorMsg };
     }
   }

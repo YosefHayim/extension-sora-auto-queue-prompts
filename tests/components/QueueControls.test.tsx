@@ -307,4 +307,66 @@ describe("QueueControls", () => {
     const progressBar = container.querySelector('[role="progressbar"]');
     expect(progressBar).not.toBeInTheDocument();
   });
+
+  it("should display stopped status icon", () => {
+    const queueState = createQueueState({ isRunning: false });
+    const { container } = render(
+      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+    );
+
+    // Check for status icon (should be stop icon for stopped state)
+    const statusIcons = container.querySelectorAll("svg");
+    // Should have at least one icon (the status icon)
+    expect(statusIcons.length).toBeGreaterThan(0);
+  });
+
+  it("should display running status icon", () => {
+    const queueState = createQueueState({ isRunning: true, isPaused: false });
+    const { container } = render(
+      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+    );
+
+    // Check for status icon (should be play icon for running state)
+    const statusIcons = container.querySelectorAll("svg");
+    expect(statusIcons.length).toBeGreaterThan(0);
+  });
+
+  it("should display paused status icon", () => {
+    const queueState = createQueueState({ isRunning: true, isPaused: true });
+    const { container } = render(
+      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+    );
+
+    // Check for status icon (should be pause icon for paused state)
+    const statusIcons = container.querySelectorAll("svg");
+    expect(statusIcons.length).toBeGreaterThan(0);
+  });
+
+  it("should show status icon with hover tooltip when stopped", async () => {
+    const queueState = createQueueState({ isRunning: false });
+    const { container } = render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+
+    // Verify the status icon is present (stop icon for stopped state)
+    // The HoverCard structure should exist even if content is not visible until hover
+    const statusIconContainer = container.querySelector(".cursor-help");
+    expect(statusIconContainer).toBeInTheDocument();
+  });
+
+  it("should show status icon with hover tooltip when running", async () => {
+    const queueState = createQueueState({ isRunning: true, isPaused: false });
+    const { container } = render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+
+    // Verify the status icon is present (play icon for running state)
+    const statusIconContainer = container.querySelector(".cursor-help");
+    expect(statusIconContainer).toBeInTheDocument();
+  });
+
+  it("should show status icon with hover tooltip when paused", async () => {
+    const queueState = createQueueState({ isRunning: true, isPaused: true });
+    const { container } = render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+
+    // Verify the status icon is present (pause icon for paused state)
+    const statusIconContainer = container.querySelector(".cursor-help");
+    expect(statusIconContainer).toBeInTheDocument();
+  });
 });

@@ -52,9 +52,14 @@ export const storage = {
     });
   },
 
-  async updatePrompt(id: string, updates: Partial<GeneratedPrompt>): Promise<void> {
+  async updatePrompt(
+    id: string,
+    updates: Partial<GeneratedPrompt>,
+  ): Promise<void> {
     const prompts = await this.getPrompts();
-    const updatedPrompts = prompts.map((p) => (p.id === id ? { ...p, ...updates } : p));
+    const updatedPrompts = prompts.map((p) =>
+      p.id === id ? { ...p, ...updates } : p,
+    );
     await chrome.storage.local.set({ prompts: updatedPrompts });
   },
 
@@ -95,16 +100,22 @@ export const storage = {
 
   async deleteCompletedAndFailed(): Promise<number> {
     const prompts = await this.getPrompts();
-    const filtered = prompts.filter((p) => p.status !== "completed" && p.status !== "failed");
+    const filtered = prompts.filter(
+      (p) => p.status !== "completed" && p.status !== "failed",
+    );
     const deletedCount = prompts.length - filtered.length;
     await chrome.storage.local.set({ prompts: filtered });
 
     // Recalculate processed count after deletion
     const queueState = await this.getQueueState();
-    const newProcessedCount = Math.max(0, queueState.processedCount - deletedCount);
+    const newProcessedCount = Math.max(
+      0,
+      queueState.processedCount - deletedCount,
+    );
     await this.setQueueState({
       processedCount: newProcessedCount,
-      currentPromptId: filtered.length === 0 ? null : queueState.currentPromptId,
+      currentPromptId:
+        filtered.length === 0 ? null : queueState.currentPromptId,
     });
 
     return deletedCount;

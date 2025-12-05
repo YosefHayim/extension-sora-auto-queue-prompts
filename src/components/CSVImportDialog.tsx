@@ -1,10 +1,18 @@
-import * as React from 'react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { FaTimes, FaUpload, FaFileAlt, FaDownload, FaSpinner } from 'react-icons/fa';
-import { CSVParser } from '../utils/csvParser';
-import { log } from '../utils/logger';
-import type { GeneratedPrompt, PromptConfig } from '../types';
+import * as React from "react";
+
+import {
+  FaDownload,
+  FaFileAlt,
+  FaSpinner,
+  FaTimes,
+  FaUpload,
+} from "react-icons/fa";
+import type { GeneratedPrompt, PromptConfig } from "../types";
+
+import { Button } from "./ui/button";
+import { CSVParser } from "../utils/csvParser";
+import { Card } from "./ui/card";
+import { log } from "../utils/logger";
 
 interface CSVImportDialogProps {
   config: PromptConfig;
@@ -13,10 +21,15 @@ interface CSVImportDialogProps {
   onImport: (prompts: GeneratedPrompt[]) => Promise<void>;
 }
 
-export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImportDialogProps) {
+export function CSVImportDialog({
+  config,
+  isOpen,
+  onClose,
+  onImport,
+}: CSVImportDialogProps) {
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const [success, setSuccess] = React.useState('');
+  const [error, setError] = React.useState("");
+  const [success, setSuccess] = React.useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -26,22 +39,25 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
     if (!file) return;
 
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
-      log.ui.action('CSVImportDialog:Import', { fileName: file.name, fileSize: file.size });
+      log.ui.action("CSVImportDialog:Import", {
+        fileName: file.name,
+        fileSize: file.size,
+      });
 
       const result = await CSVParser.parseFile(file);
 
       if (result.success) {
-        const { generateUniqueId } = await import('../lib/utils');
+        const { generateUniqueId } = await import("../lib/utils");
         const newPrompts: GeneratedPrompt[] = result.rows.map((row) => ({
           id: generateUniqueId(),
           text: row.prompt,
           timestamp: Date.now(),
-          status: 'pending' as const,
-          mediaType: row.type || config.mediaType || 'video',
+          status: "pending" as const,
+          mediaType: row.type || config.mediaType || "video",
           aspectRatio: row.aspectRatio,
           variations: row.variations || config.variationCount || 2,
           preset: row.preset,
@@ -49,37 +65,38 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
 
         await onImport(newPrompts);
         setSuccess(`Successfully imported ${newPrompts.length} prompts!`);
-        log.ui.action('CSVImportDialog:Success', { count: newPrompts.length });
+        log.ui.action("CSVImportDialog:Success", { count: newPrompts.length });
 
         // Close dialog after 1.5 seconds
         setTimeout(() => {
           onClose();
         }, 1500);
       } else {
-        setError(result.error || 'Failed to parse CSV file');
-        log.ui.error('CSVImportDialog:Parse', result.error);
+        setError(result.error || "Failed to parse CSV file");
+        log.ui.error("CSVImportDialog:Parse", result.error);
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to import CSV';
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to import CSV";
       setError(errorMsg);
-      log.ui.error('CSVImportDialog:Import', err);
+      log.ui.error("CSVImportDialog:Import", err);
     } finally {
       setLoading(false);
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   }
 
   function handleDownloadTemplate() {
     try {
-      log.ui.action('CSVImportDialog:DownloadTemplate');
+      log.ui.action("CSVImportDialog:DownloadTemplate");
       CSVParser.downloadTemplate();
-      setSuccess('Template downloaded!');
-      setTimeout(() => setSuccess(''), 2000);
+      setSuccess("Template downloaded!");
+      setTimeout(() => setSuccess(""), 2000);
     } catch (err) {
-      log.ui.error('CSVImportDialog:DownloadTemplate', err);
+      log.ui.error("CSVImportDialog:DownloadTemplate", err);
     }
   }
 
@@ -108,7 +125,12 @@ export function CSVImportDialog({ config, isOpen, onClose, onImport }: CSVImport
             <FaFileAlt className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Import CSV</h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} disabled={loading}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            disabled={loading}
+          >
             <FaTimes className="h-4 w-4" />
           </Button>
         </div>

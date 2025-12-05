@@ -9,7 +9,10 @@ interface ToastComponentProps extends ToastProps {
 }
 
 const Toast = React.forwardRef<HTMLLIElement, ToastComponentProps>(
-  ({ className, title, description, variant = "default", onClose, ...props }, ref) => {
+  (
+    { className, title, description, variant = "default", onClose, ...props },
+    ref,
+  ) => {
     return (
       <li
         ref={ref}
@@ -18,7 +21,7 @@ const Toast = React.forwardRef<HTMLLIElement, ToastComponentProps>(
           variant === "default" && "border bg-background text-foreground",
           variant === "destructive" &&
             "border-destructive bg-destructive text-destructive-foreground",
-          className
+          className,
         )}
         {...props}
       >
@@ -45,9 +48,8 @@ const Toast = React.forwardRef<HTMLLIElement, ToastComponentProps>(
         </button>
       </li>
     );
-  }
+  },
 );
 Toast.displayName = "Toast";
 
 export { Toast };
-

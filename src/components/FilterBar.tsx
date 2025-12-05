@@ -14,8 +14,8 @@ import {
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
-import type { GeneratedPrompt } from "../types"
-import { cn } from "../lib/utils"
+import type { GeneratedPrompt } from "../types";
+import { cn } from "../lib/utils";
 
 type StatusFilter = "all" | "pending" | "processing" | "completed" | "failed";
 type MediaTypeFilter = "all" | "video" | "image";
@@ -31,21 +31,28 @@ interface FilterBarProps {
 }
 
 const statusConfig = {
-  all: { icon: FaList, label: "All", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
+  all: {
+    icon: FaList,
+    label: "All",
+    color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
+  },
   pending: {
     icon: FaClock,
     label: "Pending",
-    color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300",
+    color:
+      "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300",
   },
   processing: {
     icon: FaSpinner,
     label: "Processing",
-    color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
+    color:
+      "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
   },
   completed: {
     icon: FaCheckCircle,
     label: "Completed",
-    color: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
+    color:
+      "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
   },
   failed: {
     icon: FaTimesCircle,
@@ -55,7 +62,11 @@ const statusConfig = {
 };
 
 const mediaTypeConfig = {
-  all: { icon: FaTh, label: "All Types", color: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300" },
+  all: {
+    icon: FaTh,
+    label: "All Types",
+    color: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300",
+  },
   video: {
     icon: FaVideo,
     label: "Video",
@@ -64,7 +75,8 @@ const mediaTypeConfig = {
   image: {
     icon: FaImage,
     label: "Image",
-    color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
+    color:
+      "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300",
   },
 };
 
@@ -92,7 +104,15 @@ export function FilterBar({
       </div>
 
       <div className="flex gap-1">
-        {(["all", "pending", "processing", "completed", "failed"] as StatusFilter[]).map((status) => {
+        {(
+          [
+            "all",
+            "pending",
+            "processing",
+            "completed",
+            "failed",
+          ] as StatusFilter[]
+        ).map((status) => {
           const config = statusConfig[status];
           const Icon = config.icon;
           const isActive = statusFilter === status;
@@ -108,13 +128,13 @@ export function FilterBar({
                     "h-7 text-xs gap-1.5 transition-colors border",
                     isActive
                       ? config.color + " border-transparent"
-                      : "bg-background hover:bg-accent hover:text-accent-foreground border-input"
+                      : "bg-background hover:bg-accent hover:text-accent-foreground border-input",
                   )}
                 >
                   <Icon
                     className={cn(
                       "h-3.5 w-3.5",
-                      status === "processing" && isActive && "animate-spin"
+                      status === "processing" && isActive && "animate-spin",
                     )}
                   />
                   {config.label}
@@ -122,13 +142,20 @@ export function FilterBar({
               </HoverCardTrigger>
               <HoverCardContent className="w-56">
                 <div className="space-y-1">
-                  <h4 className="text-sm font-semibold">Filter: {config.label}</h4>
+                  <h4 className="text-sm font-semibold">
+                    Filter: {config.label}
+                  </h4>
                   <p className="text-xs text-muted-foreground">
-                    {status === "all" && "Show all prompts regardless of status"}
-                    {status === "pending" && "Show prompts waiting to be processed"}
-                    {status === "processing" && "Show prompts currently being generated"}
-                    {status === "completed" && "Show successfully completed prompts"}
-                    {status === "failed" && "Show prompts that failed during processing"}
+                    {status === "all" &&
+                      "Show all prompts regardless of status"}
+                    {status === "pending" &&
+                      "Show prompts waiting to be processed"}
+                    {status === "processing" &&
+                      "Show prompts currently being generated"}
+                    {status === "completed" &&
+                      "Show successfully completed prompts"}
+                    {status === "failed" &&
+                      "Show prompts that failed during processing"}
                   </p>
                 </div>
               </HoverCardContent>
@@ -154,7 +181,7 @@ export function FilterBar({
                     "h-7 text-xs gap-1.5 transition-colors border",
                     isActive
                       ? config.color + " border-transparent"
-                      : "bg-background hover:bg-accent hover:text-accent-foreground border-input"
+                      : "bg-background hover:bg-accent hover:text-accent-foreground border-input",
                   )}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -163,9 +190,12 @@ export function FilterBar({
               </HoverCardTrigger>
               <HoverCardContent className="w-56">
                 <div className="space-y-1">
-                  <h4 className="text-sm font-semibold">Filter: {config.label}</h4>
+                  <h4 className="text-sm font-semibold">
+                    Filter: {config.label}
+                  </h4>
                   <p className="text-xs text-muted-foreground">
-                    {type === "all" && "Show all prompts regardless of media type"}
+                    {type === "all" &&
+                      "Show all prompts regardless of media type"}
                     {type === "video" && "Show only video generation prompts"}
                     {type === "image" && "Show only image generation prompts"}
                   </p>
@@ -184,7 +214,12 @@ export function FilterBar({
       </Badge>
 
       {hasActiveFilters && (
-        <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearFilters}
+          className="h-7 text-xs gap-1"
+        >
           <FaTimes className="h-3 w-3" />
           Clear
         </Button>

@@ -35,7 +35,10 @@ export function recognizeApiProvider(apiKey: string): ApiProvider | null {
 /**
  * Verifies an API key by making a simple request to the provider's API
  */
-export async function verifyApiKey(apiKey: string, provider: ApiProvider): Promise<{ valid: boolean; error?: string }> {
+export async function verifyApiKey(
+  apiKey: string,
+  provider: ApiProvider,
+): Promise<{ valid: boolean; error?: string }> {
   if (!apiKey || apiKey.trim().length === 0) {
     return { valid: false, error: "API key is empty" };
   }
@@ -52,7 +55,10 @@ export async function verifyApiKey(apiKey: string, provider: ApiProvider): Promi
         return { valid: false, error: "Unknown API provider" };
     }
   } catch (error) {
-    log.api.error("verifyApiKey", { provider, error: error instanceof Error ? error.message : "Unknown error" });
+    log.api.error("verifyApiKey", {
+      provider,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     return {
       valid: false,
       error: error instanceof Error ? error.message : "Verification failed",
@@ -64,7 +70,9 @@ export async function verifyApiKey(apiKey: string, provider: ApiProvider): Promi
  * Verifies OpenAI API key by listing models
  * Endpoint: GET https://api.openai.com/v1/models
  */
-async function verifyOpenAIKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
+async function verifyOpenAIKey(
+  apiKey: string,
+): Promise<{ valid: boolean; error?: string }> {
   try {
     const response = await fetch("https://api.openai.com/v1/models", {
       method: "GET",
@@ -79,14 +87,19 @@ async function verifyOpenAIKey(apiKey: string): Promise<{ valid: boolean; error?
     }
 
     if (response.status === 429) {
-      return { valid: false, error: "Rate limit exceeded. Please try again later." };
+      return {
+        valid: false,
+        error: "Rate limit exceeded. Please try again later.",
+      };
     }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       return {
         valid: false,
-        error: errorData.error?.message || `API request failed with status ${response.status}`,
+        error:
+          errorData.error?.message ||
+          `API request failed with status ${response.status}`,
       };
     }
 
@@ -105,7 +118,9 @@ async function verifyOpenAIKey(apiKey: string): Promise<{ valid: boolean; error?
  * Endpoint: POST https://api.anthropic.com/v1/messages
  * We use a minimal request to verify the key
  */
-async function verifyAnthropicKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
+async function verifyAnthropicKey(
+  apiKey: string,
+): Promise<{ valid: boolean; error?: string }> {
   try {
     // Anthropic doesn't have a simple "list models" endpoint
     // We'll make a minimal message request to verify the key
@@ -133,18 +148,26 @@ async function verifyAnthropicKey(apiKey: string): Promise<{ valid: boolean; err
     }
 
     if (response.status === 403) {
-      return { valid: false, error: "API key does not have required permissions" };
+      return {
+        valid: false,
+        error: "API key does not have required permissions",
+      };
     }
 
     if (response.status === 429) {
-      return { valid: false, error: "Rate limit exceeded. Please try again later." };
+      return {
+        valid: false,
+        error: "Rate limit exceeded. Please try again later.",
+      };
     }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       return {
         valid: false,
-        error: errorData.error?.message || `API request failed with status ${response.status}`,
+        error:
+          errorData.error?.message ||
+          `API request failed with status ${response.status}`,
       };
     }
 
@@ -162,14 +185,19 @@ async function verifyAnthropicKey(apiKey: string): Promise<{ valid: boolean; err
  * Verifies Google Gemini API key by listing models
  * Endpoint: GET https://generativelanguage.googleapis.com/v1/models?key={API_KEY}
  */
-async function verifyGoogleKey(apiKey: string): Promise<{ valid: boolean; error?: string }> {
+async function verifyGoogleKey(
+  apiKey: string,
+): Promise<{ valid: boolean; error?: string }> {
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
     if (response.status === 400) {
       const errorData = await response.json().catch(() => ({}));
@@ -183,18 +211,26 @@ async function verifyGoogleKey(apiKey: string): Promise<{ valid: boolean; error?
     }
 
     if (response.status === 403) {
-      return { valid: false, error: "API key does not have required permissions" };
+      return {
+        valid: false,
+        error: "API key does not have required permissions",
+      };
     }
 
     if (response.status === 429) {
-      return { valid: false, error: "Rate limit exceeded. Please try again later." };
+      return {
+        valid: false,
+        error: "Rate limit exceeded. Please try again later.",
+      };
     }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       return {
         valid: false,
-        error: errorData.error?.message || `API request failed with status ${response.status}`,
+        error:
+          errorData.error?.message ||
+          `API request failed with status ${response.status}`,
       };
     }
 

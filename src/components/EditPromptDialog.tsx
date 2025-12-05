@@ -16,7 +16,12 @@ interface EditPromptDialogProps {
   onSave: (id: string, newText: string) => Promise<void>;
 }
 
-export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPromptDialogProps) {
+export function EditPromptDialog({
+  prompt,
+  isOpen,
+  onClose,
+  onSave,
+}: EditPromptDialogProps) {
   const [editedText, setEditedText] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -64,7 +69,8 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
 
       onClose();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to edit prompt";
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to edit prompt";
       setError(errorMsg);
       log.ui.error("EditPromptDialog:Submit", err);
     } finally {
@@ -86,15 +92,26 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={handleBackdropClick}>
-      <Card className="w-full max-w-2xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={handleBackdropClick}
+    >
+      <Card
+        className="w-full max-w-2xl p-6 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FaEdit className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Edit Prompt</h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleCancel} disabled={loading}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCancel}
+            disabled={loading}
+          >
             <FaTimes className="h-4 w-4" />
           </Button>
         </div>
@@ -109,7 +126,8 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
           </div>
           {prompt.aspectRatio && (
             <div>
-              <span className="font-medium">Aspect Ratio:</span> {prompt.aspectRatio}
+              <span className="font-medium">Aspect Ratio:</span>{" "}
+              {prompt.aspectRatio}
             </div>
           )}
         </div>
@@ -130,28 +148,47 @@ export function EditPromptDialog({ prompt, isOpen, onClose, onSave }: EditPrompt
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>
-                {editedText.length} character{editedText.length === 1 ? "" : "s"}
+                {editedText.length} character
+                {editedText.length === 1 ? "" : "s"}
               </span>
-              {hasChanges && <span className="text-amber-600 dark:text-amber-400">Unsaved changes</span>}
+              {hasChanges && (
+                <span className="text-amber-600 dark:text-amber-400">
+                  Unsaved changes
+                </span>
+              )}
             </div>
           </div>
 
-          {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
+          {error && (
+            <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">
+              {error}
+            </div>
+          )}
 
           <div className="flex gap-2">
-            <Button type="submit" className="flex-1" disabled={loading || !isValid || !hasChanges}>
-              {loading ?
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={loading || !isValid || !hasChanges}
+            >
+              {loading ? (
                 <>
                   <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
                   Saving...
                 </>
-              : <>
+              ) : (
+                <>
                   <FaEdit className="h-4 w-4 mr-2" />
                   Save Changes
                 </>
-              }
+              )}
             </Button>
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={loading}
+            >
               Cancel
             </Button>
           </div>

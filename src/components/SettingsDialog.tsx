@@ -1,8 +1,19 @@
 import * as React from "react";
 
 import type { ApiProvider, DetectedSettings, PromptConfig } from "../types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import {
   FaBrain,
   FaCheckCircle,
@@ -39,14 +50,25 @@ interface SettingsDialogProps {
   showOnly?: "api" | "generation" | "all";
 }
 
-export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettings, showOnly = "all" }: SettingsDialogProps) {
+export function SettingsDialog({
+  config,
+  isOpen,
+  onClose,
+  onSave,
+  detectedSettings,
+  showOnly = "all",
+}: SettingsDialogProps) {
   const [formData, setFormData] = React.useState<PromptConfig>(config);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
   const [verifying, setVerifying] = React.useState(false);
-  const [verificationStatus, setVerificationStatus] = React.useState<{ valid: boolean; error?: string } | null>(null);
-  const [detectedProvider, setDetectedProvider] = React.useState<ApiProvider | null>(null);
+  const [verificationStatus, setVerificationStatus] = React.useState<{
+    valid: boolean;
+    error?: string;
+  } | null>(null);
+  const [detectedProvider, setDetectedProvider] =
+    React.useState<ApiProvider | null>(null);
   const { toast } = useToast();
 
   // Update form data when dialog opens or detected settings change
@@ -120,7 +142,10 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
 
     const provider = formData.apiProvider || detectedProvider;
     if (!provider) {
-      setVerificationStatus({ valid: false, error: "Please select an API provider" });
+      setVerificationStatus({
+        valid: false,
+        error: "Please select an API provider",
+      });
       return;
     }
 
@@ -155,7 +180,8 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
         log.ui.error("SettingsDialog:AutoVerifyApiKey:Failed", result.error);
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Verification failed";
+      const errorMsg =
+        err instanceof Error ? err.message : "Verification failed";
       setVerificationStatus({ valid: false, error: errorMsg });
       setError(errorMsg);
       log.ui.error("SettingsDialog:AutoVerifyApiKey", err);
@@ -179,7 +205,10 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
         return;
       }
 
-      if (formData.maxDelayMs < formData.minDelayMs || formData.maxDelayMs > 60000) {
+      if (
+        formData.maxDelayMs < formData.minDelayMs ||
+        formData.maxDelayMs > 60000
+      ) {
         setError("Max delay must be >= min delay and <= 60 seconds");
         setLoading(false);
         return;
@@ -207,7 +236,8 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
         onClose();
       }, 1000);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to save settings";
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to save settings";
       setError(errorMsg);
       log.ui.error("SettingsDialog:Save", err);
     } finally {
@@ -266,7 +296,12 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
 
   const content = (
     <Card
-      className={cn("w-full", isDialogMode ? "p-6 max-w-2xl my-auto max-h-[90vh] overflow-y-auto" : "p-0 border-0 shadow-none")}
+      className={cn(
+        "w-full",
+        isDialogMode
+          ? "p-6 max-w-2xl my-auto max-h-[90vh] overflow-y-auto"
+          : "p-0 border-0 shadow-none",
+      )}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header - only show in dialog mode */}
@@ -276,7 +311,12 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
             <FaCog className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Settings</h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} disabled={loading}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            disabled={loading}
+          >
             <FaTimes className="h-4 w-4" />
           </Button>
         </div>
@@ -286,14 +326,17 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* API Configuration */}
         {(showOnly === "all" || showOnly === "api") &&
-          (showOnly === "all" ?
+          (showOnly === "all" ? (
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <FaKey className="h-4 w-4 text-primary" />
                   <CardTitle className="text-base">API Configuration</CardTitle>
                 </div>
-                <CardDescription>Configure your AI API settings for prompt generation (OpenAI, Anthropic, or Google)</CardDescription>
+                <CardDescription>
+                  Configure your AI API settings for prompt generation (OpenAI,
+                  Anthropic, or Google)
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -307,7 +350,12 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                       onChange={(e) => handleChange("apiKey", e.target.value)}
                       onBlur={handleApiKeyBlur}
                       disabled={loading || verifying}
-                      className={cn("flex-1 pr-10", verificationStatus && !verificationStatus.valid && "border-destructive")}
+                      className={cn(
+                        "flex-1 pr-10",
+                        verificationStatus &&
+                          !verificationStatus.valid &&
+                          "border-destructive",
+                      )}
                     />
                     {verifying && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -316,9 +364,11 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     )}
                     {verificationStatus && !verifying && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {verificationStatus.valid ?
+                        {verificationStatus.valid ? (
                           <FaCheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        : <FaExclamationCircle className="h-4 w-4 text-destructive" />}
+                        ) : (
+                          <FaExclamationCircle className="h-4 w-4 text-destructive" />
+                        )}
                       </div>
                     )}
                   </div>
@@ -334,7 +384,10 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                   {verificationStatus && !verificationStatus.valid && (
                     <div className="flex items-center gap-2 text-xs p-2 rounded-md bg-destructive/10 text-destructive">
                       <FaExclamationCircle className="h-3 w-3" />
-                      <span>{verificationStatus.error || "API key verification failed. Please check your key and try again."}</span>
+                      <span>
+                        {verificationStatus.error ||
+                          "API key verification failed. Please check your key and try again."}
+                      </span>
                     </div>
                   )}
                   {verificationStatus && verificationStatus.valid && (
@@ -344,7 +397,9 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     </div>
                   )}
                   <div className="flex flex-col gap-1">
-                    <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
+                    <p className="text-xs text-muted-foreground">
+                      Your API key is stored locally and never shared
+                    </p>
                     {formData.apiProvider && (
                       <a
                         href={getProviderApiKeyUrl(formData.apiProvider)}
@@ -352,7 +407,9 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                         rel="noopener noreferrer"
                         className="text-xs text-primary hover:underline flex items-center gap-1.5"
                       >
-                        Get your API key from {getProviderIcon(formData.apiProvider)} {getProviderDisplayName(formData.apiProvider)} →
+                        Get your API key from{" "}
+                        {getProviderIcon(formData.apiProvider)}{" "}
+                        {getProviderDisplayName(formData.apiProvider)} →
                       </a>
                     )}
                   </div>
@@ -362,31 +419,43 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                   <Label htmlFor="apiProvider">API Provider</Label>
                   <div className="relative">
                     {formData.apiProvider && (
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">{getProviderIcon(formData.apiProvider)}</div>
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        {getProviderIcon(formData.apiProvider)}
+                      </div>
                     )}
                     <select
                       id="apiProvider"
                       value={formData.apiProvider || ""}
-                      onChange={(e) => handleChange("apiProvider", (e.target.value as ApiProvider) || undefined)}
+                      onChange={(e) =>
+                        handleChange(
+                          "apiProvider",
+                          (e.target.value as ApiProvider) || undefined,
+                        )
+                      }
                       disabled={loading || verifying}
                       className={cn(
                         "flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 border-input bg-background",
-                        formData.apiProvider && "pl-9"
+                        formData.apiProvider && "pl-9",
                       )}
                     >
-                      <option value="">Select provider (or auto-detect from key)</option>
+                      <option value="">
+                        Select provider (or auto-detect from key)
+                      </option>
                       <option value="openai">OpenAI (ChatGPT)</option>
                       <option value="anthropic">Anthropic (Claude)</option>
                       <option value="google">Google (Gemini)</option>
                     </select>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {detectedProvider ?
+                    {detectedProvider ? (
                       <span className="flex items-center gap-1.5">
-                        Auto-detected as {getProviderIcon(detectedProvider)} {getProviderDisplayName(detectedProvider)}. You can override by selecting a
-                        different provider.
+                        Auto-detected as {getProviderIcon(detectedProvider)}{" "}
+                        {getProviderDisplayName(detectedProvider)}. You can
+                        override by selecting a different provider.
                       </span>
-                    : "If the API key pattern isn't recognized, please select the provider manually."}
+                    ) : (
+                      "If the API key pattern isn't recognized, please select the provider manually."
+                    )}
                   </p>
                 </div>
 
@@ -396,22 +465,31 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     id="contextPrompt"
                     placeholder="e.g., Create cinematic shots of nature landscapes"
                     value={formData.contextPrompt}
-                    onChange={(e) => handleChange("contextPrompt", e.target.value)}
+                    onChange={(e) =>
+                      handleChange("contextPrompt", e.target.value)
+                    }
                     disabled={loading}
                     rows={3}
                     className="resize-none"
                   />
-                  <p className="text-xs text-muted-foreground">This prompt will be used as the base context for all generated prompts</p>
+                  <p className="text-xs text-muted-foreground">
+                    This prompt will be used as the base context for all
+                    generated prompts
+                  </p>
                 </div>
               </CardContent>
             </Card>
-          : <div className="space-y-4">
+          ) : (
+            <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <FaKey className="h-4 w-4 text-primary" />
                   <h3 className="text-base font-semibold">API Configuration</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">Configure your AI API settings for prompt generation (OpenAI, Anthropic, or Google)</p>
+                <p className="text-sm text-muted-foreground">
+                  Configure your AI API settings for prompt generation (OpenAI,
+                  Anthropic, or Google)
+                </p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -425,7 +503,12 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                       onChange={(e) => handleChange("apiKey", e.target.value)}
                       onBlur={handleApiKeyBlur}
                       disabled={loading || verifying}
-                      className={cn("flex-1 pr-10", verificationStatus && !verificationStatus.valid && "border-destructive")}
+                      className={cn(
+                        "flex-1 pr-10",
+                        verificationStatus &&
+                          !verificationStatus.valid &&
+                          "border-destructive",
+                      )}
                     />
                     {verifying && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -434,9 +517,11 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     )}
                     {verificationStatus && !verifying && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {verificationStatus.valid ?
+                        {verificationStatus.valid ? (
                           <FaCheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        : <FaExclamationCircle className="h-4 w-4 text-destructive" />}
+                        ) : (
+                          <FaExclamationCircle className="h-4 w-4 text-destructive" />
+                        )}
                       </div>
                     )}
                   </div>
@@ -452,7 +537,10 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                   {verificationStatus && !verificationStatus.valid && (
                     <div className="flex items-center gap-2 text-xs p-2 rounded-md bg-destructive/10 text-destructive">
                       <FaExclamationCircle className="h-3 w-3" />
-                      <span>{verificationStatus.error || "API key verification failed. Please check your key and try again."}</span>
+                      <span>
+                        {verificationStatus.error ||
+                          "API key verification failed. Please check your key and try again."}
+                      </span>
                     </div>
                   )}
                   {verificationStatus && verificationStatus.valid && (
@@ -462,7 +550,9 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     </div>
                   )}
                   <div className="flex flex-col gap-1">
-                    <p className="text-xs text-muted-foreground">Your API key is stored locally and never shared</p>
+                    <p className="text-xs text-muted-foreground">
+                      Your API key is stored locally and never shared
+                    </p>
                     {formData.apiProvider && (
                       <a
                         href={getProviderApiKeyUrl(formData.apiProvider)}
@@ -470,7 +560,9 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                         rel="noopener noreferrer"
                         className="text-xs text-primary hover:underline flex items-center gap-1.5"
                       >
-                        Get your API key from {getProviderIcon(formData.apiProvider)} {getProviderDisplayName(formData.apiProvider)} →
+                        Get your API key from{" "}
+                        {getProviderIcon(formData.apiProvider)}{" "}
+                        {getProviderDisplayName(formData.apiProvider)} →
                       </a>
                     )}
                   </div>
@@ -480,31 +572,43 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                   <Label htmlFor="apiProvider">API Provider</Label>
                   <div className="relative">
                     {formData.apiProvider && (
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">{getProviderIcon(formData.apiProvider)}</div>
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        {getProviderIcon(formData.apiProvider)}
+                      </div>
                     )}
                     <select
                       id="apiProvider"
                       value={formData.apiProvider || ""}
-                      onChange={(e) => handleChange("apiProvider", (e.target.value as ApiProvider) || undefined)}
+                      onChange={(e) =>
+                        handleChange(
+                          "apiProvider",
+                          (e.target.value as ApiProvider) || undefined,
+                        )
+                      }
                       disabled={loading || verifying}
                       className={cn(
                         "flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 border-input bg-background",
-                        formData.apiProvider && "pl-9"
+                        formData.apiProvider && "pl-9",
                       )}
                     >
-                      <option value="">Select provider (or auto-detect from key)</option>
+                      <option value="">
+                        Select provider (or auto-detect from key)
+                      </option>
                       <option value="openai">OpenAI (ChatGPT)</option>
                       <option value="anthropic">Anthropic (Claude)</option>
                       <option value="google">Google (Gemini)</option>
                     </select>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {detectedProvider ?
+                    {detectedProvider ? (
                       <span className="flex items-center gap-1.5">
-                        Auto-detected as {getProviderIcon(detectedProvider)} {getProviderDisplayName(detectedProvider)}. You can override by selecting a
-                        different provider.
+                        Auto-detected as {getProviderIcon(detectedProvider)}{" "}
+                        {getProviderDisplayName(detectedProvider)}. You can
+                        override by selecting a different provider.
                       </span>
-                    : "If the API key pattern isn't recognized, please select the provider manually."}
+                    ) : (
+                      "If the API key pattern isn't recognized, please select the provider manually."
+                    )}
                   </p>
                 </div>
 
@@ -514,37 +618,62 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     id="contextPrompt"
                     placeholder="e.g., Create cinematic shots of nature landscapes"
                     value={formData.contextPrompt}
-                    onChange={(e) => handleChange("contextPrompt", e.target.value)}
+                    onChange={(e) =>
+                      handleChange("contextPrompt", e.target.value)
+                    }
                     disabled={loading}
                     rows={3}
                     className="resize-none"
                   />
-                  <p className="text-xs text-muted-foreground">This prompt will be used as the base context for all generated prompts</p>
+                  <p className="text-xs text-muted-foreground">
+                    This prompt will be used as the base context for all
+                    generated prompts
+                  </p>
                 </div>
               </div>
-            </div>)}
+            </div>
+          ))}
 
         {/* Sora Generation Settings */}
         {(showOnly === "all" || showOnly === "generation") && (
-          <Card className={detectedSettings?.success && (detectedSettings.mediaType || detectedSettings.variations) ? "border-green-500 border-2" : ""}>
+          <Card
+            className={
+              detectedSettings?.success &&
+              (detectedSettings.mediaType || detectedSettings.variations)
+                ? "border-green-500 border-2"
+                : ""
+            }
+          >
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FaMagic className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-base">Sora Generation Settings</CardTitle>
+                  <CardTitle className="text-base">
+                    Sora Generation Settings
+                  </CardTitle>
                 </div>
-                {detectedSettings?.success && (detectedSettings.mediaType || detectedSettings.variations) && (
-                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">Using detected settings from Sora page</span>
-                )}
+                {detectedSettings?.success &&
+                  (detectedSettings.mediaType ||
+                    detectedSettings.variations) && (
+                    <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                      Using detected settings from Sora page
+                    </span>
+                  )}
               </div>
-              <CardDescription>Configure how prompts are generated for Sora</CardDescription>
+              <CardDescription>
+                Configure how prompts are generated for Sora
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="mediaType">Media Type</Label>
                   <div className="flex items-center gap-2">
-                    {detectedSettings?.mediaType && <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Detected)</span>}
+                    {detectedSettings?.mediaType && (
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        (Detected)
+                      </span>
+                    )}
                   </div>
                   <DropdownMenu className="w-full">
                     <DropdownMenuTrigger asChild>
@@ -554,27 +683,41 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                         disabled={loading}
                         className={cn(
                           "flex h-10 w-full justify-between rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-                          detectedSettings?.mediaType ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20" : "border-input bg-background"
+                          detectedSettings?.mediaType
+                            ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/20"
+                            : "border-input bg-background",
                         )}
                       >
                         <div className="flex items-center gap-2">
-                          {formData.mediaType === "video" ?
+                          {formData.mediaType === "video" ? (
                             <FaVideo className="h-4 w-4" />
-                          : <FaImage className="h-4 w-4" />}
+                          ) : (
+                            <FaImage className="h-4 w-4" />
+                          )}
                         </div>
                         <FaChevronDown className="h-3 w-3 opacity-50" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="min-w-[8rem]">
-                      <DropdownMenuItem onSelect={() => handleChange("mediaType", "video")} className="gap-2 cursor-pointer">
+                      <DropdownMenuItem
+                        onSelect={() => handleChange("mediaType", "video")}
+                        className="gap-2 cursor-pointer"
+                      >
                         <FaVideo className="h-4 w-4" />
                         <span>Video</span>
-                        {formData.mediaType === "video" && <span className="ml-auto text-xs">✓</span>}
+                        {formData.mediaType === "video" && (
+                          <span className="ml-auto text-xs">✓</span>
+                        )}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => handleChange("mediaType", "image")} className="gap-2 cursor-pointer">
+                      <DropdownMenuItem
+                        onSelect={() => handleChange("mediaType", "image")}
+                        className="gap-2 cursor-pointer"
+                      >
                         <FaImage className="h-4 w-4" />
                         <span>Image</span>
-                        {formData.mediaType === "image" && <span className="ml-auto text-xs">✓</span>}
+                        {formData.mediaType === "image" && (
+                          <span className="ml-auto text-xs">✓</span>
+                        )}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -583,12 +726,21 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                 <div className="space-y-2">
                   <Label htmlFor="variationCount">Variations</Label>
                   <div className="flex items-center gap-2">
-                    {detectedSettings?.variations && <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Detected)</span>}
+                    {detectedSettings?.variations && (
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        (Detected)
+                      </span>
+                    )}
                   </div>
                   <select
                     id="variationCount"
                     value={formData.variationCount}
-                    onChange={(e) => handleChange("variationCount", parseInt(e.target.value) as 2 | 4)}
+                    onChange={(e) =>
+                      handleChange(
+                        "variationCount",
+                        parseInt(e.target.value) as 2 | 4,
+                      )
+                    }
                     disabled={loading}
                     className={`
                       flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50
@@ -608,10 +760,14 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     min="1"
                     max="100"
                     value={formData.batchSize}
-                    onChange={(e) => handleChange("batchSize", parseInt(e.target.value) || 1)}
+                    onChange={(e) =>
+                      handleChange("batchSize", parseInt(e.target.value) || 1)
+                    }
                     disabled={loading}
                   />
-                  <p className="text-xs text-muted-foreground">Number of prompts to generate at once</p>
+                  <p className="text-xs text-muted-foreground">
+                    Number of prompts to generate at once
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -619,13 +775,17 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     <input
                       type="checkbox"
                       checked={formData.useSecretPrompt}
-                      onChange={(e) => handleChange("useSecretPrompt", e.target.checked)}
+                      onChange={(e) =>
+                        handleChange("useSecretPrompt", e.target.checked)
+                      }
                       disabled={loading}
                       className="h-4 w-4 rounded border-gray-300"
                     />
                     <span>Enhanced Prompts</span>
                   </Label>
-                  <p className="text-xs text-muted-foreground">Add technical details to prompts</p>
+                  <p className="text-xs text-muted-foreground">
+                    Add technical details to prompts
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -638,9 +798,13 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
             <CardHeader>
               <div className="flex items-center gap-2">
                 <FaPlayCircle className="h-4 w-4 text-primary" />
-                <CardTitle className="text-base">Queue Processing Settings</CardTitle>
+                <CardTitle className="text-base">
+                  Queue Processing Settings
+                </CardTitle>
               </div>
-              <CardDescription>Configure how the queue processes and submits prompts to Sora</CardDescription>
+              <CardDescription>
+                Configure how the queue processes and submits prompts to Sora
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
@@ -653,7 +817,12 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                       min="2"
                       max="60"
                       value={formData.minDelayMs / 1000}
-                      onChange={(e) => handleChange("minDelayMs", (parseInt(e.target.value) || 2) * 1000)}
+                      onChange={(e) =>
+                        handleChange(
+                          "minDelayMs",
+                          (parseInt(e.target.value) || 2) * 1000,
+                        )
+                      }
                       disabled={loading}
                     />
                   </div>
@@ -666,13 +835,19 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                       min="2"
                       max="60"
                       value={formData.maxDelayMs / 1000}
-                      onChange={(e) => handleChange("maxDelayMs", (parseInt(e.target.value) || 5) * 1000)}
+                      onChange={(e) =>
+                        handleChange(
+                          "maxDelayMs",
+                          (parseInt(e.target.value) || 5) * 1000,
+                        )
+                      }
                       disabled={loading}
                     />
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Random delay between {formData.minDelayMs / 1000}-{formData.maxDelayMs / 1000} seconds helps avoid bot detection
+                  Random delay between {formData.minDelayMs / 1000}-
+                  {formData.maxDelayMs / 1000} seconds helps avoid bot detection
                 </p>
               </div>
 
@@ -682,13 +857,18 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     <input
                       type="checkbox"
                       checked={formData.autoRun}
-                      onChange={(e) => handleChange("autoRun", e.target.checked)}
+                      onChange={(e) =>
+                        handleChange("autoRun", e.target.checked)
+                      }
                       disabled={loading}
                       className="h-4 w-4 rounded border-gray-300"
                     />
                     <span>Auto-start Queue</span>
                   </Label>
-                  <p className="text-xs text-muted-foreground">Automatically start processing the queue when prompts are added</p>
+                  <p className="text-xs text-muted-foreground">
+                    Automatically start processing the queue when prompts are
+                    added
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -696,13 +876,18 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     <input
                       type="checkbox"
                       checked={formData.autoGenerateOnEmpty}
-                      onChange={(e) => handleChange("autoGenerateOnEmpty", e.target.checked)}
+                      onChange={(e) =>
+                        handleChange("autoGenerateOnEmpty", e.target.checked)
+                      }
                       disabled={loading}
                       className="h-4 w-4 rounded border-gray-300"
                     />
                     <span>Auto-generate on Empty Queue</span>
                   </Label>
-                  <p className="text-xs text-muted-foreground">Automatically generate new prompts when the queue becomes empty</p>
+                  <p className="text-xs text-muted-foreground">
+                    Automatically generate new prompts when the queue becomes
+                    empty
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -710,39 +895,58 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
                     <input
                       type="checkbox"
                       checked={formData.autoGenerateOnReceived}
-                      onChange={(e) => handleChange("autoGenerateOnReceived", e.target.checked)}
+                      onChange={(e) =>
+                        handleChange("autoGenerateOnReceived", e.target.checked)
+                      }
                       disabled={loading}
                       className="h-4 w-4 rounded border-gray-300"
                     />
                     <span>Auto-generate on Prompt Received</span>
                   </Label>
-                  <p className="text-xs text-muted-foreground">Automatically generate new prompts when prompts are received from external sources</p>
+                  <p className="text-xs text-muted-foreground">
+                    Automatically generate new prompts when prompts are received
+                    from external sources
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
+        {error && (
+          <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">
+            {error}
+          </div>
+        )}
 
-        {success && <div className="p-3 text-sm bg-green-500/10 text-green-600 rounded-md">{success}</div>}
+        {success && (
+          <div className="p-3 text-sm bg-green-500/10 text-green-600 rounded-md">
+            {success}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex gap-2">
           <Button type="submit" className="flex-1" disabled={loading}>
-            {loading ?
+            {loading ? (
               <>
                 <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
                 Saving Settings...
               </>
-            : <>
+            ) : (
+              <>
                 <FaSave className="h-4 w-4 mr-2" />
                 Save Settings
               </>
-            }
+            )}
           </Button>
           {isDialogMode && (
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </Button>
           )}
@@ -753,7 +957,10 @@ export function SettingsDialog({ config, isOpen, onClose, onSave, detectedSettin
 
   if (isDialogMode) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={handleBackdropClick}>
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        onClick={handleBackdropClick}
+      >
         {content}
       </div>
     );

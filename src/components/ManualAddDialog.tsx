@@ -16,7 +16,12 @@ interface ManualAddDialogProps {
   onAdd: (prompts: GeneratedPrompt[]) => Promise<void>;
 }
 
-export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDialogProps) {
+export function ManualAddDialog({
+  config,
+  isOpen,
+  onClose,
+  onAdd,
+}: ManualAddDialogProps) {
   const [input, setInput] = React.useState("");
   const [delimiter, setDelimiter] = React.useState<"line" | "comma">("line");
   const [loading, setLoading] = React.useState(false);
@@ -27,7 +32,8 @@ export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDia
   function parsePrompts(): string[] {
     if (!input.trim()) return [];
 
-    const rawPrompts = delimiter === "line" ? input.split("\n") : input.split(",");
+    const rawPrompts =
+      delimiter === "line" ? input.split("\n") : input.split(",");
 
     // Filter empty lines and trim whitespace
     return rawPrompts.map((p) => p.trim()).filter((p) => p.length > 0);
@@ -49,9 +55,12 @@ export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDia
     setError("");
 
     try {
-      log.ui.action("ManualAddDialog:Submit", { count: prompts.length, delimiter });
+      log.ui.action("ManualAddDialog:Submit", {
+        count: prompts.length,
+        delimiter,
+      });
 
-      const { generateUniqueId } = await import('../lib/utils');
+      const { generateUniqueId } = await import("../lib/utils");
       const newPrompts: GeneratedPrompt[] = prompts.map((text) => ({
         id: generateUniqueId(),
         text,
@@ -68,7 +77,8 @@ export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDia
       setInput("");
       onClose();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to add prompts";
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to add prompts";
       setError(errorMsg);
       log.ui.error("ManualAddDialog:Submit", err);
     } finally {
@@ -83,15 +93,26 @@ export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDia
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={handleBackdropClick}>
-      <Card className="w-full max-w-2xl p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={handleBackdropClick}
+    >
+      <Card
+        className="w-full max-w-2xl p-6 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FaPlus className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Add Prompts Manually</h2>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} disabled={loading}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            disabled={loading}
+          >
             <FaTimes className="h-4 w-4" />
           </Button>
         </div>
@@ -133,9 +154,9 @@ export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDia
             <Textarea
               id="prompts"
               placeholder={
-                delimiter === "line" ?
-                  "A cinematic shot of a sunset\nA dramatic landscape with mountains\nA futuristic cityscape at night"
-                : "A cinematic shot of a sunset, A dramatic landscape with mountains, A futuristic cityscape at night"
+                delimiter === "line"
+                  ? "A cinematic shot of a sunset\nA dramatic landscape with mountains\nA futuristic cityscape at night"
+                  : "A cinematic shot of a sunset, A dramatic landscape with mountains, A futuristic cityscape at night"
               }
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -144,28 +165,43 @@ export function ManualAddDialog({ config, isOpen, onClose, onAdd }: ManualAddDia
               className="resize-none font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              {promptCount === 0 ?
-                `Enter prompts separated by ${delimiter === "line" ? "new lines" : "commas"}`
-              : `${promptCount} prompt${promptCount === 1 ? "" : "s"} will be added`}
+              {promptCount === 0
+                ? `Enter prompts separated by ${delimiter === "line" ? "new lines" : "commas"}`
+                : `${promptCount} prompt${promptCount === 1 ? "" : "s"} will be added`}
             </p>
           </div>
 
-          {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
+          {error && (
+            <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">
+              {error}
+            </div>
+          )}
 
           <div className="flex gap-2">
-            <Button type="submit" className="flex-1" disabled={loading || promptCount === 0}>
-              {loading ?
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={loading || promptCount === 0}
+            >
+              {loading ? (
                 <>
                   <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
                   Adding...
                 </>
-              : <>
+              ) : (
+                <>
                   <FaPlus className="h-4 w-4 mr-2" />
-                  Add {promptCount > 0 ? `${promptCount} ` : ""}Prompt{promptCount === 1 ? "" : "s"}
+                  Add {promptCount > 0 ? `${promptCount} ` : ""}Prompt
+                  {promptCount === 1 ? "" : "s"}
                 </>
-              }
+              )}
             </Button>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </Button>
           </div>

@@ -267,6 +267,33 @@ function IndexPopup() {
     }
   }
 
+  async function handleCleanCompletedAndFailed() {
+    const completedCount = prompts.filter((p) => p.status === "completed").length;
+    const failedCount = prompts.filter((p) => p.status === "failed").length;
+    const totalToDelete = completedCount + failedCount;
+
+    if (totalToDelete === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${totalToDelete} prompt(s)? (${completedCount} completed, ${failedCount} failed) This action cannot be undone.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      log.ui.action("handleCleanCompletedAndFailed:clicked", { completedCount, failedCount });
+      const deletedCount = await storage.deleteCompletedAndFailed();
+      await loadData();
+      log.ui.action("handleCleanCompletedAndFailed:success", { deletedCount });
+    } catch (error) {
+      log.ui.error("handleCleanCompletedAndFailed", error);
+    }
+  }
+
   async function handleEditPrompt(id: string) {
     log.ui.action("handleEditPrompt:clicked", { promptId: id });
     const prompt = prompts.find((p) => p.id === id);
@@ -463,11 +490,7 @@ function IndexPopup() {
     setSettingsDialogOpen(true);
   }
 
-  async function handleGeneratePrompts(
-    count: number,
-    context: string,
-    onProgress?: (current: number, total: number) => void
-  ) {
+  async function handleGeneratePrompts(count: number, context: string, onProgress?: (current: number, total: number) => void) {
     if (!config) return;
 
     log.ui.action("handleGeneratePrompts", { count, contextLength: context.length });
@@ -487,7 +510,7 @@ function IndexPopup() {
         // Calculate how many to request in this batch
         const remainingCount = count - totalGenerated;
         const batchCount = Math.min(remainingCount, batchSize);
-        
+
         const response = await chrome.runtime.sendMessage({
           action: "generatePrompts",
           data: {
@@ -503,12 +526,12 @@ function IndexPopup() {
         if (response.success) {
           const actualCount = response.count || 0;
           totalGenerated += actualCount;
-          
+
           // Update progress with actual counts
           if (onProgress) {
             onProgress(totalGenerated, count);
           }
-          
+
           // Small delay between batches to avoid rate limiting
           if (i < batches - 1 && totalGenerated < count) {
             await new Promise((resolve) => setTimeout(resolve, 500));
@@ -604,14 +627,14 @@ function IndexPopup() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold text-foreground">Sora Auto Queue</h1>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-7 w-7" 
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleDarkMode();
-              }} 
+              }}
               title="Toggle dark mode"
               type="button"
             >
@@ -622,26 +645,26 @@ function IndexPopup() {
           </div>
 
           <div className="flex gap-1.5 items-center">
-            <Button 
+            <Button
               onClick={(e) => {
                 e.stopPropagation();
                 handleGenerate();
-              }} 
-              size="sm" 
+              }}
+              size="sm"
               className="h-9 min-h-[36px] px-3 py-2"
               type="button"
             >
               <FaMagic className="h-3.5 w-3.5 mr-1.5" />
               Generate
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-9 w-9 min-h-[36px] min-w-[36px]" 
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 min-h-[36px] min-w-[36px]"
               onClick={(e) => {
                 e.stopPropagation();
                 handleSettings();
-              }} 
+              }}
               title="Settings"
               type="button"
             >
@@ -649,7 +672,7 @@ function IndexPopup() {
             </Button>
           </div>
         </div>
-        
+
         <StatusBar pendingCount={pendingCount} processingCount={processingCount} completedCount={completedCount} />
       </header>
 
@@ -680,6 +703,9 @@ function IndexPopup() {
             onPause={handlePauseQueue}
             onResume={handleResumeQueue}
             onStop={handleStopQueue}
+            onCleanCompletedAndFailed={handleCleanCompletedAndFailed}
+            completedCount={prompts.filter((p) => p.status === "completed").length}
+            failedCount={prompts.filter((p) => p.status === "failed").length}
           />
 
           {/* Search and Filters */}

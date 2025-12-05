@@ -93,6 +93,23 @@ export const storage = {
     }
   },
 
+  async deleteCompletedAndFailed(): Promise<number> {
+    const prompts = await this.getPrompts();
+    const filtered = prompts.filter((p) => p.status !== "completed" && p.status !== "failed");
+    const deletedCount = prompts.length - filtered.length;
+    await chrome.storage.local.set({ prompts: filtered });
+
+    // Recalculate processed count after deletion
+    const queueState = await this.getQueueState();
+    const newProcessedCount = Math.max(0, queueState.processedCount - deletedCount);
+    await this.setQueueState({
+      processedCount: newProcessedCount,
+      currentPromptId: filtered.length === 0 ? null : queueState.currentPromptId,
+    });
+
+    return deletedCount;
+  },
+
   async getQueueState(): Promise<QueueState> {
     const result = await chrome.storage.local.get("queueState");
     return result.queueState || DEFAULT_QUEUE_STATE;

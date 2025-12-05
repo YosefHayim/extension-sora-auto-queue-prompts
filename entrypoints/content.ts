@@ -23,16 +23,19 @@ export default defineContentScript({
       /**
        * Log to both console and background (for visibility)
        */
-      private log(level: "log" | "error" | "warn" | "info" | "debug", message: string, data?: any): void {
+      private log(
+        level: "log" | "error" | "warn" | "info" | "debug",
+        message: string,
+        data?: any,
+      ): void {
         const fullMessage = `[Sora Content] ${message}`;
-        const consoleLevel = level === "log" || level === "debug" ? "log" : level;
+        const consoleLevel =
+          level === "log" || level === "debug" ? "log" : level;
         console[consoleLevel](fullMessage, data || "");
 
         // Map to logger levels
         const loggerLevel =
-          level === "log" ? "info"
-          : level === "debug" ? "debug"
-          : level;
+          level === "log" ? "info" : level === "debug" ? "debug" : level;
 
         // Also send to background for storage in logger
         chrome.runtime
@@ -49,76 +52,83 @@ export default defineContentScript({
 
       private init() {
         // Listen for messages from background script
-        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-          if (request.action === "ping") {
-            // Simple ping to check if content script is loaded
-            sendResponse({ success: true, loaded: true });
-            return true;
-          }
+        chrome.runtime.onMessage.addListener(
+          (request, sender, sendResponse) => {
+            if (request.action === "ping") {
+              // Simple ping to check if content script is loaded
+              sendResponse({ success: true, loaded: true });
+              return true;
+            }
 
-          if (request.action === "submitPrompt") {
-            this.log("info", "📥 Received submitPrompt request", {
-              promptLength: request.prompt?.text?.length,
-              promptPreview: request.prompt?.text?.substring(0, 50),
-            });
-            this.submitPrompt(request.prompt)
-              .then(() => {
-                this.log("info", "✅ submitPrompt completed successfully");
-                sendResponse({ success: true });
-              })
-              .catch((error) => {
-                this.log("error", "❌ submitPrompt failed", {
-                  error: error.message,
-                  stack: error.stack,
-                  domSnapshot: this.getDomSnapshot(),
+            if (request.action === "submitPrompt") {
+              this.log("info", "📥 Received submitPrompt request", {
+                promptLength: request.prompt?.text?.length,
+                promptPreview: request.prompt?.text?.substring(0, 50),
+              });
+              this.submitPrompt(request.prompt)
+                .then(() => {
+                  this.log("info", "✅ submitPrompt completed successfully");
+                  sendResponse({ success: true });
+                })
+                .catch((error) => {
+                  this.log("error", "❌ submitPrompt failed", {
+                    error: error.message,
+                    stack: error.stack,
+                    domSnapshot: this.getDomSnapshot(),
+                  });
+                  sendResponse({ success: false, error: error.message });
                 });
-                sendResponse({ success: false, error: error.message });
-              });
-            return true; // Keep channel open for async response
-          }
+              return true; // Keep channel open for async response
+            }
 
-          if (request.action === "checkReady") {
-            const isReady = this.checkIfReady();
-            this.log("debug", "checkReady request", { isReady });
-            sendResponse({ ready: isReady });
-            return true;
-          }
+            if (request.action === "checkReady") {
+              const isReady = this.checkIfReady();
+              this.log("debug", "checkReady request", { isReady });
+              sendResponse({ ready: isReady });
+              return true;
+            }
 
-          if (request.action === "getDomSnapshot") {
-            const snapshot = this.getDomSnapshot();
-            this.log("debug", "getDomSnapshot request");
-            sendResponse({ snapshot });
-            return true;
-          }
+            if (request.action === "getDomSnapshot") {
+              const snapshot = this.getDomSnapshot();
+              this.log("debug", "getDomSnapshot request");
+              sendResponse({ snapshot });
+              return true;
+            }
 
-          if (request.action === "generationComplete") {
-            this.log("info", "🎉 Generation completed notification received");
-            this.handleGenerationComplete();
-            sendResponse({ success: true });
-            return true;
-          }
+            if (request.action === "generationComplete") {
+              this.log("info", "🎉 Generation completed notification received");
+              this.handleGenerationComplete();
+              sendResponse({ success: true });
+              return true;
+            }
 
-          if (request.action === "detectSettings") {
-            const settings = this.detectCurrentSettings();
-            this.log("info", "🔍 Detected settings from Sora page", settings);
-            sendResponse(settings);
-            return true;
-          }
+            if (request.action === "detectSettings") {
+              const settings = this.detectCurrentSettings();
+              this.log("info", "🔍 Detected settings from Sora page", settings);
+              sendResponse(settings);
+              return true;
+            }
 
-          if (request.action === "navigateToPrompt") {
-            this.navigateToPrompt(request.promptText)
-              .then(() => {
-                sendResponse({ success: true });
-              })
-              .catch((error) => {
-                this.log("error", "Failed to navigate to prompt", { error: error.message });
-                sendResponse({ success: false, error: error.message });
-              });
-            return true;
-          }
-        });
+            if (request.action === "navigateToPrompt") {
+              this.navigateToPrompt(request.promptText)
+                .then(() => {
+                  sendResponse({ success: true });
+                })
+                .catch((error) => {
+                  this.log("error", "Failed to navigate to prompt", {
+                    error: error.message,
+                  });
+                  sendResponse({ success: false, error: error.message });
+                });
+              return true;
+            }
+          },
+        );
 
-        this.log("info", `🚀 Content script initialized on ${window.location.href}`);
+        this.log(
+          "info",
+          `🚀 Content script initialized on ${window.location.href}`,
+        );
         if (this.debugMode) {
           this.log("info", "🐛 Debug mode enabled");
           this.logDomState();
@@ -166,7 +176,9 @@ export default defineContentScript({
        * Get DOM snapshot for debugging
        */
       private getDomSnapshot(): any {
-        const allTextareas = Array.from(document.querySelectorAll("textarea")).map((ta, i) => ({
+        const allTextareas = Array.from(
+          document.querySelectorAll("textarea"),
+        ).map((ta, i) => ({
           index: i,
           placeholder: ta.placeholder,
           value: ta.value,
@@ -178,14 +190,16 @@ export default defineContentScript({
           name: ta.getAttribute("name"),
         }));
 
-        const buttons = Array.from(document.querySelectorAll("button")).map((btn, i) => ({
-          index: i,
-          text: btn.textContent?.trim().substring(0, 100),
-          ariaLabel: btn.getAttribute("aria-label"),
-          disabled: btn.disabled,
-          className: btn.className.substring(0, 100),
-          type: btn.type,
-        }));
+        const buttons = Array.from(document.querySelectorAll("button")).map(
+          (btn, i) => ({
+            index: i,
+            text: btn.textContent?.trim().substring(0, 100),
+            ariaLabel: btn.getAttribute("aria-label"),
+            disabled: btn.disabled,
+            className: btn.className.substring(0, 100),
+            type: btn.type,
+          }),
+        );
 
         return {
           url: window.location.href,
@@ -202,7 +216,10 @@ export default defineContentScript({
        */
       private async submitPrompt(prompt: GeneratedPrompt): Promise<void> {
         if (this.isProcessing) {
-          this.log("warn", "Already processing a prompt, rejecting new request");
+          this.log(
+            "warn",
+            "Already processing a prompt, rejecting new request",
+          );
           throw new Error("Already processing a prompt");
         }
 
@@ -273,7 +290,12 @@ export default defineContentScript({
         this.log("info", "🔍 Starting textarea search...");
 
         // Try multiple selectors
-        const selectors = ['textarea[placeholder*="Describe your image"]', 'textarea[placeholder*="Describe"]', "textarea.bg-transparent", "textarea"];
+        const selectors = [
+          'textarea[placeholder*="Describe your image"]',
+          'textarea[placeholder*="Describe"]',
+          "textarea.bg-transparent",
+          "textarea",
+        ];
 
         for (const selector of selectors) {
           this.log("debug", `Trying selector: ${selector}`);
@@ -313,7 +335,10 @@ export default defineContentScript({
       /**
        * Simulate human typing
        */
-      private async typeText(element: HTMLTextAreaElement, text: string): Promise<void> {
+      private async typeText(
+        element: HTMLTextAreaElement,
+        text: string,
+      ): Promise<void> {
         this.log("info", `⌨️ Starting to type ${text.length} characters`);
 
         // Focus the element first
@@ -322,18 +347,29 @@ export default defineContentScript({
         await this.delay(100); // Give React time to register focus
 
         // Try to get React's internal instance
-        const reactKey = Object.keys(element).find((key) => key.startsWith("__react"));
-        this.log("debug", "React key detection", { reactKeyFound: !!reactKey, reactKey });
+        const reactKey = Object.keys(element).find((key) =>
+          key.startsWith("__react"),
+        );
+        this.log("debug", "React key detection", {
+          reactKeyFound: !!reactKey,
+          reactKey,
+        });
 
         // Use React's native setter pattern - this is CRITICAL for React to detect changes
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+          window.HTMLTextAreaElement.prototype,
+          "value",
+        )?.set;
 
         if (nativeInputValueSetter) {
           this.log("info", "✅ Using native React setter pattern");
           // Call the native setter (bypasses React's controlled input)
           nativeInputValueSetter.call(element, text);
         } else {
-          this.log("warn", "⚠️ Native setter not found, falling back to direct assignment");
+          this.log(
+            "warn",
+            "⚠️ Native setter not found, falling back to direct assignment",
+          );
           element.value = text;
         }
 
@@ -357,13 +393,20 @@ export default defineContentScript({
         await this.delay(100);
 
         // Also dispatch change event for good measure
-        const changeEvent = new Event("change", { bubbles: true, cancelable: true });
+        const changeEvent = new Event("change", {
+          bubbles: true,
+          cancelable: true,
+        });
         element.dispatchEvent(changeEvent);
         this.log("debug", "Dispatched change event");
 
         // Trigger keydown/keyup events to simulate typing (some apps check for this)
-        element.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true }));
-        element.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, cancelable: true }));
+        element.dispatchEvent(
+          new KeyboardEvent("keydown", { bubbles: true, cancelable: true }),
+        );
+        element.dispatchEvent(
+          new KeyboardEvent("keyup", { bubbles: true, cancelable: true }),
+        );
         this.log("debug", "Dispatched keyboard events");
 
         // Re-focus to ensure React sees the element as active
@@ -375,12 +418,16 @@ export default defineContentScript({
 
         // Verify the value stuck
         const finalValueCheck = element.value === text;
-        this.log("info", `✅ Input set ${finalValueCheck ? "successfully" : "FAILED"}`, {
-          expectedLength: text.length,
-          actualLength: element.value.length,
-          valuePreview: element.value.substring(0, 50),
-          success: finalValueCheck,
-        });
+        this.log(
+          "info",
+          `✅ Input set ${finalValueCheck ? "successfully" : "FAILED"}`,
+          {
+            expectedLength: text.length,
+            actualLength: element.value.length,
+            valuePreview: element.value.substring(0, 50),
+            success: finalValueCheck,
+          },
+        );
 
         if (!finalValueCheck) {
           this.log("error", "❌ Input value did not stick!", {
@@ -414,8 +461,14 @@ export default defineContentScript({
         const maxRetries = 5;
 
         // Retry finding enabled button (React might take time to update)
-        while (retries < maxRetries && (!submitButton || submitButton.disabled)) {
-          this.log("info", `⏳ Retry ${retries + 1}/${maxRetries}: Waiting for submit button to be enabled...`);
+        while (
+          retries < maxRetries &&
+          (!submitButton || submitButton.disabled)
+        ) {
+          this.log(
+            "info",
+            `⏳ Retry ${retries + 1}/${maxRetries}: Waiting for submit button to be enabled...`,
+          );
           await this.delay(500);
           submitButton = this.findSubmitButton();
           retries++;
@@ -441,7 +494,9 @@ export default defineContentScript({
             textareaValue: textarea.value.substring(0, 50),
             textareaValueLength: textarea.value.length,
           });
-          throw new Error("Submit button remained disabled - React may not have detected the input change");
+          throw new Error(
+            "Submit button remained disabled - React may not have detected the input change",
+          );
         } else {
           this.log("warn", "⚠️ No submit button found after retries");
         }
@@ -464,7 +519,9 @@ export default defineContentScript({
         const form = textarea.closest("form");
         if (form) {
           this.log("info", "📝 Found form element, dispatching submit event");
-          form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+          form.dispatchEvent(
+            new Event("submit", { bubbles: true, cancelable: true }),
+          );
         } else {
           this.log("warn", "⚠️ No form element found");
         }
@@ -475,17 +532,24 @@ export default defineContentScript({
        */
       private findSubmitButton(): HTMLButtonElement | null {
         this.log("info", "🔍 Searching for submit button...");
-        const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
+        const buttons = Array.from(
+          document.querySelectorAll<HTMLButtonElement>("button"),
+        );
         this.log("debug", `Found ${buttons.length} total buttons on page`);
 
         // Look for submit-like buttons
         for (let i = 0; i < buttons.length; i++) {
           const button = buttons[i];
           const text = button.textContent?.toLowerCase() || "";
-          const ariaLabel = button.getAttribute("aria-label")?.toLowerCase() || "";
+          const ariaLabel =
+            button.getAttribute("aria-label")?.toLowerCase() || "";
 
           const isSubmitButton =
-            text.includes("generate") || text.includes("create") || text.includes("submit") || ariaLabel.includes("generate") || ariaLabel.includes("create");
+            text.includes("generate") ||
+            text.includes("create") ||
+            text.includes("submit") ||
+            ariaLabel.includes("generate") ||
+            ariaLabel.includes("create");
 
           if (isSubmitButton) {
             this.log("info", `✅ Found submit button (index ${i})`, {
@@ -525,32 +589,52 @@ export default defineContentScript({
           });
 
           if (!response || !response.success) {
-            this.log("warn", "Failed to start network monitoring, falling back to DOM detection");
+            this.log(
+              "warn",
+              "Failed to start network monitoring, falling back to DOM detection",
+            );
             return this.waitForCompletionDOMFallback();
           }
 
-          this.log("info", "✅ Network monitoring started - waiting for DataDog requests to stop...");
+          this.log(
+            "info",
+            "✅ Network monitoring started - waiting for DataDog requests to stop...",
+          );
 
           // Wait for the generationComplete message from background
           return new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(
               () => {
-                this.log("error", "❌ Network monitoring timed out after 10 minutes");
-                reject(new Error("Network monitoring timed out after 10 minutes"));
+                this.log(
+                  "error",
+                  "❌ Network monitoring timed out after 10 minutes",
+                );
+                reject(
+                  new Error("Network monitoring timed out after 10 minutes"),
+                );
               },
-              10 * 60 * 1000
+              10 * 60 * 1000,
             ); // 10 minutes max
 
-            const messageListener = (message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+            const messageListener = (
+              message: any,
+              sender: chrome.runtime.MessageSender,
+              sendResponse: (response?: any) => void,
+            ) => {
               if (message.action === "generationComplete") {
-                this.log("info", "✅ Generation completed (detected via network monitoring - 30s silence)");
+                this.log(
+                  "info",
+                  "✅ Generation completed (detected via network monitoring - 30s silence)",
+                );
                 clearTimeout(timeout);
                 chrome.runtime.onMessage.removeListener(messageListener);
 
                 // Stop monitoring in background
-                chrome.runtime.sendMessage({ action: "stopNetworkMonitoring" }).catch(() => {
-                  // Ignore errors
-                });
+                chrome.runtime
+                  .sendMessage({ action: "stopNetworkMonitoring" })
+                  .catch(() => {
+                    // Ignore errors
+                  });
 
                 resolve();
               }
@@ -559,9 +643,13 @@ export default defineContentScript({
             chrome.runtime.onMessage.addListener(messageListener);
           });
         } catch (error) {
-          this.log("error", "Network monitoring error, falling back to DOM detection", {
-            error: error instanceof Error ? error.message : String(error),
-          });
+          this.log(
+            "error",
+            "Network monitoring error, falling back to DOM detection",
+            {
+              error: error instanceof Error ? error.message : String(error),
+            },
+          );
           return this.waitForCompletionDOMFallback();
         }
       }
@@ -574,7 +662,10 @@ export default defineContentScript({
         const checkInterval = 1000; // Check every second
         let elapsedTime = 0;
 
-        this.log("info", "⏳ Using DOM-based completion detection (fallback mode)...");
+        this.log(
+          "info",
+          "⏳ Using DOM-based completion detection (fallback mode)...",
+        );
 
         // Phase 1: Wait for generation to START (loader appears)
         const startWaitTime = 10000; // Wait up to 10 seconds for generation to start
@@ -595,10 +686,14 @@ export default defineContentScript({
           this.log("error", "❌ Generation did not start within 10 seconds");
           // Check if there's an error message
           if (this.checkForError()) {
-            throw new Error("Generation failed to start - error detected on page");
+            throw new Error(
+              "Generation failed to start - error detected on page",
+            );
           }
           // If no error visible, still throw - something went wrong
-          throw new Error("Generation failed to start within 10 seconds - check Sora page for issues");
+          throw new Error(
+            "Generation failed to start within 10 seconds - check Sora page for issues",
+          );
         }
 
         // Phase 2: Wait for generation to COMPLETE (loader disappears)
@@ -612,7 +707,11 @@ export default defineContentScript({
 
           // Log status every 10 seconds
           if (elapsedTime % 10000 === 0) {
-            this.log("debug", `⏳ Still waiting... (${elapsedTime / 1000}s elapsed)`, { isReady });
+            this.log(
+              "debug",
+              `⏳ Still waiting... (${elapsedTime / 1000}s elapsed)`,
+              { isReady },
+            );
           }
 
           if (isReady) {
@@ -652,23 +751,40 @@ export default defineContentScript({
             // Check if it's actually showing a loading state
             const parent = element.parentElement;
             if (parent?.textContent?.includes("%")) {
-              this.log("debug", `✅ Generation started - found loader with %: ${selector}`);
+              this.log(
+                "debug",
+                `✅ Generation started - found loader with %: ${selector}`,
+              );
               return true; // Percentage indicator = loading
             }
             // Check if the element is visible (not display:none)
-            if (element instanceof HTMLElement && element.offsetParent !== null) {
-              this.log("debug", `✅ Generation started - found visible loader: ${selector}`);
+            if (
+              element instanceof HTMLElement &&
+              element.offsetParent !== null
+            ) {
+              this.log(
+                "debug",
+                `✅ Generation started - found visible loader: ${selector}`,
+              );
               return true;
             }
           }
         }
 
         // Check for status toast indicating processing
-        const statusToast = document.querySelector<HTMLElement>('[role="status"]');
+        const statusToast =
+          document.querySelector<HTMLElement>('[role="status"]');
         if (statusToast) {
           const text = statusToast.textContent?.toLowerCase() || "";
-          if (text.includes("generating") || text.includes("processing") || text.includes("%")) {
-            this.log("debug", `✅ Generation started - status toast: ${text.substring(0, 50)}`);
+          if (
+            text.includes("generating") ||
+            text.includes("processing") ||
+            text.includes("%")
+          ) {
+            this.log(
+              "debug",
+              `✅ Generation started - status toast: ${text.substring(0, 50)}`,
+            );
             return true;
           }
         }
@@ -680,7 +796,8 @@ export default defineContentScript({
        * Check if there's an error message
        */
       private checkForError(): boolean {
-        const statusToast = document.querySelector<HTMLElement>('[role="status"]');
+        const statusToast =
+          document.querySelector<HTMLElement>('[role="status"]');
         if (statusToast) {
           const text = statusToast.textContent?.toLowerCase() || "";
           if (text.includes("error") || text.includes("failed")) {
@@ -696,7 +813,10 @@ export default defineContentScript({
       private checkIfReady(): boolean {
         // Only check for completion if generation has started
         if (!this.generationStarted) {
-          this.log("debug", "⏸️ Not checking completion - generation not started yet");
+          this.log(
+            "debug",
+            "⏸️ Not checking completion - generation not started yet",
+          );
           return false;
         }
 
@@ -704,48 +824,71 @@ export default defineContentScript({
         const loader = document.querySelector("svg circle[stroke-dashoffset]");
         if (loader && loader.parentElement?.textContent?.includes("%")) {
           // Still loading
-          const percentage = loader.parentElement?.textContent?.match(/\d+%/)?.[0];
+          const percentage =
+            loader.parentElement?.textContent?.match(/\d+%/)?.[0];
           this.log("debug", `⏳ Still loading: ${percentage || "checking..."}`);
           return false;
         }
 
         // Check for any visible loading indicators
-        const loadingSelectors = ["svg circle[stroke-dashoffset]", '[aria-live="polite"]', ".bg-token-bg-secondary svg circle"];
+        const loadingSelectors = [
+          "svg circle[stroke-dashoffset]",
+          '[aria-live="polite"]',
+          ".bg-token-bg-secondary svg circle",
+        ];
 
         for (const selector of loadingSelectors) {
           const element = document.querySelector(selector);
           if (element instanceof HTMLElement && element.offsetParent !== null) {
             const parent = element.parentElement;
             if (parent?.textContent?.includes("%")) {
-              this.log("debug", `⏳ Still loading - found active loader: ${selector}`);
+              this.log(
+                "debug",
+                `⏳ Still loading - found active loader: ${selector}`,
+              );
               return false; // Still showing percentage = still loading
             }
           }
         }
 
         // Check for "Ready" status toast
-        const statusToast = document.querySelector<HTMLElement>('[role="status"]');
+        const statusToast =
+          document.querySelector<HTMLElement>('[role="status"]');
         if (statusToast) {
           const text = statusToast.textContent?.toLowerCase() || "";
           if (text.includes("ready")) {
-            this.log("info", '✅ Generation ready - status toast shows "ready"');
+            this.log(
+              "info",
+              '✅ Generation ready - status toast shows "ready"',
+            );
             return true;
           }
           // If error or failed, consider it done (so we can move to next prompt)
           if (text.includes("error") || text.includes("failed")) {
-            this.log("warn", `⚠️ Generation failed - status toast: ${text.substring(0, 50)}`);
+            this.log(
+              "warn",
+              `⚠️ Generation failed - status toast: ${text.substring(0, 50)}`,
+            );
             return true;
           }
         }
 
         // If no loader is visible and generation had started, consider it complete
-        const visibleLoader = document.querySelector(".bg-token-bg-secondary svg circle");
+        const visibleLoader = document.querySelector(
+          ".bg-token-bg-secondary svg circle",
+        );
         if (!visibleLoader) {
-          this.log("info", "✅ No visible loader - generation appears complete");
+          this.log(
+            "info",
+            "✅ No visible loader - generation appears complete",
+          );
           return true;
         }
 
-        this.log("debug", "⏳ Still checking... loader visible but no percentage");
+        this.log(
+          "debug",
+          "⏳ Still checking... loader visible but no percentage",
+        );
         return false;
       }
 
@@ -758,7 +901,9 @@ export default defineContentScript({
 
           // Find media type (Image/Video)
           let mediaType: "video" | "image" | null = null;
-          const mediaTypeButtons = document.querySelectorAll('button[role="combobox"]');
+          const mediaTypeButtons = document.querySelectorAll(
+            'button[role="combobox"]',
+          );
           for (const button of Array.from(mediaTypeButtons)) {
             const text = button.textContent?.toLowerCase() || "";
             const span = button.querySelector("span");
@@ -768,7 +913,10 @@ export default defineContentScript({
               mediaType = "image";
               this.log("debug", "Found Image media type");
               break;
-            } else if (buttonText.includes("video") || buttonText.includes("vid")) {
+            } else if (
+              buttonText.includes("video") ||
+              buttonText.includes("vid")
+            ) {
               mediaType = "video";
               this.log("debug", "Found Video media type");
               break;
@@ -777,8 +925,13 @@ export default defineContentScript({
 
           // Find aspect ratio (1:1, 16:9, etc.)
           let aspectRatio: import("../src/types").AspectRatio | null = null;
-          const aspectRatioButtons = document.querySelectorAll('button[role="combobox"]');
-          const aspectRatioPatterns: Record<string, import("../src/types").AspectRatio> = {
+          const aspectRatioButtons = document.querySelectorAll(
+            'button[role="combobox"]',
+          );
+          const aspectRatioPatterns: Record<
+            string,
+            import("../src/types").AspectRatio
+          > = {
             "1:1": "1:1",
             "16:9": "16:9",
             "9:16": "9:16",
@@ -792,7 +945,9 @@ export default defineContentScript({
             const span = button.querySelector("span");
             const buttonText = span?.textContent?.trim() || text;
 
-            for (const [pattern, ratio] of Object.entries(aspectRatioPatterns)) {
+            for (const [pattern, ratio] of Object.entries(
+              aspectRatioPatterns,
+            )) {
               if (buttonText.includes(pattern)) {
                 aspectRatio = ratio;
                 this.log("debug", `Found aspect ratio: ${ratio}`);
@@ -804,7 +959,9 @@ export default defineContentScript({
 
           // Find variations (2v, 4v, etc.)
           let variations: number | null = null;
-          const variationButtons = document.querySelectorAll('button[role="combobox"]');
+          const variationButtons = document.querySelectorAll(
+            'button[role="combobox"]',
+          );
           for (const button of Array.from(variationButtons)) {
             const text = button.textContent?.trim() || "";
             const span = button.querySelector("span");
@@ -824,27 +981,43 @@ export default defineContentScript({
 
           // Alternative: Look for buttons with specific SVG icons or classes
           // Try to find buttons in the flex container with gap-1.5
-          const flexContainers = document.querySelectorAll('.flex.gap-1\\.5, .flex.gap-1, [class*="gap-1"]');
+          const flexContainers = document.querySelectorAll(
+            '.flex.gap-1\\.5, .flex.gap-1, [class*="gap-1"]',
+          );
           for (const container of Array.from(flexContainers)) {
-            const buttons = container.querySelectorAll('button[role="combobox"]');
+            const buttons = container.querySelectorAll(
+              'button[role="combobox"]',
+            );
 
             for (const button of Array.from(buttons)) {
               const text = button.textContent?.toLowerCase() || "";
               const span = button.querySelector("span");
-              const buttonText = (span?.textContent || button.textContent || "").toLowerCase();
+              const buttonText = (
+                span?.textContent ||
+                button.textContent ||
+                ""
+              ).toLowerCase();
 
               // Check for media type
               if (!mediaType) {
-                if (buttonText.includes("image") || buttonText.includes("img")) {
+                if (
+                  buttonText.includes("image") ||
+                  buttonText.includes("img")
+                ) {
                   mediaType = "image";
-                } else if (buttonText.includes("video") || buttonText.includes("vid")) {
+                } else if (
+                  buttonText.includes("video") ||
+                  buttonText.includes("vid")
+                ) {
                   mediaType = "video";
                 }
               }
 
               // Check for aspect ratio
               if (!aspectRatio) {
-                for (const [pattern, ratio] of Object.entries(aspectRatioPatterns)) {
+                for (const [pattern, ratio] of Object.entries(
+                  aspectRatioPatterns,
+                )) {
                   if (buttonText.includes(pattern)) {
                     aspectRatio = ratio;
                     break;
@@ -899,7 +1072,9 @@ export default defineContentScript({
               action: "markPromptComplete",
               promptId: this.currentPrompt.id,
             });
-            this.log("info", "✅ Notified background of completion", { promptId: this.currentPrompt.id });
+            this.log("info", "✅ Notified background of completion", {
+              promptId: this.currentPrompt.id,
+            });
           } catch (error) {
             this.log("error", "❌ Failed to notify background", { error });
           }
@@ -915,25 +1090,36 @@ export default defineContentScript({
        * Navigate to a specific prompt in the DOM and highlight generated images
        */
       private async navigateToPrompt(promptText: string): Promise<void> {
-        this.log("info", "🔍 Navigating to prompt in DOM", { promptLength: promptText.length });
+        this.log("info", "🔍 Navigating to prompt in DOM", {
+          promptLength: promptText.length,
+        });
 
         // First, try to find generated image/video by matching prompt text
         const searchText = promptText.trim().toLowerCase();
 
         // Look for generated images/videos - find divs with class "group/tile" that contain images
-        const generatedTiles = Array.from(document.querySelectorAll<HTMLElement>(".group\\/tile"));
+        const generatedTiles = Array.from(
+          document.querySelectorAll<HTMLElement>(".group\\/tile"),
+        );
         let targetImage: HTMLElement | null = null;
 
         for (const tile of generatedTiles) {
           // Find the parent container that should have the prompt text
-          let parent = tile.closest(".flex.flex-col.gap-4") || tile.parentElement;
+          let parent =
+            tile.closest(".flex.flex-col.gap-4") || tile.parentElement;
 
           // Look for prompt text in nearby elements
           while (parent && parent !== document.body) {
-            const promptDiv = parent.querySelector(".truncate.text-token-text-primary");
+            const promptDiv = parent.querySelector(
+              ".truncate.text-token-text-primary",
+            );
             if (promptDiv) {
-              const promptTextContent = promptDiv.textContent?.trim().toLowerCase() || "";
-              if (promptTextContent.includes(searchText) || searchText.includes(promptTextContent)) {
+              const promptTextContent =
+                promptDiv.textContent?.trim().toLowerCase() || "";
+              if (
+                promptTextContent.includes(searchText) ||
+                searchText.includes(promptTextContent)
+              ) {
                 targetImage = tile;
                 this.log("info", "✅ Found matching generated image/video", {
                   promptMatch: promptTextContent.substring(0, 50),
@@ -965,14 +1151,20 @@ export default defineContentScript({
         }
 
         // Fallback: Find textarea with matching text (for prompts not yet generated)
-        const textareas = Array.from(document.querySelectorAll<HTMLTextAreaElement>("textarea"));
+        const textareas = Array.from(
+          document.querySelectorAll<HTMLTextAreaElement>("textarea"),
+        );
         let targetTextarea: HTMLTextAreaElement | null = null;
 
         for (const textarea of textareas) {
           // Check if textarea contains the prompt text (exact match or contains)
           const textareaValue = textarea.value.trim();
 
-          if (textareaValue === searchText || textareaValue.includes(searchText) || searchText.includes(textareaValue)) {
+          if (
+            textareaValue === searchText ||
+            textareaValue.includes(searchText) ||
+            searchText.includes(textareaValue)
+          ) {
             targetTextarea = textarea;
             this.log("info", "✅ Found matching textarea", {
               valueLength: textareaValue.length,
@@ -984,7 +1176,10 @@ export default defineContentScript({
 
         if (!targetTextarea) {
           // Try to find by scrolling through page and checking all textareas
-          this.log("info", "Textarea not found in current view, searching page...");
+          this.log(
+            "info",
+            "Textarea not found in current view, searching page...",
+          );
 
           // Scroll to top first
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -998,7 +1193,11 @@ export default defineContentScript({
             const textareaValue = textarea.value.trim();
             const searchText = promptText.trim();
 
-            if (textareaValue === searchText || textareaValue.includes(searchText) || searchText.includes(textareaValue)) {
+            if (
+              textareaValue === searchText ||
+              textareaValue.includes(searchText) ||
+              searchText.includes(textareaValue)
+            ) {
               targetTextarea = textarea;
               this.log("info", "✅ Found matching textarea after scroll");
               break;
@@ -1008,7 +1207,10 @@ export default defineContentScript({
 
         if (targetTextarea) {
           // Scroll to textarea and highlight it
-          targetTextarea.scrollIntoView({ behavior: "smooth", block: "center" });
+          targetTextarea.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
           await this.delay(300);
 
           // Highlight textarea temporarily
@@ -1028,7 +1230,10 @@ export default defineContentScript({
 
           this.log("info", "✅ Textarea highlighted");
         } else {
-          this.log("warn", "⚠️ Could not find textarea with matching prompt text");
+          this.log(
+            "warn",
+            "⚠️ Could not find textarea with matching prompt text",
+          );
         }
 
         // Find and highlight generated images/videos
@@ -1042,8 +1247,12 @@ export default defineContentScript({
         this.log("info", "🎨 Highlighting generated media...");
 
         // Find all images and videos on the page
-        const images = Array.from(document.querySelectorAll<HTMLImageElement>("img"));
-        const videos = Array.from(document.querySelectorAll<HTMLVideoElement>("video"));
+        const images = Array.from(
+          document.querySelectorAll<HTMLImageElement>("img"),
+        );
+        const videos = Array.from(
+          document.querySelectorAll<HTMLVideoElement>("video"),
+        );
         const allMedia = [...images, ...videos];
 
         this.log("info", `Found ${allMedia.length} media elements on page`);
@@ -1069,8 +1278,13 @@ export default defineContentScript({
 
             // If media is below the textarea and within reasonable distance
             if (mediaTop > textareaBottom && mediaTop < textareaBottom + 2000) {
-              const container = media.closest("div, article, section") as HTMLElement;
-              if (container && !container.hasAttribute("data-sora-highlighted")) {
+              const container = media.closest(
+                "div, article, section",
+              ) as HTMLElement;
+              if (
+                container &&
+                !container.hasAttribute("data-sora-highlighted")
+              ) {
                 // Store original styles
                 const originalBorder = container.style.border;
                 const originalBoxShadow = container.style.boxShadow;
@@ -1083,7 +1297,10 @@ export default defineContentScript({
 
                 // Scroll to first highlighted media
                 if (highlightedCount === 0) {
-                  container.scrollIntoView({ behavior: "smooth", block: "center" });
+                  container.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
                   await this.delay(500);
                 }
 
@@ -1104,7 +1321,9 @@ export default defineContentScript({
           // Fallback: Highlight recent media elements (last 4-8 items)
           const recentMedia = allMedia.slice(-8);
           for (const media of recentMedia) {
-            const container = media.closest("div, article, section") as HTMLElement;
+            const container = media.closest(
+              "div, article, section",
+            ) as HTMLElement;
             if (container && !container.hasAttribute("data-sora-highlighted")) {
               const originalBorder = container.style.border;
               const originalBoxShadow = container.style.boxShadow;
@@ -1115,7 +1334,10 @@ export default defineContentScript({
               container.setAttribute("data-sora-highlighted", "true");
 
               if (highlightedCount === 0) {
-                container.scrollIntoView({ behavior: "smooth", block: "center" });
+                container.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
                 await this.delay(500);
               }
 

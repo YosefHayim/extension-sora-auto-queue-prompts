@@ -1,14 +1,20 @@
-export type AspectRatio = '16:9' | '9:16' | '1:1' | '4:3' | '3:4' | '21:9';
-export type PresetType = 'cinematic' | 'documentary' | 'artistic' | 'realistic' | 'animated' | 'none';
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-export type ApiProvider = 'openai' | 'anthropic' | 'google';
+export type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9";
+export type PresetType =
+  | "cinematic"
+  | "documentary"
+  | "artistic"
+  | "realistic"
+  | "animated"
+  | "none";
+export type LogLevel = "debug" | "info" | "warn" | "error";
+export type ApiProvider = "openai" | "anthropic" | "google";
 
 export interface PromptConfig {
   contextPrompt: string;
   apiKey: string;
   apiProvider?: ApiProvider; // Which API provider to use
   batchSize: number; // Custom input allowed
-  mediaType: 'video' | 'image';
+  mediaType: "video" | "image";
   variationCount: 2 | 4;
   autoRun: boolean;
   useSecretPrompt: boolean; // Enhance prompts with hidden optimizations
@@ -24,8 +30,8 @@ export interface GeneratedPrompt {
   text: string;
   originalText?: string; // Before enhancement
   timestamp: number;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'editing';
-  mediaType: 'video' | 'image';
+  status: "pending" | "processing" | "completed" | "failed" | "editing";
+  mediaType: "video" | "image";
   aspectRatio?: AspectRatio;
   variations?: number; // Per-prompt override
   preset?: PresetType;
@@ -54,7 +60,7 @@ export interface StorageData {
 export interface PromptGenerationRequest {
   context: string;
   count: number;
-  mediaType: 'video' | 'image';
+  mediaType: "video" | "image";
   useSecretPrompt?: boolean;
 }
 
@@ -66,14 +72,14 @@ export interface PromptGenerationResponse {
 
 export interface CSVRow {
   prompt: string;
-  type?: 'video' | 'image';
+  type?: "video" | "image";
   aspectRatio?: AspectRatio;
   variations?: number;
   preset?: PresetType;
 }
 
 export interface PromptEditAction {
-  type: 'edit' | 'delete' | 'refine' | 'duplicate' | 'generate-similar';
+  type: "edit" | "delete" | "refine" | "duplicate" | "generate-similar";
   promptId: string;
   newText?: string;
   count?: number; // For duplicate/generate-similar
@@ -89,7 +95,7 @@ export interface LogEntry {
 }
 
 export interface DetectedSettings {
-  mediaType: 'video' | 'image' | null;
+  mediaType: "video" | "image" | null;
   aspectRatio: AspectRatio | null;
   variations: number | null;
   success: boolean;

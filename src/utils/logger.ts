@@ -9,7 +9,7 @@
  * - Automatic cleanup of old logs
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 export interface LogEntry {
   timestamp: number;
@@ -39,7 +39,7 @@ class Logger {
     maxLogs: 1000,
     enableConsole: true,
     enableStorage: true,
-    minLevel: 'debug',
+    minLevel: "debug",
   };
 
   private formatTimestamp(timestamp: number): string {
@@ -55,8 +55,8 @@ class Logger {
     if (!this.config.enableStorage) return;
 
     try {
-      const result = await chrome.storage.local.get('logs');
-      const logs: LogEntry[] = (result && result.logs) ? result.logs : [];
+      const result = await chrome.storage.local.get("logs");
+      const logs: LogEntry[] = result && result.logs ? result.logs : [];
 
       // Add new log
       logs.unshift(entry);
@@ -66,7 +66,7 @@ class Logger {
 
       await chrome.storage.local.set({ logs: trimmedLogs });
     } catch (error) {
-      console.error('Failed to store log:', error);
+      console.error("Failed to store log:", error);
     }
   }
 
@@ -77,25 +77,45 @@ class Logger {
     const prefix = `[${timestamp}] [${entry.level.toUpperCase()}] [${entry.category}]`;
 
     const styles = {
-      debug: 'color: #888',
-      info: 'color: #2196F3',
-      warn: 'color: #FF9800',
-      error: 'color: #F44336; font-weight: bold',
+      debug: "color: #888",
+      info: "color: #2196F3",
+      warn: "color: #FF9800",
+      error: "color: #F44336; font-weight: bold",
     };
 
     switch (entry.level) {
-      case 'debug':
-        console.debug(`%c${prefix}`, styles.debug, entry.message, entry.data || '');
+      case "debug":
+        console.debug(
+          `%c${prefix}`,
+          styles.debug,
+          entry.message,
+          entry.data || "",
+        );
         break;
-      case 'info':
-        console.info(`%c${prefix}`, styles.info, entry.message, entry.data || '');
+      case "info":
+        console.info(
+          `%c${prefix}`,
+          styles.info,
+          entry.message,
+          entry.data || "",
+        );
         break;
-      case 'warn':
-        console.warn(`%c${prefix}`, styles.warn, entry.message, entry.data || '');
+      case "warn":
+        console.warn(
+          `%c${prefix}`,
+          styles.warn,
+          entry.message,
+          entry.data || "",
+        );
         if (entry.stack) console.warn(entry.stack);
         break;
-      case 'error':
-        console.error(`%c${prefix}`, styles.error, entry.message, entry.data || '');
+      case "error":
+        console.error(
+          `%c${prefix}`,
+          styles.error,
+          entry.message,
+          entry.data || "",
+        );
         if (entry.stack) console.error(entry.stack);
         break;
     }
@@ -106,7 +126,7 @@ class Logger {
     category: string,
     message: string,
     data?: any,
-    error?: Error
+    error?: Error,
   ): LogEntry {
     return {
       timestamp: Date.now(),
@@ -119,33 +139,33 @@ class Logger {
   }
 
   debug(category: string, message: string, data?: any): void {
-    if (!this.shouldLog('debug')) return;
+    if (!this.shouldLog("debug")) return;
 
-    const entry = this.createEntry('debug', category, message, data);
+    const entry = this.createEntry("debug", category, message, data);
     this.logToConsole(entry);
     this.storeLogs(entry);
   }
 
   info(category: string, message: string, data?: any): void {
-    if (!this.shouldLog('info')) return;
+    if (!this.shouldLog("info")) return;
 
-    const entry = this.createEntry('info', category, message, data);
+    const entry = this.createEntry("info", category, message, data);
     this.logToConsole(entry);
     this.storeLogs(entry);
   }
 
   warn(category: string, message: string, data?: any, error?: Error): void {
-    if (!this.shouldLog('warn')) return;
+    if (!this.shouldLog("warn")) return;
 
-    const entry = this.createEntry('warn', category, message, data, error);
+    const entry = this.createEntry("warn", category, message, data, error);
     this.logToConsole(entry);
     this.storeLogs(entry);
   }
 
   error(category: string, message: string, data?: any, error?: Error): void {
-    if (!this.shouldLog('error')) return;
+    if (!this.shouldLog("error")) return;
 
-    const entry = this.createEntry('error', category, message, data, error);
+    const entry = this.createEntry("error", category, message, data, error);
     this.logToConsole(entry);
     this.storeLogs(entry);
   }
@@ -156,8 +176,8 @@ class Logger {
     limit?: number;
   }): Promise<LogEntry[]> {
     try {
-      const result = await chrome.storage.local.get('logs');
-      let logs: LogEntry[] = (result && result.logs) ? result.logs : [];
+      const result = await chrome.storage.local.get("logs");
+      let logs: LogEntry[] = result && result.logs ? result.logs : [];
 
       // Apply filters
       if (filter?.level) {
@@ -174,7 +194,7 @@ class Logger {
 
       return logs;
     } catch (error) {
-      console.error('Failed to get logs:', error);
+      console.error("Failed to get logs:", error);
       return [];
     }
   }
@@ -184,7 +204,7 @@ class Logger {
       // Don't log the clear action itself to avoid creating new logs
       await chrome.storage.local.set({ logs: [] });
     } catch (error) {
-      console.error('Failed to clear logs:', error);
+      console.error("Failed to clear logs:", error);
     }
   }
 
@@ -192,27 +212,32 @@ class Logger {
     try {
       const logs = await this.getLogs();
 
-      const logText = logs.map((log) => {
-        const timestamp = this.formatTimestamp(log.timestamp);
-        const dataStr = log.data ? `\n  Data: ${JSON.stringify(log.data, null, 2)}` : '';
-        const stackStr = log.stack ? `\n  Stack: ${log.stack}` : '';
+      const logText = logs
+        .map((log) => {
+          const timestamp = this.formatTimestamp(log.timestamp);
+          const dataStr = log.data
+            ? `\n  Data: ${JSON.stringify(log.data, null, 2)}`
+            : "";
+          const stackStr = log.stack ? `\n  Stack: ${log.stack}` : "";
 
-        return `[${timestamp}] [${log.level.toUpperCase()}] [${log.category}]\n  ${log.message}${dataStr}${stackStr}\n`;
-      }).join('\n');
+          return `[${timestamp}] [${log.level.toUpperCase()}] [${log.category}]\n  ${log.message}${dataStr}${stackStr}\n`;
+        })
+        .join("\n");
 
       // Convert to data URL for Chrome Downloads API
-      const dataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(logText);
+      const dataUrl =
+        "data:text/plain;charset=utf-8," + encodeURIComponent(logText);
 
       // Use Chrome Downloads API (works in service worker)
       await chrome.downloads.download({
         url: dataUrl,
         filename: filename || `sora-logs-${Date.now()}.txt`,
-        saveAs: true
+        saveAs: true,
       });
 
       // Don't log the export action itself to avoid creating new logs
     } catch (error) {
-      console.error('Failed to export logs:', error);
+      console.error("Failed to export logs:", error);
     }
   }
 
@@ -232,110 +257,136 @@ export const logger = new Logger();
 export const log = {
   // Queue operations
   queue: {
-    start: () => logger.info('queue', 'Queue started'),
-    pause: () => logger.info('queue', 'Queue paused'),
-    resume: () => logger.info('queue', 'Queue resumed'),
-    stop: () => logger.info('queue', 'Queue stopped'),
+    start: () => logger.info("queue", "Queue started"),
+    pause: () => logger.info("queue", "Queue paused"),
+    resume: () => logger.info("queue", "Queue resumed"),
+    stop: () => logger.info("queue", "Queue stopped"),
     processing: (promptId: string, text: string) =>
-      logger.debug('queue', `Processing prompt: ${promptId}`, { text }),
+      logger.debug("queue", `Processing prompt: ${promptId}`, { text }),
     completed: (promptId: string) =>
-      logger.info('queue', `Prompt completed: ${promptId}`),
+      logger.info("queue", `Prompt completed: ${promptId}`),
     failed: (promptId: string, error: any) =>
-      logger.error('queue', `Prompt failed: ${promptId}`, { error }),
+      logger.error("queue", `Prompt failed: ${promptId}`, { error }),
   },
 
   // API operations
   api: {
     request: (endpoint: string, data?: any) =>
-      logger.debug('api', `Request to ${endpoint}`, data),
+      logger.debug("api", `Request to ${endpoint}`, data),
     response: (endpoint: string, success: boolean, data?: any) =>
-      logger.debug('api', `Response from ${endpoint}: ${success ? 'success' : 'failed'}`, data),
+      logger.debug(
+        "api",
+        `Response from ${endpoint}: ${success ? "success" : "failed"}`,
+        data,
+      ),
     error: (endpoint: string, error: any) =>
-      logger.error('api', `API error: ${endpoint}`, { error }),
+      logger.error("api", `API error: ${endpoint}`, { error }),
   },
 
   // Storage operations
   storage: {
-    read: (key: string) =>
-      logger.debug('storage', `Reading: ${key}`),
+    read: (key: string) => logger.debug("storage", `Reading: ${key}`),
     write: (key: string, data?: any) =>
-      logger.debug('storage', `Writing: ${key}`, data),
+      logger.debug("storage", `Writing: ${key}`, data),
     error: (operation: string, error: any) =>
-      logger.error('storage', `Storage error: ${operation}`, { error }),
+      logger.error("storage", `Storage error: ${operation}`, { error }),
   },
 
   // Prompt operations
   prompt: {
     generated: (count: number, mediaType: string) =>
-      logger.info('prompt', `Generated ${count} ${mediaType} prompts`),
+      logger.info("prompt", `Generated ${count} ${mediaType} prompts`),
     added: (count: number, source: string) =>
-      logger.info('prompt', `Added ${count} prompts from ${source}`),
+      logger.info("prompt", `Added ${count} prompts from ${source}`),
     edited: (promptId: string) =>
-      logger.info('prompt', `Edited prompt: ${promptId}`),
+      logger.info("prompt", `Edited prompt: ${promptId}`),
     deleted: (promptId: string) =>
-      logger.info('prompt', `Deleted prompt: ${promptId}`),
+      logger.info("prompt", `Deleted prompt: ${promptId}`),
     refined: (promptId: string) =>
-      logger.info('prompt', `Refined prompt: ${promptId}`),
+      logger.info("prompt", `Refined prompt: ${promptId}`),
     duplicated: (promptId: string, count: number) =>
-      logger.info('prompt', `Duplicated prompt ${promptId} x${count}`),
+      logger.info("prompt", `Duplicated prompt ${promptId} x${count}`),
     similar: (promptId: string, count: number) =>
-      logger.info('prompt', `Generated ${count} similar prompts for ${promptId}`),
+      logger.info(
+        "prompt",
+        `Generated ${count} similar prompts for ${promptId}`,
+      ),
   },
 
   // CSV operations
   csv: {
     import: (rowCount: number) =>
-      logger.info('csv', `Imported ${rowCount} rows from CSV`),
+      logger.info("csv", `Imported ${rowCount} rows from CSV`),
     export: (rowCount: number) =>
-      logger.info('csv', `Exported ${rowCount} rows to CSV`),
+      logger.info("csv", `Exported ${rowCount} rows to CSV`),
     error: (error: any) =>
-      logger.error('csv', 'CSV operation failed', { error }),
+      logger.error("csv", "CSV operation failed", { error }),
   },
 
   // UI operations
   ui: {
     action: (action: string, data?: any) =>
-      logger.debug('ui', `User action: ${action}`, data),
+      logger.debug("ui", `User action: ${action}`, data),
     error: (component: string, error: any) =>
-      logger.error('ui', `UI error in ${component}`, { error }),
+      logger.error("ui", `UI error in ${component}`, { error }),
   },
 
   // Extension lifecycle
   extension: {
-    installed: () =>
-      logger.info('extension', 'Extension installed'),
+    installed: () => logger.info("extension", "Extension installed"),
     updated: (version: string) =>
-      logger.info('extension', `Extension updated to ${version}`),
+      logger.info("extension", `Extension updated to ${version}`),
     error: (context: string, error: any) =>
-      logger.error('extension', `Extension error: ${context}`, { error }),
+      logger.error("extension", `Extension error: ${context}`, { error }),
   },
 
   // Content script / DOM operations
   content: {
     init: (url: string) =>
-      logger.info('content', `Content script initialized on: ${url}`),
+      logger.info("content", `Content script initialized on: ${url}`),
     domSnapshot: (data: any) =>
-      logger.debug('content', 'DOM snapshot captured', data),
+      logger.debug("content", "DOM snapshot captured", data),
     elementSearch: (selector: string, found: boolean, details?: any) =>
-      logger.info('content', `Element search: ${selector}`, { found, ...details }),
+      logger.info("content", `Element search: ${selector}`, {
+        found,
+        ...details,
+      }),
     elementClick: (elementType: string, success: boolean, details?: any) =>
-      logger.info('content', `Element click: ${elementType}`, { success, ...details }),
-    inputSet: (elementType: string, value: string, success: boolean, details?: any) =>
-      logger.info('content', `Input set: ${elementType}`, {
+      logger.info("content", `Element click: ${elementType}`, {
+        success,
+        ...details,
+      }),
+    inputSet: (
+      elementType: string,
+      value: string,
+      success: boolean,
+      details?: any,
+    ) =>
+      logger.info("content", `Input set: ${elementType}`, {
         valueLength: value.length,
         valuePreview: value.substring(0, 50),
         success,
-        ...details
+        ...details,
       }),
     submitAttempt: (method: string, success: boolean, details?: any) =>
-      logger.info('content', `Submit attempt: ${method}`, { success, ...details }),
+      logger.info("content", `Submit attempt: ${method}`, {
+        success,
+        ...details,
+      }),
     generationStatus: (status: string, details?: any) =>
-      logger.info('content', `Generation status: ${status}`, details),
+      logger.info("content", `Generation status: ${status}`, details),
     error: (context: string, error: any, domSnapshot?: any) =>
-      logger.error('content', `Content script error: ${context}`, { error, domSnapshot }),
-    log: (level: 'debug' | 'info' | 'warn' | 'error', message: string, data?: any) => {
+      logger.error("content", `Content script error: ${context}`, {
+        error,
+        domSnapshot,
+      }),
+    log: (
+      level: "debug" | "info" | "warn" | "error",
+      message: string,
+      data?: any,
+    ) => {
       // Generic content script logging
-      logger[level]('content', message, data);
+      logger[level]("content", message, data);
     },
   },
 };

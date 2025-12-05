@@ -1,8 +1,18 @@
 import * as React from "react";
 
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import {
   FaCheckCircle,
   FaCheckSquare,
@@ -114,27 +124,30 @@ function highlightText(text: string, query: string): React.ReactNode {
     }
 
     // Add matched text
-    parts.push({ text: text.substring(index, index + query.length), isMatch: true });
+    parts.push({
+      text: text.substring(index, index + query.length),
+      isMatch: true,
+    });
     lastIndex = index + query.length;
     searchIndex = index + 1;
   }
 
-      return (
-        <>
-          {parts.map((part, i) =>
-            part.isMatch ? (
-              <mark
-                key={i}
-                className="bg-yellow-200 dark:bg-yellow-900/50 text-yellow-900 dark:text-yellow-100 px-0.5 rounded pointer-events-none"
-              >
-                {part.text}
-              </mark>
-            ) : (
-              <span key={i}>{part.text}</span>
-            )
-          )}
-        </>
-      );
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.isMatch ? (
+          <mark
+            key={i}
+            className="bg-yellow-200 dark:bg-yellow-900/50 text-yellow-900 dark:text-yellow-100 px-0.5 rounded pointer-events-none"
+          >
+            {part.text}
+          </mark>
+        ) : (
+          <span key={i}>{part.text}</span>
+        ),
+      )}
+    </>
+  );
 }
 
 export function PromptCard({
@@ -155,20 +168,32 @@ export function PromptCard({
   const [copied, setCopied] = React.useState(false);
 
   const shouldTruncate = prompt.text.length > MAX_TEXT_LENGTH;
-  const displayText = isExpanded || !shouldTruncate ? prompt.text : prompt.text.substring(0, MAX_TEXT_LENGTH) + "...";
+  const displayText =
+    isExpanded || !shouldTruncate
+      ? prompt.text
+      : prompt.text.substring(0, MAX_TEXT_LENGTH) + "...";
 
   const handleEdit = () => {
-    log.ui.action("PromptCard:Edit", { promptId: prompt.id, status: prompt.status });
+    log.ui.action("PromptCard:Edit", {
+      promptId: prompt.id,
+      status: prompt.status,
+    });
     onEdit(prompt.id);
   };
 
   const handleDuplicate = () => {
-    log.ui.action("PromptCard:Duplicate", { promptId: prompt.id, mediaType: prompt.mediaType });
+    log.ui.action("PromptCard:Duplicate", {
+      promptId: prompt.id,
+      mediaType: prompt.mediaType,
+    });
     onDuplicate(prompt.id);
   };
 
   const handleRefine = () => {
-    log.ui.action("PromptCard:Refine", { promptId: prompt.id, enhanced: prompt.enhanced });
+    log.ui.action("PromptCard:Refine", {
+      promptId: prompt.id,
+      enhanced: prompt.enhanced,
+    });
     onRefine(prompt.id);
   };
 
@@ -178,7 +203,10 @@ export function PromptCard({
   };
 
   const handleDelete = () => {
-    log.ui.action("PromptCard:Delete", { promptId: prompt.id, status: prompt.status });
+    log.ui.action("PromptCard:Delete", {
+      promptId: prompt.id,
+      status: prompt.status,
+    });
     onDelete(prompt.id);
   };
 
@@ -251,7 +279,8 @@ export function PromptCard({
 
     // Allow clicks on mark elements (highlighted search text) to work
     // If clicking on mark, use the parent element to check
-    const clickTarget = target.tagName === "MARK" ? target.parentElement : target;
+    const clickTarget =
+      target.tagName === "MARK" ? target.parentElement : target;
 
     // Only navigate for completed prompts
     if (prompt.status === "completed" && onNavigateToPrompt) {
@@ -266,10 +295,12 @@ export function PromptCard({
 
   // Estimate completion time for processing prompts (average 2-3 minutes)
   const estimatedCompletion =
-    isProcessing && prompt.startTime ?
-      prompt.startTime + 2.5 * 60 * 1000 // 2.5 minutes average
+    isProcessing && prompt.startTime
+      ? prompt.startTime + 2.5 * 60 * 1000 // 2.5 minutes average
+      : null;
+  const estimatedTimeRemaining = estimatedCompletion
+    ? Math.max(0, estimatedCompletion - Date.now())
     : null;
-  const estimatedTimeRemaining = estimatedCompletion ? Math.max(0, estimatedCompletion - Date.now()) : null;
 
   return (
     <Card
@@ -279,11 +310,18 @@ export function PromptCard({
         "border-l-4",
         getStatusBorderColor(prompt.status),
         isProcessing && "ring-1 ring-yellow-500/20 dark:ring-yellow-400/20",
-        isSelected && "border-2 border-blue-500 dark:border-blue-400 ring-1 ring-blue-500/20 dark:ring-blue-400/20 bg-blue-50/50 dark:bg-blue-950/30",
+        isSelected &&
+          "border-2 border-blue-500 dark:border-blue-400 ring-1 ring-blue-500/20 dark:ring-blue-400/20 bg-blue-50/50 dark:bg-blue-950/30",
         prompt.status === "failed" && "bg-destructive/5 dark:bg-destructive/10",
-        isCompleted && onNavigateToPrompt && "cursor-pointer hover:ring-1 hover:ring-green-500/30"
+        isCompleted &&
+          onNavigateToPrompt &&
+          "cursor-pointer hover:ring-1 hover:ring-green-500/30",
       )}
-      title={isCompleted && onNavigateToPrompt ? "Click to navigate to this prompt on Sora" : undefined}
+      title={
+        isCompleted && onNavigateToPrompt
+          ? "Click to navigate to this prompt on Sora"
+          : undefined
+      }
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-2.5">
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -294,24 +332,38 @@ export function PromptCard({
               title={isSelected ? "Deselect" : "Select"}
               data-no-drag
             >
-              {isSelected ?
+              {isSelected ? (
                 <FaCheckSquare className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-              : <FaSquare className="h-3.5 w-3.5 text-muted-foreground" />}
+              ) : (
+                <FaSquare className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
             </button>
           )}
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className={cn(
-              "text-xs font-medium",
-              prompt.mediaType === "video" && "text-blue-600 dark:text-blue-400",
-              prompt.mediaType === "image" && "text-purple-600 dark:text-purple-400"
-            )}>
-              {prompt.mediaType === "video" ? <FaVideo className="h-3 w-3 inline mr-1" /> : <FaImage className="h-3 w-3 inline mr-1" />}
+            <span
+              className={cn(
+                "text-xs font-medium",
+                prompt.mediaType === "video" &&
+                  "text-blue-600 dark:text-blue-400",
+                prompt.mediaType === "image" &&
+                  "text-purple-600 dark:text-purple-400",
+              )}
+            >
+              {prompt.mediaType === "video" ? (
+                <FaVideo className="h-3 w-3 inline mr-1" />
+              ) : (
+                <FaImage className="h-3 w-3 inline mr-1" />
+              )}
             </span>
             {prompt.aspectRatio && (
-              <span className="text-xs text-muted-foreground">• {prompt.aspectRatio}</span>
+              <span className="text-xs text-muted-foreground">
+                • {prompt.aspectRatio}
+              </span>
             )}
             {prompt.variations && (
-              <span className="text-xs text-muted-foreground">• {prompt.variations}v</span>
+              <span className="text-xs text-muted-foreground">
+                • {prompt.variations}v
+              </span>
             )}
             {prompt.enhanced && (
               <span className="text-xs text-purple-600 dark:text-purple-400">
@@ -322,7 +374,14 @@ export function PromptCard({
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {onProcess && prompt.status === "pending" && (
-            <Button variant="default" size="sm" onClick={handleProcess} className="h-6 px-2 text-xs gap-1" title="Process" data-no-drag>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleProcess}
+              className="h-6 px-2 text-xs gap-1"
+              title="Process"
+              data-no-drag
+            >
               <FaPlay className="h-3 w-3" />
             </Button>
           )}
@@ -333,7 +392,7 @@ export function PromptCard({
               isProcessing && "text-yellow-600 dark:text-yellow-400",
               isCompleted && "text-green-600 dark:text-green-400",
               prompt.status === "pending" && "text-muted-foreground",
-              prompt.status === "failed" && "text-red-600 dark:text-red-400"
+              prompt.status === "failed" && "text-red-600 dark:text-red-400",
             )}
           >
             {getStatusIcon(prompt.status)}
@@ -344,32 +403,49 @@ export function PromptCard({
 
       <CardContent className="px-3 pb-2">
         <div className="space-y-1.5">
-          <p className="text-sm leading-relaxed text-foreground">{highlightText(displayText, searchQuery)}</p>
+          <p className="text-sm leading-relaxed text-foreground">
+            {highlightText(displayText, searchQuery)}
+          </p>
           {shouldTruncate && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
             >
-              {isExpanded ?
+              {isExpanded ? (
                 <>
                   <FaChevronUp className="h-2.5 w-2.5" />
                   Show less
                 </>
-              : <>
+              ) : (
+                <>
                   <FaChevronDown className="h-2.5 w-2.5" />
                   Read more
                 </>
-              }
+              )}
             </button>
           )}
 
           {/* Progress indicator for processing prompts */}
           {isProcessing && (
             <div className="space-y-1">
-              <Progress value={prompt.startTime ? Math.min(90, ((Date.now() - prompt.startTime) / (2.5 * 60 * 1000)) * 100) : 0} className="h-1" />
-              {estimatedTimeRemaining !== null && estimatedTimeRemaining > 0 && (
-                <span className="text-[10px] text-muted-foreground">~{formatDuration(estimatedTimeRemaining)} remaining</span>
-              )}
+              <Progress
+                value={
+                  prompt.startTime
+                    ? Math.min(
+                        90,
+                        ((Date.now() - prompt.startTime) / (2.5 * 60 * 1000)) *
+                          100,
+                      )
+                    : 0
+                }
+                className="h-1"
+              />
+              {estimatedTimeRemaining !== null &&
+                estimatedTimeRemaining > 0 && (
+                  <span className="text-[10px] text-muted-foreground">
+                    ~{formatDuration(estimatedTimeRemaining)} remaining
+                  </span>
+                )}
             </div>
           )}
 
@@ -407,10 +483,20 @@ export function PromptCard({
               <FaLocationArrow className="h-3.5 w-3.5" />
             </Button>
           )}
-          <Button variant="ghost" size="icon" onClick={handleCopyText} title="Copy" type="button" data-no-drag className="h-6 w-6">
-            {copied ?
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCopyText}
+            title="Copy"
+            type="button"
+            data-no-drag
+            className="h-6 w-6"
+          >
+            {copied ? (
               <FaCheckCircle className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-            : <FaClipboard className="h-3.5 w-3.5" />}
+            ) : (
+              <FaClipboard className="h-3.5 w-3.5" />
+            )}
           </Button>
           <Button
             variant="ghost"
@@ -455,7 +541,10 @@ export function PromptCard({
               Generate Similar
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={handleDelete} className="text-destructive focus:text-destructive">
+            <DropdownMenuItem
+              onSelect={handleDelete}
+              className="text-destructive focus:text-destructive"
+            >
               <FaTrash className="h-4 w-4 mr-2" />
               Delete
             </DropdownMenuItem>

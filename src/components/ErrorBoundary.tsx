@@ -91,7 +91,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
               <FaExclamationTriangle className="h-8 w-8 text-destructive" />
               <div>
                 <h2 className="text-xl font-semibold">Something went wrong</h2>
-                <p className="text-sm text-muted-foreground">The application encountered an unexpected error</p>
+                <p className="text-sm text-muted-foreground">
+                  The application encountered an unexpected error
+                </p>
               </div>
             </div>
 
@@ -99,13 +101,19 @@ export class ErrorBoundary extends React.Component<Props, State> {
             {this.state.error && (
               <div className="space-y-2">
                 <div className="p-3 bg-destructive/10 rounded-md">
-                  <p className="text-sm font-mono text-destructive">{this.state.error.toString()}</p>
+                  <p className="text-sm font-mono text-destructive">
+                    {this.state.error.toString()}
+                  </p>
                 </div>
 
                 {this.state.errorInfo?.componentStack && (
                   <details className="text-xs">
-                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Component Stack</summary>
-                    <pre className="mt-2 p-3 bg-muted rounded-md overflow-x-auto">{this.state.errorInfo.componentStack}</pre>
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                      Component Stack
+                    </summary>
+                    <pre className="mt-2 p-3 bg-muted rounded-md overflow-x-auto">
+                      {this.state.errorInfo.componentStack}
+                    </pre>
                   </details>
                 )}
               </div>
@@ -113,18 +121,27 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
             {/* Action Buttons */}
             <div className="flex gap-2">
-              <Button onClick={this.handleReset} variant="default" className="flex-1">
+              <Button
+                onClick={this.handleReset}
+                variant="default"
+                className="flex-1"
+              >
                 <FaSync className="h-4 w-4 mr-2" />
                 Try Again
               </Button>
-              <Button onClick={this.handleReload} variant="outline" className="flex-1">
+              <Button
+                onClick={this.handleReload}
+                variant="outline"
+                className="flex-1"
+              >
                 Reload Extension
               </Button>
             </div>
 
             {/* Help Text */}
             <p className="text-xs text-muted-foreground text-center">
-              If this error persists, try reloading the extension or check the Debug tab for more details.
+              If this error persists, try reloading the extension or check the
+              Debug tab for more details.
             </p>
           </Card>
         </div>

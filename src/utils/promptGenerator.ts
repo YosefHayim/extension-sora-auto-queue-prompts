@@ -1,4 +1,8 @@
-import type { ApiProvider, PromptGenerationRequest, PromptGenerationResponse } from "../types";
+import type {
+  ApiProvider,
+  PromptGenerationRequest,
+  PromptGenerationResponse,
+} from "../types";
 
 import { log } from "./logger";
 import { recognizeApiProvider } from "./apiKeyUtils";
@@ -25,16 +29,25 @@ export class PromptGenerator {
    * Fetch with exponential backoff retry mechanism
    * Handles transient network failures and rate limits (429)
    */
-  private async fetchWithRetry(url: string, options: RequestInit, attempt: number = 0): Promise<Response> {
+  private async fetchWithRetry(
+    url: string,
+    options: RequestInit,
+    attempt: number = 0,
+  ): Promise<Response> {
     try {
-      log.api.request(this.apiProvider, { attempt: attempt + 1, maxAttempts: MAX_RETRY_ATTEMPTS });
+      log.api.request(this.apiProvider, {
+        attempt: attempt + 1,
+        maxAttempts: MAX_RETRY_ATTEMPTS,
+      });
 
       const response = await fetch(url, options);
 
       // Rate limit detection
       if (response.status === 429) {
         const retryAfter = response.headers.get("Retry-After");
-        const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : RETRY_DELAYS_MS[attempt] || 4000;
+        const waitMs = retryAfter
+          ? parseInt(retryAfter) * 1000
+          : RETRY_DELAYS_MS[attempt] || 4000;
 
         log.api.error(this.apiProvider, {
           status: 429,
@@ -125,7 +138,10 @@ export class PromptGenerator {
     return basePrompt;
   }
 
-  async enhancePrompt(text: string, mediaType: "video" | "image"): Promise<{ enhanced: string; success: boolean; error?: string }> {
+  async enhancePrompt(
+    text: string,
+    mediaType: "video" | "image",
+  ): Promise<{ enhanced: string; success: boolean; error?: string }> {
     if (!this.apiKey) {
       return {
         enhanced: text,
@@ -167,7 +183,11 @@ export class PromptGenerator {
     }
   }
 
-  async generateSimilar(basePrompt: string, count: number, mediaType: "video" | "image"): Promise<PromptGenerationResponse> {
+  async generateSimilar(
+    basePrompt: string,
+    count: number,
+    mediaType: "video" | "image",
+  ): Promise<PromptGenerationResponse> {
     if (!this.apiKey) {
       return {
         prompts: [],
@@ -213,7 +233,9 @@ export class PromptGenerator {
     }
   }
 
-  async generatePrompts(request: PromptGenerationRequest): Promise<PromptGenerationResponse> {
+  async generatePrompts(
+    request: PromptGenerationRequest,
+  ): Promise<PromptGenerationResponse> {
     if (!this.apiKey) {
       return {
         prompts: [],
@@ -223,10 +245,14 @@ export class PromptGenerator {
     }
 
     try {
-      const response = await this.makeApiRequest(this.buildSystemPrompt(request), request.context, {
-        temperature: 0.9,
-        max_tokens: 2000,
-      });
+      const response = await this.makeApiRequest(
+        this.buildSystemPrompt(request),
+        request.context,
+        {
+          temperature: 0.9,
+          max_tokens: 2000,
+        },
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -260,25 +286,32 @@ export class PromptGenerator {
   /**
    * Makes an API request to the configured provider
    */
-  private async makeApiRequest(systemPrompt: string, userPrompt: string, options: { temperature?: number; max_tokens?: number }): Promise<Response> {
+  private async makeApiRequest(
+    systemPrompt: string,
+    userPrompt: string,
+    options: { temperature?: number; max_tokens?: number },
+  ): Promise<Response> {
     switch (this.apiProvider) {
       case "openai":
-        return this.fetchWithRetry("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${this.apiKey}`,
+        return this.fetchWithRetry(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this.apiKey}`,
+            },
+            body: JSON.stringify({
+              model: "gpt-4",
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt },
+              ],
+              temperature: options.temperature ?? 0.9,
+              max_tokens: options.max_tokens ?? 2000,
+            }),
           },
-          body: JSON.stringify({
-            model: "gpt-4",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            temperature: options.temperature ?? 0.9,
-            max_tokens: options.max_tokens ?? 2000,
-          }),
-        });
+        );
 
       case "anthropic":
         return this.fetchWithRetry("https://api.anthropic.com/v1/messages", {
@@ -298,23 +331,26 @@ export class PromptGenerator {
         });
 
       case "google":
-        return this.fetchWithRetry(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${this.apiKey}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
-              },
-            ],
-            generationConfig: {
-              temperature: options.temperature ?? 0.9,
-              maxOutputTokens: options.max_tokens ?? 2000,
+        return this.fetchWithRetry(
+          `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${this.apiKey}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          }),
-        });
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
+                },
+              ],
+              generationConfig: {
+                temperature: options.temperature ?? 0.9,
+                maxOutputTokens: options.max_tokens ?? 2000,
+              },
+            }),
+          },
+        );
 
       default:
         throw new Error(`Unsupported API provider: ${this.apiProvider}`);

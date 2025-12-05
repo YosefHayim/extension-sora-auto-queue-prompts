@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { Card, CardContent, CardHeader } from './ui/card'
-import { Button } from './ui/button'
-import { Badge } from './ui/badge'
-import { FaSync, FaDownload, FaTrash } from 'react-icons/fa';
-import { log } from '../utils/logger'
-import type { LogEntry } from '../utils/logger'
+import * as React from "react";
+import { Card, CardContent, CardHeader } from "./ui/card";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { FaSync, FaDownload, FaTrash } from "react-icons/fa";
+import { log } from "../utils/logger";
+import type { LogEntry } from "../utils/logger";
 
 export function DebugPanel() {
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
@@ -18,13 +18,13 @@ export function DebugPanel() {
     try {
       setIsLoading(true);
       // Don't log during load operation to avoid creating new logs
-      const response = await chrome.runtime.sendMessage({ action: 'getLogs' });
+      const response = await chrome.runtime.sendMessage({ action: "getLogs" });
       if (response.success) {
         setLogs(response.logs);
       }
     } catch (error) {
       // Only log errors, which is acceptable as user should see failures
-      log.ui.error('DebugPanel:LoadLogs', error);
+      log.ui.error("DebugPanel:LoadLogs", error);
     } finally {
       setIsLoading(false);
     }
@@ -33,36 +33,36 @@ export function DebugPanel() {
   async function handleExportLogs() {
     try {
       // Don't log during export to keep export clean
-      await chrome.runtime.sendMessage({ action: 'exportLogs' });
+      await chrome.runtime.sendMessage({ action: "exportLogs" });
     } catch (error) {
       // Only log errors
-      log.ui.error('DebugPanel:ExportLogs', error);
+      log.ui.error("DebugPanel:ExportLogs", error);
     }
   }
 
   async function handleClearLogs() {
     try {
       // Don't log during clear operation to avoid creating new logs
-      await chrome.runtime.sendMessage({ action: 'clearLogs' });
+      await chrome.runtime.sendMessage({ action: "clearLogs" });
       setLogs([]);
     } catch (error) {
       // Only log errors, which is acceptable as user should see failures
-      log.ui.error('DebugPanel:ClearLogs', error);
+      log.ui.error("DebugPanel:ClearLogs", error);
     }
   }
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'debug':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'info':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'warn':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'error':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case "debug":
+        return "bg-gray-100 text-gray-800 border-gray-200";
+      case "info":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "warn":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "error":
+        return "bg-red-100 text-red-800 border-red-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -74,7 +74,7 @@ export function DebugPanel() {
             <div>
               <h3 className="text-lg font-semibold">Debug Logs</h3>
               <p className="text-sm text-muted-foreground">
-                {logs.length} log {logs.length === 1 ? 'entry' : 'entries'}
+                {logs.length} log {logs.length === 1 ? "entry" : "entries"}
               </p>
             </div>
             <div className="flex gap-2">
@@ -84,7 +84,9 @@ export function DebugPanel() {
                 onClick={loadLogs}
                 disabled={isLoading}
               >
-                <FaSync className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <FaSync
+                  className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+                />
                 Refresh
               </Button>
               <Button

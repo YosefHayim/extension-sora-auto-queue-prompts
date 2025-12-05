@@ -8,7 +8,9 @@ import { useSortable } from "@dnd-kit/sortable";
 interface SortablePromptCardProps {
   prompt: GeneratedPrompt;
   isSelected?: boolean;
+  isEnabled?: boolean;
   onToggleSelection?: (id: string) => void;
+  onToggleEnabled?: (id: string) => void;
   onProcess?: (id: string) => void;
   onNavigateToPrompt?: (id: string, text: string) => void;
   onEdit: (id: string) => void;
@@ -20,14 +22,7 @@ interface SortablePromptCardProps {
 }
 
 export function SortablePromptCard(props: SortablePromptCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: props.prompt.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.prompt.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -47,12 +42,7 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
       onPointerDown: (event: PointerEvent) => {
         const target = event.target as HTMLElement;
         // Don't start drag if clicking on interactive elements
-        if (
-          target.closest("button") ||
-          target.closest("input") ||
-          target.closest('[role="button"]') ||
-          target.closest("[data-no-drag]")
-        ) {
+        if (target.closest("button") || target.closest("input") || target.closest('[role="button"]') || target.closest("[data-no-drag]")) {
           event.stopPropagation();
           return;
         }
@@ -62,17 +52,13 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
   }, [listeners]);
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...filteredListeners}
-      className="relative"
-    >
+    <div ref={setNodeRef} style={style} {...attributes} {...filteredListeners} className="relative">
       <PromptCard
         prompt={props.prompt}
         isSelected={props.isSelected}
+        isEnabled={props.isEnabled}
         onToggleSelection={props.onToggleSelection}
+        onToggleEnabled={props.onToggleEnabled}
         onProcess={props.onProcess}
         onNavigateToPrompt={props.onNavigateToPrompt}
         onEdit={props.onEdit}

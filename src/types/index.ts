@@ -1,11 +1,5 @@
 export type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9";
-export type PresetType =
-  | "cinematic"
-  | "documentary"
-  | "artistic"
-  | "realistic"
-  | "animated"
-  | "none";
+export type PresetType = "cinematic" | "documentary" | "artistic" | "realistic" | "animated" | "none";
 export type LogLevel = "debug" | "info" | "warn" | "error";
 export type ApiProvider = "openai" | "anthropic" | "google";
 
@@ -39,6 +33,7 @@ export interface GeneratedPrompt {
   startTime?: number; // When processing started
   completedTime?: number; // When processing completed
   duration?: number; // Duration in milliseconds
+  progress?: number; // Generation progress percentage (0-100)
 }
 
 export interface QueueState {

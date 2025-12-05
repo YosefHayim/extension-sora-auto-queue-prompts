@@ -1,7 +1,7 @@
 import { defineConfig } from "wxt";
-import tsconfigPaths from "vite-tsconfig-paths";
-import path from "path";
 import { fileURLToPath } from "url";
+import path from "path";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -18,7 +18,7 @@ export default defineConfig({
   }),
   manifest: {
     name: "Sora Auto Queue Prompts",
-    version: "2.1.0",
+    version: "2.2.0",
     description: "Browser extension to automate prompt generation and queueing for Sora AI",
     permissions: ["activeTab", "storage", "scripting", "tabs", "downloads", "webRequest"],
     host_permissions: ["https://*/*"],
@@ -40,14 +40,14 @@ export default defineConfig({
   },
   // WXT automatically detects icons from public/ directory
   // Icons should be named: icon16.png, icon48.png, icon128.png
-  
+
   // Optional: Configure auto-imports for better developer experience
   // This allows importing from src/components, src/utils, etc. without full paths
   imports: {
     // Auto-import from common directories
     dirs: ["src/components", "src/utils", "src/lib"],
   },
-  
+
   // Optional: Build hooks for customization
   hooks: {
     "build:manifestGenerated": (wxt, manifest) => {

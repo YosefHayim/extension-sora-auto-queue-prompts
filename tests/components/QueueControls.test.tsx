@@ -8,6 +8,7 @@ describe('QueueControls', () => {
   const mockOnPause = jest.fn();
   const mockOnResume = jest.fn();
   const mockOnStop = jest.fn();
+  const mockOnCleanCompletedAndFailed = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,7 +36,7 @@ describe('QueueControls', () => {
       />
     );
 
-    expect(screen.getByText('⏹ Stopped')).toBeInTheDocument();
+    expect(screen.getByText(/0 \/ 10 prompts/)).toBeInTheDocument();
     expect(screen.getByText('Start')).toBeInTheDocument();
   });
 
@@ -52,7 +53,7 @@ describe('QueueControls', () => {
       />
     );
 
-    expect(screen.getByText('▶ Running')).toBeInTheDocument();
+    expect(screen.getByText(/3 \/ 10 prompts/)).toBeInTheDocument();
     expect(screen.getByText('Pause')).toBeInTheDocument();
     expect(screen.getByText('Stop')).toBeInTheDocument();
   });
@@ -70,7 +71,7 @@ describe('QueueControls', () => {
       />
     );
 
-    expect(screen.getByText('⏸ Paused')).toBeInTheDocument();
+    expect(screen.getByText(/3 \/ 10 prompts/)).toBeInTheDocument();
     expect(screen.getByText('Resume')).toBeInTheDocument();
     expect(screen.getByText('Stop')).toBeInTheDocument();
   });
@@ -396,6 +397,108 @@ describe('QueueControls', () => {
 
     const stopButton = screen.getByText('Stop');
     expect(stopButton).toBeInTheDocument();
+  });
+
+  it('should toggle collapse state', () => {
+    const queueState = createQueueState({ isRunning: false });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    const toggleButton = screen.getByTitle('Collapse');
+    expect(toggleButton).toBeInTheDocument();
+    expect(screen.getByText('Start')).toBeInTheDocument();
+
+    fireEvent.click(toggleButton);
+    expect(screen.queryByText('Start')).not.toBeInTheDocument();
+  });
+
+  it('should show clean button when paused and has completed/failed prompts', () => {
+    const queueState = createQueueState({ isRunning: true, isPaused: true });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+        onCleanCompletedAndFailed={mockOnCleanCompletedAndFailed}
+        completedCount={3}
+        failedCount={2}
+      />
+    );
+
+    const cleanButton = screen.getByText('Clean');
+    expect(cleanButton).toBeInTheDocument();
+  });
+
+  it('should not show clean button when paused but no completed/failed prompts', () => {
+    const queueState = createQueueState({ isRunning: true, isPaused: true });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+        onCleanCompletedAndFailed={mockOnCleanCompletedAndFailed}
+        completedCount={0}
+        failedCount={0}
+      />
+    );
+
+    const cleanButton = screen.queryByText('Clean');
+    expect(cleanButton).not.toBeInTheDocument();
+  });
+
+  it('should call onCleanCompletedAndFailed when clean button is clicked', () => {
+    const queueState = createQueueState({ isRunning: true, isPaused: true });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+        onCleanCompletedAndFailed={mockOnCleanCompletedAndFailed}
+        completedCount={3}
+        failedCount={2}
+      />
+    );
+
+    const cleanButton = screen.getByText('Clean');
+    fireEvent.click(cleanButton);
+    expect(mockOnCleanCompletedAndFailed).toHaveBeenCalledTimes(1);
+  });
+
+  it('should hide progress bar when collapsed', () => {
+    const queueState = createQueueState({ isRunning: true, totalCount: 10 });
+    const { container } = render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />
+    );
+
+    const toggleButton = screen.getByTitle('Collapse');
+    fireEvent.click(toggleButton);
+
+    const progressBar = container.querySelector('[role="progressbar"]');
+    expect(progressBar).not.toBeInTheDocument();
   });
 });
 

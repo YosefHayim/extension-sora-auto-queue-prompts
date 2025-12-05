@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { Card, CardContent, CardHeader } from "./ui/card";
-import { FaClock, FaPause, FaPlay, FaStop } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaClock, FaPause, FaPlay, FaStop, FaTrash } from "react-icons/fa";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 import { Badge } from "./ui/badge";
@@ -30,11 +30,25 @@ interface QueueControlsProps {
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
+  onCleanCompletedAndFailed?: () => void;
+  completedCount?: number;
+  failedCount?: number;
 }
 
-export function QueueControls({ queueState, totalCount, onStart, onPause, onResume, onStop }: QueueControlsProps) {
+export function QueueControls({
+  queueState,
+  totalCount,
+  onStart,
+  onPause,
+  onResume,
+  onStop,
+  onCleanCompletedAndFailed,
+  completedCount = 0,
+  failedCount = 0,
+}: QueueControlsProps) {
   const progress = totalCount > 0 ? (queueState.processedCount / totalCount) * 100 : 0;
   const [elapsedTime, setElapsedTime] = React.useState<number>(0);
+  const [isCollapsed, setIsCollapsed] = React.useState<boolean>(false);
 
   // Calculate elapsed time from queue start
   React.useEffect(() => {
@@ -74,56 +88,70 @@ export function QueueControls({ queueState, totalCount, onStart, onPause, onResu
     onStop();
   };
 
+  const handleToggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+  const handleCleanClick = () => {
+    if (onCleanCompletedAndFailed) {
+      log.ui.action("QueueControls:CleanCompletedAndFailed", { completedCount, failedCount });
+      onCleanCompletedAndFailed();
+    }
+  };
+
+  const hasCompletedOrFailed = (completedCount || 0) + (failedCount || 0) > 0;
+
   return (
     <Card className="border-2 overflow-hidden">
       <CardHeader className="pb-3 overflow-hidden">
-        <div className="flex items-center justify-between gap-4 min-w-0">
-          <div className="flex items-center gap-4 min-w-0 flex-1">
-            <Badge
-              variant={queueState.isRunning ? "default" : "secondary"}
+        {/* Top row: Toggle button (left), Small circle, Status, and Timer (right) */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            {/* Toggle button */}
+            <Button variant="ghost" size="sm" onClick={handleToggleCollapse} className="h-6 w-6 p-0 flex-shrink-0" title={isCollapsed ? "Expand" : "Collapse"}>
+              {isCollapsed ?
+                <FaChevronDown className="h-3 w-3" />
+              : <FaChevronUp className="h-3 w-3" />}
+            </Button>
+            {/* Small status circle */}
+            <div
               className={cn(
-                "text-sm font-semibold px-3 py-1 flex-shrink-0",
-                queueState.isRunning && !queueState.isPaused && "bg-green-500 text-white animate-pulse",
-                queueState.isRunning && queueState.isPaused && "bg-yellow-500 text-white",
-                !queueState.isRunning && "bg-gray-500 text-white"
+                "h-3 w-3 rounded-full flex-shrink-0",
+                queueState.isRunning && !queueState.isPaused && "bg-green-500 animate-pulse",
+                queueState.isRunning && queueState.isPaused && "bg-yellow-500",
+                !queueState.isRunning && "bg-gray-500"
               )}
-            >
-              {queueState.isRunning ?
-                queueState.isPaused ?
-                  "⏸ Paused"
-                : "▶ Running"
-              : "⏹ Stopped"}
-            </Badge>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium text-foreground truncate">
-                {queueState.processedCount} / {totalCount} prompts
-              </span>
-              <div className="flex items-center gap-3 flex-wrap">
-                {totalCount > 0 && <span className="text-xs text-muted-foreground whitespace-nowrap">{Math.round(progress)}% complete</span>}
-                {queueState.isRunning && queueState.queueStartTime && !queueState.isPaused && (
-                  <HoverCard>
-                    <HoverCardTrigger asChild>
-                      <Badge variant="outline" className="text-xs gap-1.5 cursor-help flex-shrink-0">
-                        <FaClock className="h-3 w-3" />
-                        {formatDuration(elapsedTime)}
-                      </Badge>
-                    </HoverCardTrigger>
-                    <HoverCardContent className="w-64">
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-semibold">Queue Timer</h4>
-                        <p className="text-xs text-muted-foreground">
-                          Total elapsed time since the queue started. This timer resets when the queue stops or finishes.
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-2">Started: {new Date(queueState.queueStartTime).toLocaleTimeString()}</p>
-                      </div>
-                    </HoverCardContent>
-                  </HoverCard>
-                )}
-              </div>
-            </div>
+            />
+            <span className="text-sm font-medium text-foreground">
+              {queueState.processedCount} / {totalCount} prompts
+            </span>
           </div>
 
-          <div className="flex gap-2 flex-shrink-0">
+          {/* Timer at top right */}
+          {queueState.isRunning && queueState.queueStartTime && !queueState.isPaused && (
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <Badge variant="outline" className="text-xs gap-1.5 cursor-help flex-shrink-0">
+                  <FaClock className="h-3 w-3" />
+                  {formatDuration(elapsedTime)}
+                </Badge>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-64">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-semibold">Queue Timer</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Total elapsed time since the queue started. This timer resets when the queue stops or finishes.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">Started: {new Date(queueState.queueStartTime).toLocaleTimeString()}</p>
+                </div>
+              </HoverCardContent>
+            </HoverCard>
+          )}
+        </div>
+
+        {/* Buttons row */}
+        {!isCollapsed && (
+          <div className="flex gap-2 flex-shrink-0 justify-end">
             {!queueState.isRunning && (
               <HoverCard>
                 <HoverCardTrigger asChild>
@@ -166,22 +194,45 @@ export function QueueControls({ queueState, totalCount, onStart, onPause, onResu
               </HoverCard>
             )}
             {queueState.isRunning && queueState.isPaused && (
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <Button onClick={handleResumeClick} size="sm" className="min-w-[80px]">
-                    <FaPlay className="h-4 w-4 mr-2" />
-                    Resume
-                  </Button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-semibold">Resume Queue</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Continue processing prompts from where you left off. The queue will resume with the next pending prompt.
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
+              <>
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button onClick={handleResumeClick} size="sm" className="min-w-[80px]">
+                      <FaPlay className="h-4 w-4 mr-2" />
+                      Resume
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-64">
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-semibold">Resume Queue</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Continue processing prompts from where you left off. The queue will resume with the next pending prompt.
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+                {hasCompletedOrFailed && onCleanCompletedAndFailed && (
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <Button variant="outline" onClick={handleCleanClick} size="sm" className="min-w-[80px]">
+                        <FaTrash className="h-4 w-4 mr-2" />
+                        Clean
+                      </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-64">
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-semibold">Clean Completed & Failed</h4>
+                        <p className="text-xs text-muted-foreground">Remove all completed and failed prompts from the queue. This action cannot be undone.</p>
+                        {(completedCount > 0 || failedCount > 0) && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {completedCount} completed, {failedCount} failed
+                          </p>
+                        )}
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                )}
+              </>
             )}
             {queueState.isRunning && (
               <HoverCard>
@@ -203,12 +254,16 @@ export function QueueControls({ queueState, totalCount, onStart, onPause, onResu
               </HoverCard>
             )}
           </div>
-        </div>
+        )}
       </CardHeader>
 
-      {queueState.isRunning && totalCount > 0 && (
+      {!isCollapsed && queueState.isRunning && totalCount > 0 && (
         <CardContent className="pt-0">
           <div className="space-y-2">
+            {/* Percentage above progress bar, aligned right */}
+            <div className="flex justify-end">
+              {totalCount > 0 && <span className="text-xs text-muted-foreground whitespace-nowrap">{Math.round(progress)}% complete</span>}
+            </div>
             <Progress value={progress} className="w-full h-2" />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>{queueState.processedCount} processed</span>

@@ -1,6 +1,7 @@
 import { Card, CardContent } from "./ui/card";
+import { FaInbox, FaMagic, FaPlus, FaUpload } from "react-icons/fa";
+
 import { Button } from "./ui/button";
-import { FaInbox, FaMagic, FaUpload, FaPlus } from "react-icons/fa";
 import { log } from "../utils/logger";
 
 interface EmptyStateProps {
@@ -9,11 +10,7 @@ interface EmptyStateProps {
   onManual: () => void;
 }
 
-export function EmptyState({
-  onGenerate,
-  onImport,
-  onManual,
-}: EmptyStateProps) {
+export function EmptyState({ onGenerate, onImport, onManual }: EmptyStateProps) {
   const handleGenerate = () => {
     log.ui.action("EmptyState:Generate");
     onGenerate();
@@ -37,34 +34,26 @@ export function EmptyState({
         </div>
         <h3 className="text-xl font-bold mb-2">No prompts yet</h3>
         <p className="text-sm text-muted-foreground mb-8 text-center max-w-sm">
-          Get started by generating AI prompts, adding them manually, or
-          importing from a CSV file
+          Get started by generating AI prompts, adding them manually, or importing from a CSV file
         </p>
-        <div className="flex gap-3 flex-wrap justify-center">
-          <Button onClick={handleGenerate} size="lg" className="shadow-md">
+        <div className="grid grid-cols-3 gap-3 w-full">
+          <Button onClick={handleGenerate} size="lg" className="shadow-md w-full">
             <FaMagic className="mr-2 h-4 w-4" />
             Generate Prompts
           </Button>
-          <Button variant="outline" onClick={handleManual} size="lg">
+          <Button variant="outline" onClick={handleManual} size="lg" className="w-full">
             <FaPlus className="mr-2 h-4 w-4" />
             Manual Add
           </Button>
-          <Button variant="outline" onClick={handleImport} size="lg">
+          <Button variant="outline" onClick={handleImport} size="lg" className="w-full">
             <FaUpload className="mr-2 h-4 w-4" />
             Import CSV
           </Button>
         </div>
         <div className="mt-8 pt-6 border-t w-full">
           <p className="text-xs text-muted-foreground text-center">
-            💡 Tip: Press{" "}
-            <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">
-              ⌘K
-            </kbd>{" "}
-            to search or{" "}
-            <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">
-              ⌘N
-            </kbd>{" "}
-            to generate new prompts
+            💡 Tip: Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">⌘K</kbd> to search or{" "}
+            <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">⌘N</kbd> to generate new prompts
           </p>
         </div>
       </CardContent>

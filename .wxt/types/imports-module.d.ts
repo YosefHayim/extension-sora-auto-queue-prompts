@@ -2,7 +2,7 @@
 // Types for the #import virtual module
 declare module '#imports' {
   export { browser, Browser } from 'wxt/browser';
-  export { StorageArea, WxtStorage, WxtStorageItem, StorageItemKey, StorageAreaChanges, MigrationError } from 'wxt/utils/storage';
+  export { storage, StorageArea, WxtStorage, WxtStorageItem, StorageItemKey, StorageAreaChanges, MigrationError } from 'wxt/utils/storage';
   export { useAppConfig } from 'wxt/utils/app-config';
   export { ContentScriptContext, WxtWindowEventMap } from 'wxt/utils/content-script-context';
   export { createIframeUi, IframeContentScriptUi, IframeContentScriptUiOptions } from 'wxt/utils/content-script-ui/iframe';
@@ -16,31 +16,6 @@ declare module '#imports' {
   export { defineWxtPlugin } from 'wxt/utils/define-wxt-plugin';
   export { injectScript, ScriptPublicPath, InjectScriptOptions } from 'wxt/utils/inject-script';
   export { InvalidMatchPattern, MatchPattern } from 'wxt/utils/match-patterns';
+  export { useState, useCallback, useMemo, useEffect, useRef, useContext, useReducer } from 'react';
   export { fakeBrowser } from 'wxt/testing';
-  export { CSVImportDialog } from '../src/components/CSVImportDialog';
-  export { DebugPanel } from '../src/components/DebugPanel';
-  export { DetectedSettings } from '../src/components/DetectedSettings';
-  export { EditPromptDialog } from '../src/components/EditPromptDialog';
-  export { EmptyState } from '../src/components/EmptyState';
-  export { ErrorBoundary, ErrorBoundary } from '../src/components/ErrorBoundary';
-  export { ExportDialog } from '../src/components/ExportDialog';
-  export { FilterBar } from '../src/components/FilterBar';
-  export { FilterDropdown } from '../src/components/FilterDropdown';
-  export { Footer } from '../src/components/Footer';
-  export { GenerateDialog } from '../src/components/GenerateDialog';
-  export { ManualAddDialog } from '../src/components/ManualAddDialog';
-  export { PromptCard } from '../src/components/PromptCard';
-  export { QueueControls } from '../src/components/QueueControls';
-  export { SearchBar } from '../src/components/SearchBar';
-  export { SettingsDialog } from '../src/components/SettingsDialog';
-  export { SortablePromptCard } from '../src/components/SortablePromptCard';
-  export { StatusBar } from '../src/components/StatusBar';
-  export { recognizeApiProvider, verifyApiKey } from '../src/utils/apiKeyUtils';
-  export { CSVParser, CSVParser, CSVParseResult } from '../src/utils/csvParser';
-  export { logger, log, LogLevel, LogEntry } from '../src/utils/logger';
-  export { PromptActions, PromptActions } from '../src/utils/promptActions';
-  export { PromptGenerator, PromptGenerator } from '../src/utils/promptGenerator';
-  export { QueueProcessor, QueueProcessor, queueProcessor } from '../src/utils/queueProcessor';
-  export { storage } from '../src/utils/storage';
-  export { cn, generateUniqueId } from '../src/lib/utils';
 }

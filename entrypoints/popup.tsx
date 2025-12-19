@@ -2,16 +2,15 @@ import "../src/styles/globals.css";
 
 import * as React from "react";
 
+import type { DetectedSettings as DetectedSettingsType, GeneratedPrompt, PromptConfig, QueueState } from "../src/types";
 import { DndContext, DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
-import { FaBug, FaCheckSquare, FaCog, FaDownload, FaKey, FaList, FaMagic, FaMoon, FaPlay, FaSlidersH, FaSquare, FaSun, FaTrash } from "react-icons/fa";
-import type { GeneratedPrompt, PromptConfig, QueueState } from "../src/types";
+import { FaCheckSquare, FaDownload, FaKey, FaList, FaMagic, FaMoon, FaPlay, FaSlidersH, FaSquare, FaSun, FaTrash } from "react-icons/fa";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../src/components/ui/tabs";
 
 import { Button } from "../src/components/ui/button";
 import { CSVImportDialog } from "../src/components/CSVImportDialog";
 import { DebugPanel } from "../src/components/DebugPanel";
-import type { DetectedSettings as DetectedSettingsType } from "../src/types";
 import { EditPromptDialog } from "../src/components/EditPromptDialog";
 import { EmptyState } from "../src/components/EmptyState";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
@@ -662,49 +661,16 @@ function IndexPopup() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold text-foreground">Sora Auto Queue</h1>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleDarkMode();
-              }}
-              title="Toggle dark mode"
+            <button
               type="button"
+              onClick={toggleDarkMode}
+              title="Toggle dark mode"
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md text-sm font-medium cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {darkMode ?
                 <FaSun className="h-3.5 w-3.5" />
               : <FaMoon className="h-3.5 w-3.5" />}
-            </Button>
-          </div>
-
-          <div className="flex gap-1.5 items-center">
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleGenerate();
-              }}
-              size="sm"
-              className="h-9 min-h-[36px] px-3 py-2"
-              type="button"
-            >
-              <FaMagic className="h-3.5 w-3.5 mr-1.5" />
-              Generate
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 min-h-[36px] min-w-[36px]"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSettings();
-              }}
-              title="Settings"
-              type="button"
-            >
-              <FaCog className="h-3.5 w-3.5" />
-            </Button>
+            </button>
           </div>
         </div>
 

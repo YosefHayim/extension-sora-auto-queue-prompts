@@ -3,7 +3,7 @@ import { log, logger } from "../src/utils/logger";
 
 import { PromptActions } from "../src/utils/promptActions";
 import { PromptGenerator } from "../src/utils/promptGenerator";
-import { defineBackground } from "wxt/utils/define-background";
+import { generateUniqueId } from "../src/lib/utils";
 import { queueProcessor } from "../src/utils/queueProcessor";
 import { storage } from "../src/utils/storage";
 
@@ -325,6 +325,9 @@ export default defineBackground(() => {
           case "navigateToPrompt":
             return await handleNavigateToPrompt(request.data.promptText);
 
+          case "setMediaType":
+            return await handleSetMediaType(request.data.mediaType);
+
           default:
             logger.warn("background", `Unknown action: ${request.action}`);
             return { success: false, error: "Unknown action" };
@@ -398,7 +401,6 @@ export default defineBackground(() => {
     });
 
     if (result.success) {
-      const { generateUniqueId } = await import("../src/lib/utils");
       const prompts: GeneratedPrompt[] = result.prompts.map((text: string) => ({
         id: generateUniqueId(),
         text,
@@ -637,6 +639,56 @@ export default defineBackground(() => {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       };
+    }
+  }
+
+  async function handleSetMediaType(mediaType: "video" | "image") {
+    try {
+      logger.info("background", `Setting media type to ${mediaType} on Sora page`);
+
+      // Find the Sora tab
+      let tabs = await chrome.tabs.query({ url: "*://sora.com/*" });
+      if (tabs.length === 0) {
+        tabs = await chrome.tabs.query({ url: "*://sora.chatgpt.com/*" });
+      }
+
+      if (tabs.length === 0) {
+        return {
+          success: false,
+          error: "No Sora tab found. Please open sora.com in a browser tab.",
+        };
+      }
+
+      const soraTab = tabs[0];
+      if (!soraTab.id) {
+        return { success: false, error: "Invalid Sora tab" };
+      }
+
+      // Ensure content script is loaded
+      await queueProcessor["ensureContentScriptLoaded"](soraTab.id);
+
+      // Send message to content script
+      const response = await chrome.tabs.sendMessage(soraTab.id, {
+        action: "setMediaType",
+        mediaType,
+      });
+
+      if (response && response.success) {
+        logger.info("background", `Successfully set media type to ${mediaType}`);
+        return { success: true };
+      } else {
+        logger.warn("background", "Failed to set media type", {
+          error: response?.error,
+        });
+        return {
+          success: false,
+          error: response?.error || "Failed to set media type",
+        };
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error("background", "Set media type failed", { error: errorMsg });
+      return { success: false, error: errorMsg };
     }
   }
 

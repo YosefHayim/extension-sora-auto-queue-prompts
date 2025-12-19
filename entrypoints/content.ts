@@ -4,7 +4,6 @@
  */
 
 import type { GeneratedPrompt } from "../src/types";
-import { defineContentScript } from "#imports";
 
 export default defineContentScript({
   matches: ["*://sora.chatgpt.com/*", "*://sora.com/*"],
@@ -113,6 +112,20 @@ export default defineContentScript({
               })
               .catch((error) => {
                 this.log("error", "Failed to navigate to prompt", {
+                  error: error.message,
+                });
+                sendResponse({ success: false, error: error.message });
+              });
+            return true;
+          }
+
+          if (request.action === "setMediaType") {
+            this.setMediaType(request.mediaType)
+              .then(() => {
+                sendResponse({ success: true });
+              })
+              .catch((error) => {
+                this.log("error", "Failed to set media type", {
                   error: error.message,
                 });
                 sendResponse({ success: false, error: error.message });
@@ -991,6 +1004,102 @@ export default defineContentScript({
             success: false,
             error: error instanceof Error ? error.message : "Unknown error",
           };
+        }
+      }
+
+      /**
+       * Set media type on Sora page (Image or Video)
+       */
+      private async setMediaType(mediaType: "video" | "image"): Promise<void> {
+        this.log("info", `🎬 Setting media type to: ${mediaType}`);
+
+        try {
+          // Find the media type button - it's the first combobox button that contains "Image" or "Video"
+          const buttons = Array.from(document.querySelectorAll('button[role="combobox"]'));
+          let mediaTypeButton: HTMLButtonElement | null = null;
+
+          for (const button of buttons) {
+            const text = button.textContent?.toLowerCase() || "";
+            if (text.includes("image") || text.includes("video")) {
+              mediaTypeButton = button as HTMLButtonElement;
+              this.log("debug", `Found media type button with text: "${text}"`);
+              break;
+            }
+          }
+
+          if (!mediaTypeButton) {
+            throw new Error("Could not find media type button on Sora page");
+          }
+
+          // Check current media type
+          const currentText = mediaTypeButton.textContent?.toLowerCase() || "";
+          const currentMediaType = currentText.includes("video") ? "video" : "image";
+
+          if (currentMediaType === mediaType) {
+            this.log("info", `✅ Media type already set to ${mediaType}`);
+            return;
+          }
+
+          // Click to open dropdown
+          this.log("debug", "Clicking media type button to open dropdown...");
+          mediaTypeButton.click();
+          await this.delay(500); // Wait longer for Radix dropdown to appear
+
+          // Find the Radix popper content wrapper (the dropdown)
+          const popperWrapper = document.querySelector("[data-radix-popper-content-wrapper]");
+          if (!popperWrapper) {
+            this.log("error", "Could not find dropdown wrapper");
+            throw new Error("Dropdown did not open");
+          }
+
+          this.log("debug", "Found Radix popper wrapper, looking for options...");
+
+          // Find all options within the dropdown
+          const options = popperWrapper.querySelectorAll('[role="option"]');
+          this.log("debug", `Found ${options.length} options in dropdown`);
+
+          let targetOption: HTMLElement | null = null;
+
+          for (const option of Array.from(options)) {
+            const optionText = option.textContent?.toLowerCase() || "";
+            this.log("debug", `Checking option: "${optionText}"`);
+
+            // Look for the unchecked option that matches our target
+            const isUnchecked = option.getAttribute("data-state") === "unchecked";
+            const matchesTarget = (mediaType === "video" && optionText.includes("video")) || (mediaType === "image" && optionText.includes("image"));
+
+            if (matchesTarget) {
+              targetOption = option as HTMLElement;
+              this.log("debug", `Found target option: "${optionText}", unchecked: ${isUnchecked}`);
+              break;
+            }
+          }
+
+          if (targetOption) {
+            this.log("debug", `Clicking ${mediaType} option...`);
+
+            // Try multiple click methods for Radix UI
+            targetOption.focus();
+            await this.delay(100);
+
+            // Dispatch pointer events for better Radix compatibility
+            targetOption.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true }));
+            targetOption.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, cancelable: true }));
+            targetOption.click();
+
+            await this.delay(300);
+            this.log("info", `✅ Media type changed to ${mediaType}`);
+          } else {
+            // Close dropdown if we couldn't find option
+            this.log("error", "Could not find target option, closing dropdown");
+            document.body.click();
+            throw new Error(`Could not find ${mediaType} option in dropdown`);
+          }
+        } catch (error) {
+          this.log("error", "❌ Failed to set media type", {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          throw error;
         }
       }
 

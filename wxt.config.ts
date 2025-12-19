@@ -7,12 +7,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://wxt.dev/api/config.html
 export default defineConfig({
+  // Use official WXT React module for better React integration
+  modules: ["@wxt-dev/module-react"],
+
   // Add Vite plugins and resolve aliases for path resolution
+  // Note: Entrypoints use relative paths (../src/) due to WXT's entrypoint loading phase
+  // The @/ alias works for imports within src/ directory during bundling
   vite: () => ({
     plugins: [tsconfigPaths()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        "~": path.resolve(__dirname, "./src"),
       },
     },
   }),
@@ -41,11 +47,13 @@ export default defineConfig({
   // WXT automatically detects icons from public/ directory
   // Icons should be named: icon16.png, icon48.png, icon128.png
 
-  // Optional: Configure auto-imports for better developer experience
-  // This allows importing from src/components, src/utils, etc. without full paths
+  // Configure auto-imports - disable WXT's storage since we have our own
   imports: {
-    // Auto-import from common directories
-    dirs: ["src/components", "src/utils", "src/lib"],
+    addons: {
+      vueTemplate: false,
+    },
+    // Exclude WXT's storage to avoid conflict with our custom storage utility
+    imports: [{ name: "storage", from: "wxt/storage", disabled: true }],
   },
 
   // Optional: Build hooks for customization

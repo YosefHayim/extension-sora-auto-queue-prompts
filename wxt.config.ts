@@ -27,7 +27,7 @@ export default defineConfig({
     version: "2.2.0",
     description: "Browser extension to automate prompt generation and queueing for Sora AI",
     permissions: ["activeTab", "storage", "scripting", "tabs", "downloads", "webRequest"],
-    host_permissions: ["https://*/*"],
+    host_permissions: ["*://sora.com/*", "*://sora.chatgpt.com/*", "https://browser-intake-datadoghq.com/*"],
     action: {
       default_popup: "popup.html",
       default_icon: {

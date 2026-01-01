@@ -1,4 +1,9 @@
-import type { AspectRatio, GeneratedPrompt, PresetType, PromptEditAction } from "../src/types";
+import type {
+  AspectRatio,
+  GeneratedPrompt,
+  PresetType,
+  PromptEditAction,
+} from "../src/types";
 import { log, logger } from "../src/utils/logger";
 
 import { PromptActions } from "../src/utils/promptActions";
@@ -21,7 +26,8 @@ class NetworkMonitor {
     }
   > = new Map();
 
-  private readonly DATADOG_PATTERN = "https://browser-intake-datadoghq.com/api/v2/rum";
+  private readonly DATADOG_PATTERN =
+    "https://browser-intake-datadoghq.com/api/v2/rum";
   private readonly SILENCE_THRESHOLD = 30000; // 30 seconds
   private readonly CHECK_INTERVAL = 5000; // Check every 5 seconds
 
@@ -42,7 +48,7 @@ class NetworkMonitor {
           this.handleRequest(details.tabId);
         }
       },
-      { urls: ["https://browser-intake-datadoghq.com/*"] }
+      { urls: ["https://browser-intake-datadoghq.com/*"] },
     );
   }
 
@@ -50,14 +56,21 @@ class NetworkMonitor {
     const monitored = this.monitoredTabs.get(tabId);
     if (monitored) {
       monitored.lastRequestTime = Date.now();
-      logger.debug("networkMonitor", `DataDog request detected for tab ${tabId}`, {
-        lastRequestTime: new Date(monitored.lastRequestTime).toISOString(),
-      });
+      logger.debug(
+        "networkMonitor",
+        `DataDog request detected for tab ${tabId}`,
+        {
+          lastRequestTime: new Date(monitored.lastRequestTime).toISOString(),
+        },
+      );
     }
   }
 
   startMonitoring(tabId: number, onComplete: () => void) {
-    logger.info("networkMonitor", `Starting network monitoring for tab ${tabId}`);
+    logger.info(
+      "networkMonitor",
+      `Starting network monitoring for tab ${tabId}`,
+    );
 
     // Clear any existing monitoring for this tab
     this.stopMonitoring(tabId);
@@ -86,7 +99,10 @@ class NetworkMonitor {
     });
 
     if (timeSinceLastRequest >= this.SILENCE_THRESHOLD) {
-      logger.info("networkMonitor", `Generation completed for tab ${tabId} - no requests for 30s`);
+      logger.info(
+        "networkMonitor",
+        `Generation completed for tab ${tabId} - no requests for 30s`,
+      );
       this.stopMonitoring(tabId);
       monitored.onComplete();
     }
@@ -95,7 +111,10 @@ class NetworkMonitor {
   stopMonitoring(tabId: number) {
     const monitored = this.monitoredTabs.get(tabId);
     if (monitored) {
-      logger.info("networkMonitor", `Stopping network monitoring for tab ${tabId}`);
+      logger.info(
+        "networkMonitor",
+        `Stopping network monitoring for tab ${tabId}`,
+      );
       if (monitored.checkInterval !== null) {
         clearInterval(monitored.checkInterval as unknown as number);
       }
@@ -140,9 +159,9 @@ export default defineBackground(() => {
 
         // Set title for hover tooltip
         const statusText =
-          remaining > 0 ?
-            `Queue running: ${processedCount}/${totalCount} processed, ${remaining} remaining`
-          : `Queue running: ${processedCount}/${totalCount} processed`;
+          remaining > 0
+            ? `Queue running: ${processedCount}/${totalCount} processed, ${remaining} remaining`
+            : `Queue running: ${processedCount}/${totalCount} processed`;
         await chrome.action.setTitle({
           title: `Sora Auto Queue - ${statusText}`,
         });
@@ -181,12 +200,18 @@ export default defineBackground(() => {
           await storage.updatePrompt(prompt.id, { status: "pending" });
         }
 
-        logger.info("queue", `Successfully recovered ${stalePrompts.length} prompts to pending status`);
+        logger.info(
+          "queue",
+          `Successfully recovered ${stalePrompts.length} prompts to pending status`,
+        );
       } else {
         logger.debug("queue", "No stale prompts found - queue is clean");
       }
     } catch (error) {
-      log.extension.error("recoverStalePrompts", error instanceof Error ? error : new Error("Unknown error"));
+      log.extension.error(
+        "recoverStalePrompts",
+        error instanceof Error ? error : new Error("Unknown error"),
+      );
     }
   }
 
@@ -241,7 +266,10 @@ export default defineBackground(() => {
             return await handleMarkPromptComplete(request.promptId);
 
           case "updatePromptProgress":
-            return await handleUpdatePromptProgress(request.promptId, request.progress);
+            return await handleUpdatePromptProgress(
+              request.promptId,
+              request.progress,
+            );
 
           case "startQueue":
             await queueProcessor.startQueue();
@@ -314,11 +342,16 @@ export default defineBackground(() => {
             return { success: true };
 
           case "startNetworkMonitoring":
-            return await handleStartNetworkMonitoring(request.tabId, sender.tab?.id);
+            return await handleStartNetworkMonitoring(
+              request.tabId,
+              sender.tab?.id,
+            );
 
           case "stopNetworkMonitoring":
             if (networkMonitor) {
-              networkMonitor.stopMonitoring(request.tabId || sender.tab?.id || 0);
+              networkMonitor.stopMonitoring(
+                request.tabId || sender.tab?.id || 0,
+              );
             }
             return { success: true };
 
@@ -346,7 +379,10 @@ export default defineBackground(() => {
     return true; // Will respond asynchronously
   });
 
-  async function handleStartNetworkMonitoring(requestTabId: number | undefined, senderTabId: number | undefined) {
+  async function handleStartNetworkMonitoring(
+    requestTabId: number | undefined,
+    senderTabId: number | undefined,
+  ) {
     const tabId = requestTabId || senderTabId;
 
     if (!tabId) {
@@ -363,10 +399,17 @@ export default defineBackground(() => {
           await chrome.tabs.sendMessage(tabId, {
             action: "generationComplete",
           });
-          logger.info("background", `Notified tab ${tabId} that generation is complete`);
+          logger.info(
+            "background",
+            `Notified tab ${tabId} that generation is complete`,
+          );
           resolve({ success: true });
         } catch (error) {
-          logger.error("background", `Failed to notify tab ${tabId} of completion`, { error });
+          logger.error(
+            "background",
+            `Failed to notify tab ${tabId} of completion`,
+            { error },
+          );
           resolve({ success: false });
         }
       });
@@ -466,6 +509,30 @@ export default defineBackground(() => {
     const completedPrompt = prompts.find((p) => p.id === promptId);
     if (completedPrompt) {
       await storage.addToHistory([completedPrompt]);
+
+      // Handle Telegram Notification
+      const config = await storage.getConfig();
+      if (config.telegramBotToken && config.telegramChatId) {
+        try {
+          const message = `✅ Generation Complete!\n\n${completedPrompt.text.substring(0, 200)}${completedPrompt.text.length > 200 ? "..." : ""}\n\nType: ${completedPrompt.mediaType}\nDuration: ${duration ? Math.round(duration / 1000) + "s" : "N/A"}`;
+          await fetch(
+            `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: config.telegramChatId,
+                text: message,
+              }),
+            },
+          );
+          logger.info("background", "Telegram notification sent");
+        } catch (error) {
+          logger.error("background", "Failed to send Telegram notification", {
+            error,
+          });
+        }
+      }
     }
 
     // Continue processing the next prompt in the queue
@@ -474,10 +541,16 @@ export default defineBackground(() => {
     const allPrompts = await storage.getPrompts();
     const pendingPrompts = allPrompts.filter((p) => p.status === "pending");
 
-    if (queueState.isRunning && !queueState.isPaused && pendingPrompts.length > 0) {
+    if (
+      queueState.isRunning &&
+      !queueState.isPaused &&
+      pendingPrompts.length > 0
+    ) {
       // Recalculate processed count based on actual prompt statuses
       const allPrompts = await storage.getPrompts();
-      const completedCount = allPrompts.filter((p) => p.status === "completed" || p.status === "failed").length;
+      const completedCount = allPrompts.filter(
+        (p) => p.status === "completed" || p.status === "failed",
+      ).length;
       await storage.setQueueState({ processedCount: completedCount });
       await updateExtensionBadge();
 
@@ -485,7 +558,8 @@ export default defineBackground(() => {
       const config = await storage.getConfig();
       const minDelay = config.minDelayMs || 2000;
       const maxDelay = config.maxDelayMs || 5000;
-      const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+      const delay =
+        Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
       // Schedule next prompt processing
       setTimeout(async () => {
@@ -495,7 +569,9 @@ export default defineBackground(() => {
       // All prompts completed, stop queue and reset timer
       // Recalculate final count before stopping
       const allPrompts = await storage.getPrompts();
-      const finalProcessedCount = allPrompts.filter((p) => p.status === "completed" || p.status === "failed").length;
+      const finalProcessedCount = allPrompts.filter(
+        (p) => p.status === "completed" || p.status === "failed",
+      ).length;
       await storage.setQueueState({ processedCount: finalProcessedCount });
       await queueProcessor.stopQueue();
       await updateExtensionBadge();
@@ -504,15 +580,22 @@ export default defineBackground(() => {
     return { success: true };
   }
 
-  async function handleUpdatePromptProgress(promptId: string, progress: number) {
+  async function handleUpdatePromptProgress(
+    promptId: string,
+    progress: number,
+  ) {
     // Update prompt progress
     await storage.updatePrompt(promptId, { progress });
 
     // If progress reaches 100%, automatically mark as complete
     if (progress >= 100) {
-      logger.info("background", `Progress reached 100%, auto-completing prompt`, {
-        promptId,
-      });
+      logger.info(
+        "background",
+        `Progress reached 100%, auto-completing prompt`,
+        {
+          promptId,
+        },
+      );
       // Small delay to ensure the generation is fully complete
       setTimeout(async () => {
         await handleMarkPromptComplete(promptId);
@@ -532,8 +615,13 @@ export default defineBackground(() => {
     // Check if API key is required for this action type
     const apiKeyRequired = ["refine", "generate-similar"].includes(action.type);
     if (apiKeyRequired && !config.apiKey) {
-      const errorMsg = "API key is required for this action. Please configure it in Settings.";
-      logger.error("background", `Prompt action ${action.type} failed - no API key`, { promptId: action.promptId });
+      const errorMsg =
+        "API key is required for this action. Please configure it in Settings.";
+      logger.error(
+        "background",
+        `Prompt action ${action.type} failed - no API key`,
+        { promptId: action.promptId },
+      );
       return {
         success: false,
         error: errorMsg,
@@ -558,7 +646,10 @@ export default defineBackground(() => {
     return result;
   }
 
-  async function handleEnhancePrompt(data: { text: string; mediaType: "video" | "image" }) {
+  async function handleEnhancePrompt(data: {
+    text: string;
+    mediaType: "video" | "image";
+  }) {
     logger.info("background", "Enhancing prompt", {
       mediaType: data.mediaType,
     });
@@ -644,7 +735,10 @@ export default defineBackground(() => {
 
   async function handleSetMediaType(mediaType: "video" | "image") {
     try {
-      logger.info("background", `Setting media type to ${mediaType} on Sora page`);
+      logger.info(
+        "background",
+        `Setting media type to ${mediaType} on Sora page`,
+      );
 
       // Find the Sora tab
       let tabs = await chrome.tabs.query({ url: "*://sora.com/*" });
@@ -674,7 +768,10 @@ export default defineBackground(() => {
       });
 
       if (response && response.success) {
-        logger.info("background", `Successfully set media type to ${mediaType}`);
+        logger.info(
+          "background",
+          `Successfully set media type to ${mediaType}`,
+        );
         return { success: true };
       } else {
         logger.warn("background", "Failed to set media type", {

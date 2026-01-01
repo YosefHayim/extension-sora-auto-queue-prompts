@@ -1,5 +1,11 @@
 export type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9";
-export type PresetType = "cinematic" | "documentary" | "artistic" | "realistic" | "animated" | "none";
+export type PresetType =
+  | "cinematic"
+  | "documentary"
+  | "artistic"
+  | "realistic"
+  | "animated"
+  | "none";
 export type LogLevel = "debug" | "info" | "warn" | "error";
 export type ApiProvider = "openai" | "anthropic" | "google";
 
@@ -17,6 +23,8 @@ export interface PromptConfig {
   minDelayMs: number; // Minimum delay between prompts
   maxDelayMs: number; // Maximum delay between prompts
   setupCompleted: boolean; // First-time setup wizard completed
+  telegramBotToken?: string; // Telegram Bot Token for notifications
+  telegramChatId?: string; // Telegram Chat ID for notifications
 }
 
 export interface GeneratedPrompt {

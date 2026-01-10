@@ -7,13 +7,6 @@ import {
   CollapsibleTrigger,
 } from "./ui/collapsible";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import {
   FaCheckCircle,
   FaCheckSquare,
   FaChevronDown,
@@ -21,9 +14,8 @@ import {
   FaClipboard,
   FaClock,
   FaCopy,
-  FaEllipsisV,
-  FaFileAlt,
   FaImage,
+  FaLink,
   FaLocationArrow,
   FaMagic,
   FaPencilAlt,
@@ -32,6 +24,7 @@ import {
   FaSquare,
   FaTimesCircle,
   FaTrash,
+  FaUpload,
   FaVideo,
 } from "react-icons/fa";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
@@ -92,6 +85,14 @@ interface PromptCardProps {
   onRefine: (id: string) => void;
   onGenerateSimilar: (id: string) => void;
   onDelete: (id: string) => void;
+  onAddImage?: (id: string, imageUrl: string) => void;
+  onAddLocalImage?: (
+    id: string,
+    imageData: string,
+    imageName: string,
+    imageType: string,
+  ) => void;
+  onRemoveImage?: (id: string) => void;
   searchQuery?: string;
 }
 
@@ -166,12 +167,18 @@ export function PromptCard({
   onRefine,
   onGenerateSimilar,
   onDelete,
+  onAddImage,
+  onAddLocalImage,
+  onRemoveImage,
   searchQuery = "",
 }: PromptCardProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [isMetadataOpen, setIsMetadataOpen] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(Date.now());
+  const [showImageInput, setShowImageInput] = React.useState(false);
+  const [imageUrlInput, setImageUrlInput] = React.useState("");
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Update current time for processing prompts to refresh progress bar and time displays
   React.useEffect(() => {
@@ -228,6 +235,79 @@ export function PromptCard({
       status: prompt.status,
     });
     onDelete(prompt.id);
+  };
+
+  const handleAddImage = () => {
+    if (imageUrlInput.trim() && onAddImage) {
+      log.ui.action("PromptCard:AddImage", {
+        promptId: prompt.id,
+        imageUrl: imageUrlInput.substring(0, 50),
+      });
+      onAddImage(prompt.id, imageUrlInput.trim());
+      setImageUrlInput("");
+      setShowImageInput(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    if (onRemoveImage) {
+      log.ui.action("PromptCard:RemoveImage", { promptId: prompt.id });
+      onRemoveImage(prompt.id);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !onAddLocalImage) return;
+
+    // Validate file size (max 10MB)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      log.ui.error("PromptCard:FileSelect", {
+        error: "File too large",
+        size: file.size,
+        maxSize: MAX_FILE_SIZE,
+      });
+      alert("File is too large. Maximum size is 10MB.");
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      log.ui.error("PromptCard:FileSelect", {
+        error: "Invalid file type",
+        type: file.type,
+      });
+      alert("Invalid file type. Please select a PNG, JPEG, GIF, or WebP image.");
+      return;
+    }
+
+    log.ui.action("PromptCard:FileSelect", {
+      promptId: prompt.id,
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+    });
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64DataUrl = reader.result as string;
+      // Remove data URL prefix to get pure base64
+      const base64Content = base64DataUrl.split(",")[1];
+      onAddLocalImage(prompt.id, base64Content, file.name, file.type);
+    };
+    reader.onerror = () => {
+      log.ui.error("PromptCard:FileSelect", { error: "Failed to read file" });
+      alert("Failed to read file. Please try again.");
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleCopyText = async () => {
@@ -517,10 +597,114 @@ export function PromptCard({
       </CardContent>
 
       <CardFooter
-        className="gap-0 pt-1.5 border-t px-3 pb-2 relative"
+        className="flex-col gap-2 pt-1.5 border-t px-3 pb-2 relative"
         data-no-drag
       >
-        <div className="flex items-center gap-0.5 flex-1">
+        {/* Hidden file input for local image upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          onChange={handleFileSelect}
+          className="hidden"
+          data-no-drag
+        />
+
+        {/* Image attachment section - supports both URL and local files */}
+        {(prompt.imageUrl || prompt.imageData) && (
+          <div className="w-full flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+            <img
+              src={
+                prompt.imageUrl ||
+                `data:${prompt.imageType || "image/png"};base64,${prompt.imageData}`
+              }
+              alt="Reference"
+              className="h-10 w-10 object-cover rounded"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-muted-foreground truncate">
+                {prompt.imageUrl || prompt.imageName || "Local image"}
+              </p>
+              {prompt.imageData && !prompt.imageUrl && (
+                <p className="text-[9px] text-muted-foreground/70">
+                  Local file
+                </p>
+              )}
+            </div>
+            {onRemoveImage && canEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveImage();
+                }}
+                title="Remove image"
+                type="button"
+                data-no-drag
+                className="h-6 w-6 text-destructive hover:text-destructive"
+              >
+                <FaTimesCircle className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Image URL input */}
+        {showImageInput && (
+          <div className="w-full flex items-center gap-2">
+            <input
+              type="url"
+              placeholder="Enter image URL..."
+              value={imageUrlInput}
+              onChange={(e) => setImageUrlInput(e.target.value)}
+              className="flex-1 h-7 px-2 text-xs border rounded bg-background"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === "Enter") {
+                  handleAddImage();
+                } else if (e.key === "Escape") {
+                  setShowImageInput(false);
+                  setImageUrlInput("");
+                }
+              }}
+              data-no-drag
+            />
+            <Button
+              variant="default"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddImage();
+              }}
+              disabled={!imageUrlInput.trim()}
+              className="h-7 px-2 text-xs"
+              data-no-drag
+            >
+              Add
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowImageInput(false);
+                setImageUrlInput("");
+              }}
+              className="h-7 px-2 text-xs"
+              data-no-drag
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="w-full flex items-center gap-0.5">
           {isCompleted && onNavigateToPrompt && (
             <Button
               variant="ghost"
@@ -564,51 +748,66 @@ export function PromptCard({
           >
             <FaPencilAlt className="h-3.5 w-3.5" />
           </Button>
-        </div>
-
-        <div className="relative z-50">
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                data-no-drag
-                className="h-6 w-6"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <FaEllipsisV className="h-3.5 w-3.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              onClick={(e) => e.stopPropagation()}
-              className="z-[100]"
-            >
-              <DropdownMenuItem onSelect={handleDuplicate}>
-                <FaCopy className="h-4 w-4 mr-2" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleRefine} disabled={!canRefine}>
-                <FaMagic className="h-4 w-4 mr-2" />
-                Refine with AI
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleGenerateSimilar}>
-                <FaMagic className="h-4 w-4 mr-2" />
-                Generate Similar
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={handleDelete}
-                className="text-destructive focus:text-destructive"
-              >
-                <FaTrash className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDuplicate}
+            title="Duplicate"
+            type="button"
+            data-no-drag
+            className="h-6 w-6"
+          >
+            <FaCopy className="h-3.5 w-3.5" />
+          </Button>
+          {/* Image buttons - show only when no image attached and can edit */}
+          {!prompt.imageUrl && !prompt.imageData && canEdit && (
+            <>
+              {onAddImage && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowImageInput(true);
+                  }}
+                  title="Add image URL"
+                  type="button"
+                  data-no-drag
+                  className="h-6 w-6"
+                >
+                  <FaLink className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              {onAddLocalImage && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                  title="Upload local image"
+                  type="button"
+                  data-no-drag
+                  className="h-6 w-6"
+                >
+                  <FaUpload className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </>
+          )}
+          <div className="flex-1" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDelete}
+            title="Delete"
+            type="button"
+            data-no-drag
+            className="h-6 w-6 text-destructive hover:text-destructive"
+          >
+            <FaTrash className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </CardFooter>
     </Card>

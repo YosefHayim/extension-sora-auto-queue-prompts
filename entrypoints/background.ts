@@ -361,6 +361,45 @@ export default defineBackground(() => {
           case "setMediaType":
             return await handleSetMediaType(request.data.mediaType);
 
+          case "rateLimitReached":
+            // Handle rate limit notification from content script
+            logger.error("background", "Rate limit reached - stopping queue", {
+              error: request.error,
+              details: request.details,
+            });
+
+            // Stop the queue
+            await storage.setQueueState({
+              isRunning: false,
+              isPaused: false,
+              currentPromptId: null,
+            });
+
+            // Update badge to indicate error
+            await chrome.action.setBadgeText({ text: "!" });
+            await chrome.action.setBadgeBackgroundColor({ color: "#EF4444" });
+
+            // Send notification
+            try {
+              await chrome.notifications.create({
+                type: "basic",
+                iconUrl: "icon128.png",
+                title: "Sora Queue - Rate Limit Reached",
+                message:
+                  request.error ||
+                  "You have reached the daily limit. Queue has been stopped.",
+              });
+            } catch (notifError) {
+              // Notifications might not be available
+              logger.warn(
+                "background",
+                "Could not show notification",
+                notifError,
+              );
+            }
+
+            return { success: true, rateLimited: true };
+
           default:
             logger.warn("background", `Unknown action: ${request.action}`);
             return { success: false, error: "Unknown action" };
@@ -503,6 +542,18 @@ export default defineBackground(() => {
       await storage.updatePrompt(promptId, { status: "completed" });
     }
 
+    // Clear imageData after completion to free up storage space
+    // Keep imageName for reference in history, but remove the large base64 data
+    if (prompt?.imageData) {
+      logger.info("background", "Clearing imageData after completion", {
+        promptId,
+        imageName: prompt.imageName,
+      });
+      await storage.updatePrompt(promptId, {
+        imageData: undefined,
+      });
+    }
+
     log.queue.completed(promptId);
 
     // Move to history
@@ -514,7 +565,7 @@ export default defineBackground(() => {
       const config = await storage.getConfig();
       if (config.telegramBotToken && config.telegramChatId) {
         try {
-          const message = `✅ Generation Complete!\n\n${completedPrompt.text.substring(0, 200)}${completedPrompt.text.length > 200 ? "..." : ""}\n\nType: ${completedPrompt.mediaType}\nDuration: ${duration ? Math.round(duration / 1000) + "s" : "N/A"}`;
+          const message = `✅ Generation Complete!\n\n${completedPrompt.text.substring(0, 200)}${completedPrompt.text.length > 200 ? "..." : ""}\n\nType: ${completedPrompt.mediaType}\nDuration: ${completedPrompt.duration ? Math.round(completedPrompt.duration / 1000) + "s" : "N/A"}`;
           await fetch(
             `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`,
             {
@@ -587,7 +638,7 @@ export default defineBackground(() => {
     // Update prompt progress
     await storage.updatePrompt(promptId, { progress });
 
-    // If progress reaches 100%, automatically mark as complete
+    // If progress reaches 100%, immediately mark as complete
     if (progress >= 100) {
       logger.info(
         "background",
@@ -596,10 +647,8 @@ export default defineBackground(() => {
           promptId,
         },
       );
-      // Small delay to ensure the generation is fully complete
-      setTimeout(async () => {
-        await handleMarkPromptComplete(promptId);
-      }, 1000); // 1 second delay
+      // Mark as complete immediately - no delay needed
+      await handleMarkPromptComplete(promptId);
     }
 
     return { success: true };

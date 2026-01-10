@@ -42,6 +42,10 @@ export interface GeneratedPrompt {
   completedTime?: number; // When processing completed
   duration?: number; // Duration in milliseconds
   progress?: number; // Generation progress percentage (0-100)
+  imageUrl?: string; // Reference image URL for image-to-video or image generation
+  imageData?: string; // Base64 encoded image data for local files (temporary, cleared after processing)
+  imageName?: string; // Original filename for local files
+  imageType?: string; // MIME type (e.g., "image/png", "image/jpeg")
 }
 
 export interface QueueState {
@@ -79,6 +83,7 @@ export interface CSVRow {
   aspectRatio?: AspectRatio;
   variations?: number;
   preset?: PresetType;
+  imageUrl?: string; // Reference image URL
 }
 
 export interface PromptEditAction {

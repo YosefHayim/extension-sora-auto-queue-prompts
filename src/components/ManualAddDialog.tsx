@@ -160,6 +160,12 @@ export function ManualAddDialog({
               }
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
               disabled={loading}
               rows={12}
               className="resize-none font-mono text-sm"

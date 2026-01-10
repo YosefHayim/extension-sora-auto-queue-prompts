@@ -446,6 +446,59 @@ function IndexPopup() {
     }
   }
 
+  async function handleAddImage(id: string, imageUrl: string) {
+    try {
+      log.ui.action("handleAddImage:clicked", { promptId: id, imageUrl: imageUrl.substring(0, 50) });
+      await storage.updatePrompt(id, { imageUrl });
+      await loadData();
+      log.ui.action("handleAddImage:success", { promptId: id });
+    } catch (error) {
+      log.ui.error("handleAddImage", error);
+    }
+  }
+
+  async function handleAddLocalImage(
+    id: string,
+    imageData: string,
+    imageName: string,
+    imageType: string,
+  ) {
+    try {
+      log.ui.action("handleAddLocalImage:clicked", {
+        promptId: id,
+        imageName,
+        imageType,
+        dataLength: imageData.length,
+      });
+      await storage.updatePrompt(id, {
+        imageData,
+        imageName,
+        imageType,
+        imageUrl: undefined, // Clear any existing URL
+      });
+      await loadData();
+      log.ui.action("handleAddLocalImage:success", { promptId: id });
+    } catch (error) {
+      log.ui.error("handleAddLocalImage", error);
+    }
+  }
+
+  async function handleRemoveImage(id: string) {
+    try {
+      log.ui.action("handleRemoveImage:clicked", { promptId: id });
+      await storage.updatePrompt(id, {
+        imageUrl: undefined,
+        imageData: undefined,
+        imageName: undefined,
+        imageType: undefined,
+      });
+      await loadData();
+      log.ui.action("handleRemoveImage:success", { promptId: id });
+    } catch (error) {
+      log.ui.error("handleRemoveImage", error);
+    }
+  }
+
   async function handleNavigateToPrompt(id: string, text: string) {
     try {
       log.ui.action("handleNavigateToPrompt:clicked", { promptId: id });
@@ -931,6 +984,9 @@ function IndexPopup() {
                         onRefine={handleRefinePrompt}
                         onGenerateSimilar={handleGenerateSimilar}
                         onDelete={handleDeletePrompt}
+                        onAddImage={handleAddImage}
+                        onAddLocalImage={handleAddLocalImage}
+                        onRemoveImage={handleRemoveImage}
                         searchQuery={searchQuery}
                       />
                     ))}

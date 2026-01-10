@@ -16,9 +16,179 @@ export default defineContentScript({
       private debugMode = true; // Enable detailed logging
       private progressInterval: number | null = null; // Interval for progress polling
       private completionObserver: MutationObserver | null = null; // Observer for completion
+      private lastApiResponse: {
+        success: boolean;
+        data?: any;
+        error?: string;
+        isRateLimited?: boolean;
+      } | null = null;
+      private apiResponsePromise: Promise<void> | null = null;
+      private apiResponseResolve: (() => void) | null = null;
 
       constructor() {
         this.init();
+        this.setupApiInterceptor();
+      }
+
+      /**
+       * Setup fetch interceptor to monitor Sora API calls
+       */
+      private setupApiInterceptor(): void {
+        const self = this;
+        const originalFetch = window.fetch;
+
+        window.fetch = async function (
+          input: RequestInfo | URL,
+          init?: RequestInit,
+        ): Promise<Response> {
+          const url =
+            typeof input === "string"
+              ? input
+              : input instanceof URL
+                ? input.href
+                : input.url;
+
+          // Check if this is the video_gen API call
+          const isVideoGenApi =
+            url.includes("/backend/video_gen") ||
+            url.includes("/backend/image_gen");
+
+          if (isVideoGenApi) {
+            self.log("info", "🔍 Intercepted Sora API call", { url });
+
+            // Reset the response promise for this new request
+            self.lastApiResponse = null;
+            self.apiResponsePromise = new Promise((resolve) => {
+              self.apiResponseResolve = resolve;
+            });
+          }
+
+          try {
+            const response = await originalFetch.call(window, input, init);
+
+            if (isVideoGenApi) {
+              // Clone the response to read the body without consuming it
+              const clonedResponse = response.clone();
+
+              try {
+                const data = await clonedResponse.json();
+                self.log("info", "📡 Sora API response received", {
+                  status: response.status,
+                  ok: response.ok,
+                  hasError: !!data.error,
+                  taskId: data.id,
+                });
+
+                // Check for rate limit or other errors
+                if (data.error) {
+                  const errorCode = data.error.code;
+                  const errorMessage = data.error.message;
+
+                  self.lastApiResponse = {
+                    success: false,
+                    error: errorMessage,
+                    isRateLimited: errorCode === "too_many_daily_tasks",
+                    data,
+                  };
+
+                  self.log("error", "❌ Sora API error", {
+                    code: errorCode,
+                    message: errorMessage,
+                    details: data.error.details,
+                  });
+
+                  // Notify background script about rate limit
+                  if (errorCode === "too_many_daily_tasks") {
+                    self.log(
+                      "error",
+                      "🚫 Rate limit reached - stopping queue",
+                    );
+                    chrome.runtime
+                      .sendMessage({
+                        action: "rateLimitReached",
+                        error: errorMessage,
+                        details: data.error.details,
+                      })
+                      .catch(() => {});
+                  }
+                } else if (data.id) {
+                  // Successful task creation
+                  self.lastApiResponse = {
+                    success: true,
+                    data,
+                  };
+                  self.log("info", "✅ Sora task created successfully", {
+                    taskId: data.id,
+                  });
+                }
+              } catch (jsonError) {
+                self.log("warn", "⚠️ Could not parse API response as JSON");
+                self.lastApiResponse = {
+                  success: true, // Assume success if we can't parse
+                  data: null,
+                };
+              }
+
+              // Resolve the promise so waitForApiResponse can continue
+              if (self.apiResponseResolve) {
+                self.apiResponseResolve();
+              }
+            }
+
+            return response;
+          } catch (fetchError) {
+            if (isVideoGenApi) {
+              self.lastApiResponse = {
+                success: false,
+                error:
+                  fetchError instanceof Error
+                    ? fetchError.message
+                    : "Network error",
+              };
+              if (self.apiResponseResolve) {
+                self.apiResponseResolve();
+              }
+            }
+            throw fetchError;
+          }
+        };
+
+        this.log("info", "✅ API interceptor installed");
+      }
+
+      /**
+       * Wait for the Sora API response after form submission
+       */
+      private async waitForApiResponse(timeout: number = 30000): Promise<{
+        success: boolean;
+        error?: string;
+        isRateLimited?: boolean;
+      }> {
+        this.log("info", "⏳ Waiting for Sora API response...");
+
+        if (!this.apiResponsePromise) {
+          // No pending request, return success
+          return { success: true };
+        }
+
+        // Wait for the API response with timeout
+        const timeoutPromise = new Promise<void>((resolve) =>
+          setTimeout(resolve, timeout),
+        );
+
+        await Promise.race([this.apiResponsePromise, timeoutPromise]);
+
+        if (this.lastApiResponse) {
+          return {
+            success: this.lastApiResponse.success,
+            error: this.lastApiResponse.error,
+            isRateLimited: this.lastApiResponse.isRateLimited,
+          };
+        }
+
+        // Timeout reached without response
+        this.log("warn", "⚠️ API response wait timed out");
+        return { success: true }; // Assume success on timeout
       }
 
       /**
@@ -248,9 +418,27 @@ export default defineContentScript({
           length: prompt.text.length,
           mediaType: prompt.mediaType,
           aspectRatio: prompt.aspectRatio,
+          hasImageData: !!prompt.imageData,
+          hasImageUrl: !!prompt.imageUrl,
         });
 
         try {
+          // Step 0: Handle local image upload if present
+          if (prompt.imageData && prompt.imageName && prompt.imageType) {
+            this.log("info", "📍 Step 0: Uploading local image...");
+            await this.uploadLocalImage(
+              prompt.imageData,
+              prompt.imageName,
+              prompt.imageType,
+            );
+            this.log("info", "✅ Step 0 SUCCESS: Image uploaded");
+          } else if (prompt.imageUrl) {
+            this.log(
+              "info",
+              "📍 Image URL present - URL-based images require manual attachment",
+            );
+          }
+
           // Step 1: Find textarea
           this.log("info", "📍 Step 1: Finding textarea...");
           const textarea = this.findTextarea();
@@ -271,10 +459,37 @@ export default defineContentScript({
           await this.delay(500);
           this.log("info", "✅ Step 3 SUCCESS: Wait completed");
 
+          // Reset API response tracking before submission
+          this.lastApiResponse = null;
+          this.apiResponsePromise = null;
+
           // Step 4: Submit form
           this.log("info", "📍 Step 4: Submitting form...");
           await this.submitForm(textarea);
           this.log("info", "✅ Step 4 SUCCESS: Form submitted");
+
+          // Step 4.5: Wait for API response and check for errors
+          this.log("info", "📍 Step 4.5: Checking API response...");
+          const apiResult = await this.waitForApiResponse(15000);
+
+          if (!apiResult.success) {
+            if (apiResult.isRateLimited) {
+              this.log(
+                "error",
+                "❌ Step 4.5 FAILED: Rate limit reached",
+                apiResult.error,
+              );
+              throw new Error(`RATE_LIMIT:${apiResult.error}`);
+            } else {
+              this.log(
+                "error",
+                "❌ Step 4.5 FAILED: API error",
+                apiResult.error,
+              );
+              throw new Error(`API_ERROR:${apiResult.error}`);
+            }
+          }
+          this.log("info", "✅ Step 4.5 SUCCESS: API accepted the request");
 
           // Step 5: Wait for completion
           this.log("info", "📍 Step 5: Waiting for generation completion...");
@@ -348,6 +563,262 @@ export default defineContentScript({
           domSnapshot: this.getDomSnapshot(),
         });
 
+        return null;
+      }
+
+      /**
+       * Upload a local image file to Sora's file input
+       */
+      private async uploadLocalImage(
+        imageData: string,
+        imageName: string,
+        imageType: string,
+      ): Promise<void> {
+        this.log("info", "📤 Uploading local image to Sora...", {
+          imageName,
+          imageType,
+          dataLength: imageData.length,
+        });
+
+        try {
+          // Convert base64 to Blob
+          const binaryString = atob(imageData);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const blob = new Blob([bytes], { type: imageType });
+
+          // Create File object
+          const file = new File([blob], imageName, { type: imageType });
+          this.log("info", "✅ Created File object", {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+          });
+
+          // Find Sora's file upload input
+          const fileInputSelectors = [
+            'input[type="file"][accept*="image"]',
+            'input[type="file"]',
+            '[data-testid="file-upload-input"]',
+          ];
+
+          let fileInput: HTMLInputElement | null = null;
+          for (const selector of fileInputSelectors) {
+            fileInput = document.querySelector<HTMLInputElement>(selector);
+            if (fileInput) {
+              this.log("info", `✅ Found file input with selector: ${selector}`);
+              break;
+            }
+          }
+
+          if (!fileInput) {
+            // Try to find and click a button that triggers file upload
+            this.log(
+              "info",
+              "File input not found, looking for upload button...",
+            );
+            const uploadButton = this.findUploadButton();
+            if (uploadButton) {
+              this.log(
+                "info",
+                "Found upload button, clicking to reveal file input...",
+              );
+              uploadButton.click();
+              await this.delay(500);
+
+              // Try finding file input again
+              for (const selector of fileInputSelectors) {
+                fileInput = document.querySelector<HTMLInputElement>(selector);
+                if (fileInput) {
+                  this.log(
+                    "info",
+                    `✅ Found file input after button click: ${selector}`,
+                  );
+                  break;
+                }
+              }
+            }
+          }
+
+          if (!fileInput) {
+            this.log("error", "❌ Could not find file upload input on Sora page");
+            throw new Error("Could not find file upload input on Sora page");
+          }
+
+          // Create DataTransfer and add file
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+
+          // Set files on input
+          fileInput.files = dataTransfer.files;
+          this.log("info", "✅ Set file on input element");
+
+          // Dispatch events to trigger React's file handling
+          fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+          fileInput.dispatchEvent(new Event("input", { bubbles: true }));
+          this.log("info", "✅ Dispatched change and input events");
+
+          // Wait for the image to be fully uploaded and processed by Sora
+          await this.waitForImageUploadComplete();
+
+          this.log("info", "✅ Image uploaded and processed successfully");
+        } catch (error) {
+          this.log("error", "❌ Failed to upload image", {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          throw error;
+        }
+      }
+
+      /**
+       * Wait for Sora to finish processing the uploaded image
+       * Looks for image preview elements or upload completion indicators
+       */
+      private async waitForImageUploadComplete(
+        timeout: number = 30000,
+      ): Promise<void> {
+        this.log("info", "⏳ Waiting for image upload to complete...");
+
+        const startTime = Date.now();
+        const checkInterval = 500;
+
+        // Selectors that indicate image upload is complete
+        const imageLoadedSelectors = [
+          // Image preview in the input area
+          'img[src*="blob:"]',
+          'img[src*="oaiusercontent"]',
+          'img[src*="sora"]',
+          // Upload success indicators
+          '[data-testid="uploaded-image"]',
+          '[data-testid="image-preview"]',
+          // Common patterns for uploaded images
+          '.uploaded-image',
+          '.image-preview',
+          // Look for thumbnail/preview containers with images
+          '[class*="preview"] img',
+          '[class*="thumbnail"] img',
+          '[class*="upload"] img:not([src=""])',
+        ];
+
+        // Selectors that indicate upload is in progress
+        const uploadingSelectors = [
+          '[class*="loading"]',
+          '[class*="uploading"]',
+          '[class*="progress"]',
+          'svg[class*="spinner"]',
+          '[role="progressbar"]',
+        ];
+
+        while (Date.now() - startTime < timeout) {
+          // First check if upload is still in progress
+          let isUploading = false;
+          for (const selector of uploadingSelectors) {
+            const uploadIndicator = document.querySelector(selector);
+            if (uploadIndicator) {
+              const isVisible =
+                uploadIndicator instanceof HTMLElement &&
+                uploadIndicator.offsetParent !== null;
+              if (isVisible) {
+                isUploading = true;
+                this.log("debug", `Upload in progress: ${selector}`);
+                break;
+              }
+            }
+          }
+
+          // Check for image loaded indicators
+          for (const selector of imageLoadedSelectors) {
+            const imageElement = document.querySelector(selector);
+            if (imageElement) {
+              const isVisible =
+                imageElement instanceof HTMLElement &&
+                imageElement.offsetParent !== null;
+              // For img elements, also check if src is not empty
+              const hasValidSrc =
+                imageElement instanceof HTMLImageElement
+                  ? imageElement.src && imageElement.src.length > 0
+                  : true;
+
+              if (isVisible && hasValidSrc && !isUploading) {
+                this.log("info", `✅ Image upload complete: ${selector}`);
+                // Give a small buffer for React to finish processing
+                await this.delay(500);
+                return;
+              }
+            }
+          }
+
+          await this.delay(checkInterval);
+        }
+
+        // If we timeout but no uploading indicator, assume it's ready
+        this.log(
+          "warn",
+          "⚠️ Image upload wait timed out, proceeding anyway...",
+        );
+      }
+
+      /**
+       * Find an upload button that might trigger file selection
+       */
+      private findUploadButton(): HTMLElement | null {
+        const buttonSelectors = [
+          'button[aria-label*="upload" i]',
+          'button[aria-label*="image" i]',
+          'button[aria-label*="attach" i]',
+          'button[aria-label*="add image" i]',
+          '[data-testid="upload-button"]',
+        ];
+
+        for (const selector of buttonSelectors) {
+          const button = document.querySelector<HTMLElement>(selector);
+          if (button) {
+            this.log("info", `Found upload button with selector: ${selector}`);
+            return button;
+          }
+        }
+
+        // Try finding by text content
+        const buttons = Array.from(document.querySelectorAll("button"));
+        for (const button of buttons) {
+          const text = button.textContent?.toLowerCase() || "";
+          const ariaLabel =
+            button.getAttribute("aria-label")?.toLowerCase() || "";
+          if (
+            text.includes("upload") ||
+            text.includes("attach") ||
+            text.includes("add image") ||
+            ariaLabel.includes("upload") ||
+            ariaLabel.includes("attach") ||
+            ariaLabel.includes("add image")
+          ) {
+            this.log("info", `Found upload button by text/aria-label: ${text}`);
+            return button;
+          }
+        }
+
+        // Look for image/attachment icons (common patterns)
+        const iconButtons = document.querySelectorAll(
+          'button svg, button [class*="icon"]',
+        );
+        for (const icon of Array.from(iconButtons)) {
+          const button = icon.closest("button");
+          if (button) {
+            const title = button.getAttribute("title")?.toLowerCase() || "";
+            if (
+              title.includes("upload") ||
+              title.includes("image") ||
+              title.includes("attach")
+            ) {
+              this.log("info", `Found upload button by icon title: ${title}`);
+              return button;
+            }
+          }
+        }
+
+        this.log("warn", "⚠️ No upload button found");
         return null;
       }
 
@@ -614,7 +1085,7 @@ export default defineContentScript({
         // We still use polling for start detection because it's usually very fast and we want to be sure
         const startWaitTime = 15000; // Wait up to 15 seconds for generation to start
         let startElapsed = 0;
-        const checkInterval = 1000;
+        const checkInterval = 500; // Check every 500ms for faster detection
 
         while (startElapsed < startWaitTime && !this.generationStarted) {
           if (this.checkIfGenerationStarted()) {
@@ -854,7 +1325,7 @@ export default defineContentScript({
                 });
             }
           }
-        }, 1000) as unknown as number; // Check every second
+        }, 500) as unknown as number; // Check every 500ms for faster detection
       }
 
       /**

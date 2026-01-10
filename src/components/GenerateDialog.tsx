@@ -192,6 +192,12 @@ export function GenerateDialog({
               placeholder="e.g., Create cinematic shots of nature landscapes with dramatic lighting"
               value={context}
               onChange={(e) => setContext(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
               disabled={loading}
               rows={4}
               className="resize-none"

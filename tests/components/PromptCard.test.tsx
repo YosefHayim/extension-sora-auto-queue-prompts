@@ -59,13 +59,13 @@ describe("PromptCard", () => {
   it("should display aspect ratio badge when provided", () => {
     const promptWithAspectRatio = { ...mockPrompt, aspectRatio: "16:9" as const };
     render(<PromptCard prompt={promptWithAspectRatio} {...mockHandlers} />);
-    expect(screen.getByText("16:9")).toBeInTheDocument();
+    expect(screen.getByText(/16:9/)).toBeInTheDocument();
   });
 
   it("should display variations count when provided", () => {
     const promptWithVariations = { ...mockPrompt, variations: 4 };
     render(<PromptCard prompt={promptWithVariations} {...mockHandlers} />);
-    expect(screen.getByText("4v")).toBeInTheDocument();
+    expect(screen.getByText(/4v/)).toBeInTheDocument();
   });
 
   it("should display enhanced icon when prompt is enhanced", () => {
@@ -78,21 +78,33 @@ describe("PromptCard", () => {
 
   it("should call onEdit when edit button is clicked", () => {
     render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
-    const editButton = screen.getByTitle(/edit prompt/i);
+    const editButton = screen.getByTitle("Edit");
     fireEvent.click(editButton);
     expect(mockHandlers.onEdit).toHaveBeenCalledWith("test-1");
   });
 
-  it("should call onDuplicate when duplicate button is clicked", () => {
-    render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
-    const duplicateButton = screen.getByTitle(/duplicate/i);
+  it("should call onDuplicate when duplicate button is clicked", async () => {
+    const { container } = render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
+
+    // Open dropdown
+    const moreButton = container.querySelector('button[aria-haspopup="true"]');
+    fireEvent.click(moreButton!);
+
+    // Find and click Duplicate
+    const duplicateButton = await screen.findByText(/duplicate/i);
     fireEvent.click(duplicateButton);
     expect(mockHandlers.onDuplicate).toHaveBeenCalledWith("test-1");
   });
 
-  it("should call onRefine when refine button is clicked", () => {
-    render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
-    const refineButton = screen.getByTitle(/refine with ai/i);
+  it("should call onRefine when refine button is clicked", async () => {
+    const { container } = render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
+
+    // Open dropdown
+    const moreButton = container.querySelector('button[aria-haspopup="true"]');
+    fireEvent.click(moreButton!);
+
+    // Find and click Refine
+    const refineButton = await screen.findByText(/refine with ai/i);
     fireEvent.click(refineButton);
     expect(mockHandlers.onRefine).toHaveBeenCalledWith("test-1");
   });
@@ -136,7 +148,8 @@ describe("PromptCard", () => {
     expect(moreButton).toBeInTheDocument();
     fireEvent.click(moreButton!);
 
-    // Wait for dropdown to open and find delete option
+    // In Radix UI with modal=false, we might need to look for the content in document.body
+    // But testing-library's screen usually covers body
     const deleteOption = await screen.findByText("Delete");
     fireEvent.click(deleteOption);
     expect(mockHandlers.onDelete).toHaveBeenCalledWith("test-1");

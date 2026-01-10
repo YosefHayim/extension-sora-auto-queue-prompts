@@ -18,11 +18,26 @@ interface SortablePromptCardProps {
   onRefine: (id: string) => void;
   onGenerateSimilar: (id: string) => void;
   onDelete: (id: string) => void;
+  onAddImage?: (id: string, imageUrl: string) => void;
+  onAddLocalImage?: (
+    id: string,
+    imageData: string,
+    imageName: string,
+    imageType: string,
+  ) => void;
+  onRemoveImage?: (id: string) => void;
   searchQuery?: string;
 }
 
 export function SortablePromptCard(props: SortablePromptCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.prompt.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: props.prompt.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -42,7 +57,12 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
       onPointerDown: (event: PointerEvent) => {
         const target = event.target as HTMLElement;
         // Don't start drag if clicking on interactive elements
-        if (target.closest("button") || target.closest("input") || target.closest('[role="button"]') || target.closest("[data-no-drag]")) {
+        if (
+          target.closest("button") ||
+          target.closest("input") ||
+          target.closest('[role="button"]') ||
+          target.closest("[data-no-drag]")
+        ) {
           event.stopPropagation();
           return;
         }
@@ -52,7 +72,13 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
   }, [listeners]);
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...filteredListeners} className="relative">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...filteredListeners}
+      className="relative"
+    >
       <PromptCard
         prompt={props.prompt}
         isSelected={props.isSelected}
@@ -66,6 +92,9 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
         onRefine={props.onRefine}
         onGenerateSimilar={props.onGenerateSimilar}
         onDelete={props.onDelete}
+        onAddImage={props.onAddImage}
+        onAddLocalImage={props.onAddLocalImage}
+        onRemoveImage={props.onRemoveImage}
         searchQuery={props.searchQuery}
       />
     </div>

@@ -42,6 +42,20 @@ pnpm run build
 - **Network Monitoring**: Detects generation completion via DataDog RUM endpoint tracking
 - **Auto-Detection**: Reads current media type, aspect ratio, and variation settings from Sora
 
+### Image Support
+- **Local Image Upload**: Upload images directly from your device to attach to prompts
+- **Cloud URL Support**: Paste image URLs for image-to-video generation
+- **Automatic Cleanup**: Local images removed from storage after processing completes
+
+### Smart Rate Limiting
+- **API Response Monitoring**: Real-time detection of Sora API responses
+- **Rate Limit Detection**: Automatic queue pause when daily limits are reached
+- **Browser Notifications**: Native alerts when rate limits hit
+
+### Keyboard Shortcuts
+- **Quick Submit**: Ctrl+Enter / Cmd+Enter in all dialog textareas
+- **Standard Forms**: Enter key support in input fields
+
 ### Import/Export
 - **CSV Import**: Bulk import prompts with custom settings per row
 - **CSV Export**: Export queue or history for backup/sharing

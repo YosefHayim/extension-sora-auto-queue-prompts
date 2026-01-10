@@ -42,10 +42,24 @@ pnpm run build
 - **Network Monitoring**: Detects generation completion via DataDog RUM endpoint tracking
 - **Auto-Detection**: Reads current media type, aspect ratio, and variation settings from Sora
 
+### Image Support
+- **Local Image Upload**: Upload images directly from your device to use with prompts
+- **Cloud URL Support**: Attach images via URL for image-to-video generation
+- **Automatic Cleanup**: Local images automatically removed from storage after processing
+
 ### Import/Export
 - **CSV Import**: Bulk import prompts with custom settings per row
-- **CSV Export**: Export queue or history for backup/sharing
+- **CSV Export**: Export queue or history for backup/sharing (includes image URLs)
 - **Prompt Refinement**: AI-powered prompt improvement and variation generation
+
+### Smart Rate Limiting
+- **API Response Monitoring**: Real-time detection of Sora API responses
+- **Rate Limit Detection**: Automatic pause when daily task limits are reached
+- **Browser Notifications**: Native alerts when rate limits are hit
+
+### Keyboard Shortcuts
+- **Ctrl+Enter / Cmd+Enter**: Quick submit in all dialog textareas
+- **Standard Form Submission**: Enter key support in input fields
 
 ### Developer Features
 - **Debug Panel**: Real-time categorized logging (queue, api, ui, content)
@@ -197,9 +211,9 @@ pnpm run format              # Auto-format
 ## CSV Import Format
 
 ```csv
-prompt,type,aspect_ratio,variations,preset
-"A cinematic underwater shot of coral reef",video,16:9,4,cinematic
-"Portrait of a woman in golden hour light",image,9:16,2,realistic
+prompt,type,aspect_ratio,variations,preset,image_url
+"A cinematic underwater shot of coral reef",video,16:9,4,cinematic,
+"Portrait of a woman in golden hour light",image,9:16,2,realistic,https://example.com/image.jpg
 ```
 
 | Column | Required | Values |
@@ -209,6 +223,7 @@ prompt,type,aspect_ratio,variations,preset
 | `aspect_ratio` | No | `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9` |
 | `variations` | No | `2`, `4` |
 | `preset` | No | `cinematic`, `documentary`, `artistic`, `realistic`, `animated`, `none` |
+| `image_url` | No | Valid HTTP/HTTPS URL to an image |
 
 ## Message Passing Protocol
 

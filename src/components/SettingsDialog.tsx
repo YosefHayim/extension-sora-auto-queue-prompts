@@ -485,6 +485,12 @@ export function SettingsDialog({
                     onChange={(e) =>
                       handleChange("contextPrompt", e.target.value)
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        handleSubmit(e);
+                      }
+                    }}
                     disabled={loading}
                     rows={3}
                     className="resize-none"
@@ -638,6 +644,12 @@ export function SettingsDialog({
                     onChange={(e) =>
                       handleChange("contextPrompt", e.target.value)
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        handleSubmit(e);
+                      }
+                    }}
                     disabled={loading}
                     rows={3}
                     className="resize-none"

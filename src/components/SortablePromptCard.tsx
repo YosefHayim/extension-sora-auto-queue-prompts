@@ -18,6 +18,14 @@ interface SortablePromptCardProps {
   onRefine: (id: string) => void;
   onGenerateSimilar: (id: string) => void;
   onDelete: (id: string) => void;
+  onAddImage?: (id: string, imageUrl: string) => void;
+  onAddLocalImage?: (
+    id: string,
+    imageData: string,
+    imageName: string,
+    imageType: string,
+  ) => void;
+  onRemoveImage?: (id: string) => void;
   searchQuery?: string;
 }
 
@@ -84,6 +92,9 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
         onRefine={props.onRefine}
         onGenerateSimilar={props.onGenerateSimilar}
         onDelete={props.onDelete}
+        onAddImage={props.onAddImage}
+        onAddLocalImage={props.onAddLocalImage}
+        onRemoveImage={props.onRemoveImage}
         searchQuery={props.searchQuery}
       />
     </div>

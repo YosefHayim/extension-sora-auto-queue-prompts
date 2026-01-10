@@ -166,6 +166,15 @@ export class CSVParser {
         }
       }
 
+      // Column 5: Image URL (optional)
+      if (columns[5]) {
+        const imageUrl = columns[5].trim();
+        // Basic URL validation
+        if (imageUrl && (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))) {
+          row.imageUrl = imageUrl;
+        }
+      }
+
       rows.push(row);
     }
 
@@ -173,7 +182,7 @@ export class CSVParser {
   }
 
   static exportToCSV(prompts: GeneratedPrompt[]): string {
-    const header = "prompt,type,aspect_ratio,variations,preset\n";
+    const header = "prompt,type,aspect_ratio,variations,preset,image_url\n";
     const rows = prompts
       .map((p) => {
         const fields = [
@@ -182,6 +191,7 @@ export class CSVParser {
           p.aspectRatio || "",
           p.variations?.toString() || "",
           p.preset || "",
+          p.imageUrl || "",
         ];
         return fields.join(",");
       })
@@ -207,10 +217,10 @@ export class CSVParser {
   }
 
   static downloadTemplate(filename: string = "prompts-template.csv"): void {
-    const template = `prompt,type,aspect_ratio,variations,preset
-"A cinematic shot of underwater coral reef",video,16:9,4,cinematic
-"Portrait of a woman in golden hour light",image,4:3,2,realistic
-"Animated character walking through forest",video,16:9,4,animated`;
+    const template = `prompt,type,aspect_ratio,variations,preset,image_url
+"A cinematic shot of underwater coral reef",video,16:9,4,cinematic,
+"Portrait of a woman in golden hour light",image,4:3,2,realistic,https://example.com/reference.jpg
+"Animated character walking through forest",video,16:9,4,animated,`;
 
     const blob = new Blob([template], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");

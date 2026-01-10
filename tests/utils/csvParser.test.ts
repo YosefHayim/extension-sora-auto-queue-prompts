@@ -252,9 +252,9 @@ describe('CSVParser', () => {
       const csv = CSVParser.exportToCSV(prompts);
 
       expect(csv).toBe(
-        'prompt,type,aspect_ratio,variations,preset\n' +
-          '"First prompt",video,16:9,4,cinematic\n' +
-          '"Second prompt",image,4:3,2,realistic'
+        'prompt,type,aspect_ratio,variations,preset,image_url\n' +
+          '"First prompt",video,16:9,4,cinematic,\n' +
+          '"Second prompt",image,4:3,2,realistic,'
       );
     });
 
@@ -269,13 +269,13 @@ describe('CSVParser', () => {
       ];
       const csv = CSVParser.exportToCSV(prompts);
 
-      expect(csv).toBe('prompt,type,aspect_ratio,variations,preset\n"Prompt with ""quotes""",video,,,');
+      expect(csv).toBe('prompt,type,aspect_ratio,variations,preset,image_url\n"Prompt with ""quotes""",video,,,,');
     });
 
     it('should handle empty array', () => {
       const csv = CSVParser.exportToCSV([]);
 
-      expect(csv).toBe('prompt,type,aspect_ratio,variations,preset\n');
+      expect(csv).toBe('prompt,type,aspect_ratio,variations,preset,image_url\n');
     });
 
     it('should handle prompts with missing optional fields', () => {
@@ -288,7 +288,7 @@ describe('CSVParser', () => {
       ];
       const csv = CSVParser.exportToCSV(prompts);
 
-      expect(csv).toBe('prompt,type,aspect_ratio,variations,preset\n"Minimal prompt",,,,'
+      expect(csv).toBe('prompt,type,aspect_ratio,variations,preset,image_url\n"Minimal prompt",,,,,'
       );
     });
   });

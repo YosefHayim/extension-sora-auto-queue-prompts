@@ -61,6 +61,7 @@ export function CSVImportDialog({
           aspectRatio: row.aspectRatio,
           variations: row.variations || config.variationCount || 2,
           preset: row.preset,
+          imageUrl: row.imageUrl,
         }));
 
         await onImport(newPrompts);
@@ -140,11 +141,12 @@ export function CSVImportDialog({
           <div className="text-sm text-muted-foreground space-y-2">
             <p>Import prompts from a CSV file with the following format:</p>
             <div className="bg-muted p-3 rounded-md font-mono text-xs">
-              <div>prompt,type,aspect_ratio,variations,preset</div>
+              <div>prompt,type,aspect_ratio,variations,preset,image_url</div>
               <div className="text-muted-foreground mt-1">
-                "A cinematic shot...",video,16:9,4,cinematic
+                "A cinematic shot...",video,16:9,4,cinematic,https://...
               </div>
             </div>
+            <p className="text-xs">The image_url column is optional for attaching reference images.</p>
           </div>
 
           {error && (

@@ -24,9 +24,9 @@ export default defineConfig({
   }),
   manifest: {
     name: "Sora Auto Queue Prompts",
-    version: "2.2.0",
+    version: "2.3.0",
     description: "Browser extension to automate prompt generation and queueing for Sora AI",
-    permissions: ["activeTab", "storage", "scripting", "tabs", "downloads", "webRequest"],
+    permissions: ["activeTab", "storage", "scripting", "tabs", "downloads", "webRequest", "notifications"],
     host_permissions: ["*://sora.com/*", "*://sora.chatgpt.com/*", "https://browser-intake-datadoghq.com/*"],
     action: {
       default_popup: "popup.html",

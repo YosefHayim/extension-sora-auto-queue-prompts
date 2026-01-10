@@ -141,6 +141,12 @@ export function EditPromptDialog({
               placeholder="Enter prompt text..."
               value={editedText}
               onChange={(e) => setEditedText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
               disabled={loading}
               rows={8}
               className="resize-none font-mono text-sm"

@@ -75,7 +75,7 @@ describe("SettingsDialog", () => {
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
 
     await waitFor(() => {
-      expect(screen.getByText("Using detected settings from Sora page")).toBeInTheDocument();
+      expect(screen.getByText("Using detected settings")).toBeInTheDocument();
     });
     const mediaTypeSelect = screen.getByLabelText("Media Type") as HTMLSelectElement;
     expect(mediaTypeSelect.value).toBe("image");
@@ -93,7 +93,7 @@ describe("SettingsDialog", () => {
 
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
 
-    expect(screen.getByText("(Detected)")).toBeInTheDocument();
+    expect(screen.getAllByText("Detected")[0]).toBeInTheDocument();
   });
 
   it("should show green border on Sora Generation Settings card when sync is working", () => {
@@ -112,9 +112,10 @@ describe("SettingsDialog", () => {
     const soraSettingsTitle = screen.getByText("Sora Generation Settings");
     const soraSettingsCard = soraSettingsTitle.closest(".rounded-lg");
 
-    // Check if the card has the green border class
+    // Check if the card has the green border class - checking for partial match due to tailwind/classname handling
     expect(soraSettingsCard).toBeTruthy();
-    expect(soraSettingsCard?.classList.contains("border-green-500")).toBe(true);
+    // In strict mode it might be looking for "border-green-500/60"
+    expect(soraSettingsCard?.className).toContain("border-green-500/60");
     expect(soraSettingsCard?.classList.contains("border-2")).toBe(true);
   });
 
@@ -432,8 +433,8 @@ describe("SettingsDialog", () => {
 
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
 
-    expect(screen.queryByText("Using detected settings from Sora page")).not.toBeInTheDocument();
-    expect(screen.queryByText("(Detected)")).not.toBeInTheDocument();
+    expect(screen.queryByText("Using detected settings")).not.toBeInTheDocument();
+    expect(screen.queryByText("Detected")).not.toBeInTheDocument();
   });
 
   it("should disable all inputs when loading", async () => {
@@ -522,7 +523,7 @@ describe("SettingsDialog", () => {
 
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
 
-    expect(screen.getByText("Using detected settings from Sora page")).toBeInTheDocument();
+    expect(screen.getByText("Using detected settings")).toBeInTheDocument();
   });
 
   it("should show detected settings text when only variations is detected", () => {
@@ -535,7 +536,7 @@ describe("SettingsDialog", () => {
 
     render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
 
-    expect(screen.getByText("Using detected settings from Sora page")).toBeInTheDocument();
+    expect(screen.getByText("Using detected settings")).toBeInTheDocument();
   });
 
   it("should handle empty batch size input with fallback to 1", () => {

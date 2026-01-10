@@ -9,7 +9,8 @@ export function Footer() {
     <footer className="flex flex-col items-center justify-center gap-2 py-3 mt-4 border-t border-border text-sm text-muted-foreground">
       <div className="flex items-center gap-2">
         <span className="flex items-center gap-1">
-          made with <AiFillHeart className="h-3 w-3 text-red-500" /> by <span className="font-medium text-foreground">Yosef Sabag</span>
+          made with <AiFillHeart className="h-3 w-3 text-red-500" /> by{" "}
+          <span className="font-medium text-foreground">Yosef Sabag</span>
         </span>
         <div className="flex items-center gap-2 ml-2">
           <a

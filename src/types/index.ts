@@ -1,5 +1,11 @@
 export type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9";
-export type PresetType = "cinematic" | "documentary" | "artistic" | "realistic" | "animated" | "none";
+export type PresetType =
+  | "cinematic"
+  | "documentary"
+  | "artistic"
+  | "realistic"
+  | "animated"
+  | "none";
 export type LogLevel = "debug" | "info" | "warn" | "error";
 export type ApiProvider = "openai" | "anthropic" | "google";
 
@@ -17,6 +23,8 @@ export interface PromptConfig {
   minDelayMs: number; // Minimum delay between prompts
   maxDelayMs: number; // Maximum delay between prompts
   setupCompleted: boolean; // First-time setup wizard completed
+  telegramBotToken?: string; // Telegram Bot Token for notifications
+  telegramChatId?: string; // Telegram Chat ID for notifications
 }
 
 export interface GeneratedPrompt {
@@ -34,6 +42,10 @@ export interface GeneratedPrompt {
   completedTime?: number; // When processing completed
   duration?: number; // Duration in milliseconds
   progress?: number; // Generation progress percentage (0-100)
+  imageUrl?: string; // Reference image URL for image-to-video or image generation
+  imageData?: string; // Base64 encoded image data for local files (temporary, cleared after processing)
+  imageName?: string; // Original filename for local files
+  imageType?: string; // MIME type (e.g., "image/png", "image/jpeg")
 }
 
 export interface QueueState {
@@ -71,6 +83,7 @@ export interface CSVRow {
   aspectRatio?: AspectRatio;
   variations?: number;
   preset?: PresetType;
+  imageUrl?: string; // Reference image URL
 }
 
 export interface PromptEditAction {

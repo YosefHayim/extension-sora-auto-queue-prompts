@@ -1,7 +1,7 @@
 {
   "name": "sora-auto-queue-prompts",
   "displayName": "Sora Auto Queue Prompts",
-  "version": "2.2.0",
+  "version": "2.4.0",
   "description": "Automate prompt generation and queue management for Sora AI video/image generation",
   "author": "YosefHayim",
   "license": "MIT",

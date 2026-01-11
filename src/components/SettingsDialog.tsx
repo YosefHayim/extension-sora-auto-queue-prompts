@@ -990,7 +990,7 @@ export function SettingsDialog({
         )}
 
         {/* Download Settings */}
-        {showOnly === "all" && (
+        {(showOnly === "all" || showOnly === "generation") && (
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -998,7 +998,8 @@ export function SettingsDialog({
                 <CardTitle className="text-base">Download Settings</CardTitle>
               </div>
               <CardDescription>
-                Configure automatic downloading of generated images and videos
+                Configure automatic and bulk downloading of generated images and
+                videos
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1041,7 +1042,7 @@ export function SettingsDialog({
                     onChange={(e) =>
                       handleChange("downloadSubfolder", e.target.value)
                     }
-                    disabled={loading || !formData.autoDownload}
+                    disabled={loading}
                     className="flex-1"
                   />
                 </div>

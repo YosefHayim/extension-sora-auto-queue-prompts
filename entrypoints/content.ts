@@ -12,10 +12,10 @@ export default defineContentScript({
     class SoraAutomation {
       private isProcessing = false;
       private currentPrompt: GeneratedPrompt | null = null;
-      private generationStarted = false; // Track if generation has started
-      private debugMode = true; // Enable detailed logging
-      private progressInterval: number | null = null; // Interval for progress polling
-      private completionObserver: MutationObserver | null = null; // Observer for completion
+      private generationStarted = false;
+      private debugMode = true;
+      private progressInterval: number | null = null;
+      private completionObserver: MutationObserver | null = null;
       private lastApiResponse: {
         success: boolean;
         data?: any;
@@ -24,7 +24,6 @@ export default defineContentScript({
       } | null = null;
       private apiResponsePromise: Promise<void> | null = null;
       private apiResponseResolve: (() => void) | null = null;
-
       constructor() {
         this.init();
         this.setupApiInterceptor();
@@ -99,10 +98,7 @@ export default defineContentScript({
 
                   // Notify background script about rate limit
                   if (errorCode === "too_many_daily_tasks") {
-                    self.log(
-                      "error",
-                      "🚫 Rate limit reached - stopping queue",
-                    );
+                    self.log("error", "🚫 Rate limit reached - stopping queue");
                     chrome.runtime
                       .sendMessage({
                         action: "rateLimitReached",
@@ -318,7 +314,34 @@ export default defineContentScript({
                   this.log("error", "Failed to extract media URLs", {
                     error: error.message,
                   });
-                  sendResponse({ success: false, error: error.message, mediaUrls: [] });
+                  sendResponse({
+                    success: false,
+                    error: error.message,
+                    mediaUrls: [],
+                  });
+                });
+              return true;
+            }
+
+            if (request.action === "bulkExtractAllMedia") {
+              this.bulkExtractAllVisibleMedia()
+                .then((result) => {
+                  this.log(
+                    "info",
+                    `Bulk extracted ${result.totalCount} media items`,
+                  );
+                  sendResponse({ success: true, ...result });
+                })
+                .catch((error) => {
+                  this.log("error", "Failed to bulk extract media", {
+                    error: error.message,
+                  });
+                  sendResponse({
+                    success: false,
+                    error: error.message,
+                    mediaUrls: [],
+                    totalCount: 0,
+                  });
                 });
               return true;
             }
@@ -623,7 +646,10 @@ export default defineContentScript({
           for (const selector of fileInputSelectors) {
             fileInput = document.querySelector<HTMLInputElement>(selector);
             if (fileInput) {
-              this.log("info", `✅ Found file input with selector: ${selector}`);
+              this.log(
+                "info",
+                `✅ Found file input with selector: ${selector}`,
+              );
               break;
             }
           }
@@ -658,7 +684,10 @@ export default defineContentScript({
           }
 
           if (!fileInput) {
-            this.log("error", "❌ Could not find file upload input on Sora page");
+            this.log(
+              "error",
+              "❌ Could not find file upload input on Sora page",
+            );
             throw new Error("Could not find file upload input on Sora page");
           }
 
@@ -709,8 +738,8 @@ export default defineContentScript({
           '[data-testid="uploaded-image"]',
           '[data-testid="image-preview"]',
           // Common patterns for uploaded images
-          '.uploaded-image',
-          '.image-preview',
+          ".uploaded-image",
+          ".image-preview",
           // Look for thumbnail/preview containers with images
           '[class*="preview"] img',
           '[class*="thumbnail"] img',
@@ -1758,13 +1787,16 @@ export default defineContentScript({
        * Extract URLs of generated images and videos from the page
        * Called after generation completes to support auto-download feature
        */
-      private async extractGeneratedMediaUrls(): Promise<Array<{ url: string; mediaType: "video" | "image" }>> {
+      private async extractGeneratedMediaUrls(): Promise<
+        Array<{ url: string; mediaType: "video" | "image" }>
+      > {
         this.log("info", "📥 Extracting generated media URLs...");
 
         // Wait a bit for DOM to stabilize after generation
         await this.delay(500);
 
-        const mediaUrls: Array<{ url: string; mediaType: "video" | "image" }> = [];
+        const mediaUrls: Array<{ url: string; mediaType: "video" | "image" }> =
+          [];
         const seenUrls = new Set<string>();
 
         // Find generated tiles - these contain the generated images/videos
@@ -1780,7 +1812,10 @@ export default defineContentScript({
               if (img.naturalWidth > 100 || img.width > 100) {
                 seenUrls.add(img.src);
                 mediaUrls.push({ url: img.src, mediaType: "image" });
-                this.log("debug", `Found image: ${img.src.substring(0, 100)}...`);
+                this.log(
+                  "debug",
+                  `Found image: ${img.src.substring(0, 100)}...`,
+                );
               }
             }
           }
@@ -1792,35 +1827,51 @@ export default defineContentScript({
             if (videoSrc && !seenUrls.has(videoSrc)) {
               seenUrls.add(videoSrc);
               mediaUrls.push({ url: videoSrc, mediaType: "video" });
-              this.log("debug", `Found video: ${videoSrc.substring(0, 100)}...`);
+              this.log(
+                "debug",
+                `Found video: ${videoSrc.substring(0, 100)}...`,
+              );
             }
           }
         }
 
         // Also check for images/videos with OpenAI CDN URLs (oaiusercontent)
-        const allImages = document.querySelectorAll<HTMLImageElement>('img[src*="oaiusercontent"], img[src*="sora"]');
+        const allImages = document.querySelectorAll<HTMLImageElement>(
+          'img[src*="oaiusercontent"], img[src*="sora"]',
+        );
         for (const img of Array.from(allImages)) {
           if (img.src && !seenUrls.has(img.src)) {
             if (img.naturalWidth > 100 || img.width > 100) {
               seenUrls.add(img.src);
               mediaUrls.push({ url: img.src, mediaType: "image" });
-              this.log("debug", `Found CDN image: ${img.src.substring(0, 100)}...`);
+              this.log(
+                "debug",
+                `Found CDN image: ${img.src.substring(0, 100)}...`,
+              );
             }
           }
         }
 
-        const allVideos = document.querySelectorAll<HTMLVideoElement>('video[src*="oaiusercontent"], video[src*="sora"]');
+        const allVideos = document.querySelectorAll<HTMLVideoElement>(
+          'video[src*="oaiusercontent"], video[src*="sora"]',
+        );
         for (const video of Array.from(allVideos)) {
           const videoSrc = video.src || video.querySelector("source")?.src;
           if (videoSrc && !seenUrls.has(videoSrc)) {
             seenUrls.add(videoSrc);
             mediaUrls.push({ url: videoSrc, mediaType: "video" });
-            this.log("debug", `Found CDN video: ${videoSrc.substring(0, 100)}...`);
+            this.log(
+              "debug",
+              `Found CDN video: ${videoSrc.substring(0, 100)}...`,
+            );
           }
         }
 
         // Handle blob URLs - convert to data URLs for download
-        const processedUrls: Array<{ url: string; mediaType: "video" | "image" }> = [];
+        const processedUrls: Array<{
+          url: string;
+          mediaType: "video" | "image";
+        }> = [];
 
         for (const media of mediaUrls) {
           if (media.url.startsWith("blob:")) {
@@ -1830,7 +1881,10 @@ export default defineContentScript({
               const blob = await response.blob();
               const dataUrl = await this.blobToDataUrl(blob);
               processedUrls.push({ url: dataUrl, mediaType: media.mediaType });
-              this.log("debug", `Converted blob URL to data URL for ${media.mediaType}`);
+              this.log(
+                "debug",
+                `Converted blob URL to data URL for ${media.mediaType}`,
+              );
             } catch (error) {
               this.log("warn", `Failed to convert blob URL: ${error}`);
               // Still include the original URL in case it works
@@ -1842,8 +1896,8 @@ export default defineContentScript({
         }
 
         this.log("info", `✅ Extracted ${processedUrls.length} media URLs`, {
-          images: processedUrls.filter(m => m.mediaType === "image").length,
-          videos: processedUrls.filter(m => m.mediaType === "video").length,
+          images: processedUrls.filter((m) => m.mediaType === "image").length,
+          videos: processedUrls.filter((m) => m.mediaType === "video").length,
         });
 
         return processedUrls;
@@ -1865,6 +1919,259 @@ export default defineContentScript({
           reader.onerror = reject;
           reader.readAsDataURL(blob);
         });
+      }
+
+      /**
+       * Bulk extract ALL visible media from Sora's virtualized flat list
+       * Groups media by date headers for organized download
+       * Handles the absolute-positioned virtualized grid structure
+       */
+      private async bulkExtractAllVisibleMedia(): Promise<{
+        mediaUrls: Array<{
+          url: string;
+          mediaType: "video" | "image";
+          date?: string;
+          alt?: string;
+        }>;
+        totalCount: number;
+        byDate: Record<
+          string,
+          Array<{ url: string; mediaType: "video" | "image"; alt?: string }>
+        >;
+      }> {
+        this.log(
+          "info",
+          "📥 Bulk extracting all visible media from Sora library...",
+        );
+
+        // Wait for DOM to stabilize
+        await this.delay(500);
+
+        const mediaUrls: Array<{
+          url: string;
+          mediaType: "video" | "image";
+          date?: string;
+          alt?: string;
+        }> = [];
+        const byDate: Record<
+          string,
+          Array<{ url: string; mediaType: "video" | "image"; alt?: string }>
+        > = {};
+        const seenUrls = new Set<string>();
+
+        // Find the main container that holds all virtualized items
+        // This is the large container with relative positioning that holds all tiles
+        const containers = document.querySelectorAll<HTMLElement>(
+          'div[style*="height"][style*="position: relative"]',
+        );
+
+        let mainContainer: HTMLElement | null = null;
+        for (const container of Array.from(containers)) {
+          // Look for the largest container (likely the virtualized list)
+          const height = parseInt(container.style.height);
+          if (height > 1000) {
+            mainContainer = container;
+            this.log(
+              "debug",
+              `Found virtualized container with height: ${height}px`,
+            );
+            break;
+          }
+        }
+
+        if (!mainContainer) {
+          this.log(
+            "warn",
+            "Could not find virtualized container, falling back to standard extraction",
+          );
+          // Fallback to standard extraction method
+          const standardResults = await this.extractGeneratedMediaUrls();
+          return {
+            mediaUrls: standardResults,
+            totalCount: standardResults.length,
+            byDate: { "All Media": standardResults },
+          };
+        }
+
+        // Get all children sorted by their data-index attribute
+        const items = Array.from(mainContainer.children).sort((a, b) => {
+          const aIndex = parseInt(a.getAttribute("data-index") || "0");
+          const bIndex = parseInt(b.getAttribute("data-index") || "0");
+          return aIndex - bIndex;
+        });
+
+        this.log(
+          "debug",
+          `Found ${items.length} items in virtualized container`,
+        );
+
+        let currentDay = "Unsorted";
+
+        for (const item of items) {
+          // Check if this is a date header
+          const dateHeader = item.querySelector(".text-token-text-secondary");
+          if (dateHeader && dateHeader.textContent) {
+            const dateText = dateHeader.textContent.trim();
+            // Verify it looks like a date (contains month name or date pattern)
+            if (
+              dateText.match(
+                /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/i,
+              ) ||
+              dateText.match(/\d{1,2}[\/\-]\d{1,2}/)
+            ) {
+              currentDay = dateText;
+              if (!byDate[currentDay]) {
+                byDate[currentDay] = [];
+              }
+              this.log("debug", `Found date header: ${currentDay}`);
+              continue;
+            }
+          }
+
+          // Initialize current day's array if needed
+          if (!byDate[currentDay]) {
+            byDate[currentDay] = [];
+          }
+
+          // Extract images from this item
+          const images = item.querySelectorAll<HTMLImageElement>("img");
+          for (const img of Array.from(images)) {
+            if (img.src && !seenUrls.has(img.src)) {
+              // Filter out tiny images (likely icons/thumbnails)
+              const width = img.naturalWidth || img.width;
+              if (width > 100) {
+                seenUrls.add(img.src);
+                const mediaItem = {
+                  url: img.src,
+                  mediaType: "image" as const,
+                  date: currentDay,
+                  alt: img.alt || undefined,
+                };
+                mediaUrls.push(mediaItem);
+                byDate[currentDay].push({
+                  url: img.src,
+                  mediaType: "image",
+                  alt: img.alt || undefined,
+                });
+              }
+            }
+          }
+
+          // Extract videos from this item
+          const videos = item.querySelectorAll<HTMLVideoElement>("video");
+          for (const video of Array.from(videos)) {
+            const videoSrc = video.src || video.querySelector("source")?.src;
+            if (videoSrc && !seenUrls.has(videoSrc)) {
+              seenUrls.add(videoSrc);
+              const mediaItem = {
+                url: videoSrc,
+                mediaType: "video" as const,
+                date: currentDay,
+              };
+              mediaUrls.push(mediaItem);
+              byDate[currentDay].push({ url: videoSrc, mediaType: "video" });
+            }
+          }
+        }
+
+        // Also look for any media with OpenAI CDN URLs that might have been missed
+        const cdnImages = document.querySelectorAll<HTMLImageElement>(
+          'img[src*="oaiusercontent"], img[src*="sora"], img[src*="openai"]',
+        );
+        for (const img of Array.from(cdnImages)) {
+          if (img.src && !seenUrls.has(img.src)) {
+            const width = img.naturalWidth || img.width;
+            if (width > 100) {
+              seenUrls.add(img.src);
+              const mediaItem = {
+                url: img.src,
+                mediaType: "image" as const,
+                date: "CDN Media",
+                alt: img.alt || undefined,
+              };
+              mediaUrls.push(mediaItem);
+              if (!byDate["CDN Media"]) {
+                byDate["CDN Media"] = [];
+              }
+              byDate["CDN Media"].push({
+                url: img.src,
+                mediaType: "image",
+                alt: img.alt || undefined,
+              });
+            }
+          }
+        }
+
+        const cdnVideos = document.querySelectorAll<HTMLVideoElement>(
+          'video[src*="oaiusercontent"], video[src*="sora"], video[src*="openai"]',
+        );
+        for (const video of Array.from(cdnVideos)) {
+          const videoSrc = video.src || video.querySelector("source")?.src;
+          if (videoSrc && !seenUrls.has(videoSrc)) {
+            seenUrls.add(videoSrc);
+            const mediaItem = {
+              url: videoSrc,
+              mediaType: "video" as const,
+              date: "CDN Media",
+            };
+            mediaUrls.push(mediaItem);
+            if (!byDate["CDN Media"]) {
+              byDate["CDN Media"] = [];
+            }
+            byDate["CDN Media"].push({ url: videoSrc, mediaType: "video" });
+          }
+        }
+
+        // Process blob URLs - convert to data URLs for download compatibility
+        const processedUrls: Array<{
+          url: string;
+          mediaType: "video" | "image";
+          date?: string;
+          alt?: string;
+        }> = [];
+
+        for (const media of mediaUrls) {
+          if (media.url.startsWith("blob:")) {
+            try {
+              const response = await fetch(media.url);
+              const blob = await response.blob();
+              const dataUrl = await this.blobToDataUrl(blob);
+              processedUrls.push({ ...media, url: dataUrl });
+              this.log(
+                "debug",
+                `Converted blob URL to data URL for ${media.mediaType}`,
+              );
+            } catch (error) {
+              this.log("warn", `Failed to convert blob URL: ${error}`);
+              processedUrls.push(media);
+            }
+          } else {
+            processedUrls.push(media);
+          }
+        }
+
+        // Remove empty date categories
+        for (const date of Object.keys(byDate)) {
+          if (byDate[date].length === 0) {
+            delete byDate[date];
+          }
+        }
+
+        this.log(
+          "info",
+          `✅ Bulk extracted ${processedUrls.length} media items from ${Object.keys(byDate).length} categories`,
+          {
+            images: processedUrls.filter((m) => m.mediaType === "image").length,
+            videos: processedUrls.filter((m) => m.mediaType === "video").length,
+            dates: Object.keys(byDate),
+          },
+        );
+
+        return {
+          mediaUrls: processedUrls,
+          totalCount: processedUrls.length,
+          byDate,
+        };
       }
 
       /**
@@ -2138,15 +2445,11 @@ export default defineContentScript({
         this.log("info", `✅ Highlighted ${highlightedCount} media elements`);
       }
 
-      /**
-       * Delay helper
-       */
       private delay(ms: number): Promise<void> {
         return new Promise((resolve) => setTimeout(resolve, ms));
       }
     }
 
-    // Initialize the automation
     new SoraAutomation();
   },
 });

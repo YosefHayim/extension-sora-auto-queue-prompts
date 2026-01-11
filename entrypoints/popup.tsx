@@ -19,12 +19,14 @@ import {
 import {
   FaCheckSquare,
   FaDownload,
+  FaImages,
   FaKey,
   FaList,
   FaMagic,
   FaMoon,
   FaPlay,
   FaSlidersH,
+  FaSpinner,
   FaSquare,
   FaSun,
   FaTrash,
@@ -92,6 +94,14 @@ function IndexPopup() {
   const [enabledPrompts, setEnabledPrompts] = React.useState<Set<string>>(
     new Set(),
   );
+  const [bulkDownloading, setBulkDownloading] = React.useState(false);
+  const [bulkDownloadResult, setBulkDownloadResult] = React.useState<{
+    success: boolean;
+    successCount?: number;
+    failCount?: number;
+    totalCount?: number;
+    error?: string;
+  } | null>(null);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -448,7 +458,10 @@ function IndexPopup() {
 
   async function handleAddImage(id: string, imageUrl: string) {
     try {
-      log.ui.action("handleAddImage:clicked", { promptId: id, imageUrl: imageUrl.substring(0, 50) });
+      log.ui.action("handleAddImage:clicked", {
+        promptId: id,
+        imageUrl: imageUrl.substring(0, 50),
+      });
       await storage.updatePrompt(id, { imageUrl });
       await loadData();
       log.ui.action("handleAddImage:success", { promptId: id });
@@ -621,6 +634,36 @@ function IndexPopup() {
   function handleGenerate() {
     log.ui.action("handleGenerate:clicked");
     setGenerateDialogOpen(true);
+  }
+
+  async function handleBulkDownload() {
+    log.ui.action("handleBulkDownload:clicked");
+    setBulkDownloading(true);
+    setBulkDownloadResult(null);
+
+    try {
+      const result = await chrome.runtime.sendMessage({
+        action: "bulkDownloadAllMedia",
+      });
+
+      setBulkDownloadResult(result);
+
+      if (result.success) {
+        log.ui.action("handleBulkDownload:success", {
+          successCount: result.successCount,
+          failCount: result.failCount,
+          totalCount: result.totalCount,
+        });
+      } else {
+        log.ui.error("handleBulkDownload", result.error);
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      setBulkDownloadResult({ success: false, error: errorMsg });
+      log.ui.error("handleBulkDownload", error);
+    } finally {
+      setBulkDownloading(false);
+    }
   }
 
   function handleImport() {
@@ -842,6 +885,61 @@ function IndexPopup() {
             }
             failedCount={prompts.filter((p) => p.status === "failed").length}
           />
+
+          {/* Bulk Download from Sora Library */}
+          <div className="p-3 rounded-lg border border-border bg-card">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FaImages className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">Bulk Download</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkDownload}
+                disabled={bulkDownloading}
+                className="gap-2"
+                title="Download all visible images/videos from your Sora library"
+              >
+                {bulkDownloading ? (
+                  <>
+                    <FaSpinner className="h-4 w-4 animate-spin" />
+                    Downloading...
+                  </>
+                ) : (
+                  <>
+                    <FaDownload className="h-4 w-4" />
+                    Download Library
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Downloads all visible media from your Sora library page (open
+              sora.com/library first)
+            </p>
+            {bulkDownloadResult && (
+              <div
+                className={`mt-2 text-xs p-2 rounded ${
+                  bulkDownloadResult.success
+                    ? "bg-green-500/10 text-green-600"
+                    : "bg-destructive/10 text-destructive"
+                }`}
+              >
+                {bulkDownloadResult.success ? (
+                  <>
+                    Downloaded {bulkDownloadResult.successCount} of{" "}
+                    {bulkDownloadResult.totalCount} files
+                    {bulkDownloadResult.failCount &&
+                      bulkDownloadResult.failCount > 0 &&
+                      ` (${bulkDownloadResult.failCount} failed)`}
+                  </>
+                ) : (
+                  bulkDownloadResult.error
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Search and Filters */}
           {prompts.length > 0 && (

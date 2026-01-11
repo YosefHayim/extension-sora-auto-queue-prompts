@@ -410,6 +410,9 @@ export default defineBackground(() => {
               request.promptText,
             );
 
+          case "bulkDownloadAllMedia":
+            return await handleBulkDownloadAllMedia();
+
           default:
             logger.warn("background", `Unknown action: ${request.action}`);
             return { success: false, error: "Unknown action" };
@@ -598,14 +601,21 @@ export default defineBackground(() => {
       // Handle Auto-Download if enabled
       if (config.autoDownload) {
         try {
-          logger.info("background", "Triggering auto-download for completed prompt", {
-            promptId,
-          });
+          logger.info(
+            "background",
+            "Triggering auto-download for completed prompt",
+            {
+              promptId,
+            },
+          );
           await handleExtractAndDownloadMedia(promptId, completedPrompt.text);
         } catch (downloadError) {
           logger.error("background", "Auto-download failed", {
             promptId,
-            error: downloadError instanceof Error ? downloadError.message : String(downloadError),
+            error:
+              downloadError instanceof Error
+                ? downloadError.message
+                : String(downloadError),
           });
           // Don't throw - let queue continue even if download fails
         }
@@ -1001,7 +1011,11 @@ export default defineBackground(() => {
 
       if (!config.autoDownload) {
         log.download.skipped(promptId, "Auto-download disabled");
-        return { success: true, skipped: true, reason: "Auto-download disabled" };
+        return {
+          success: true,
+          skipped: true,
+          reason: "Auto-download disabled",
+        };
       }
 
       // Find the Sora tab
@@ -1042,11 +1056,15 @@ export default defineBackground(() => {
       const successCount = results.filter((r) => r.success).length;
       const failCount = results.length - successCount;
 
-      logger.info("download", `Downloaded ${successCount}/${results.length} files`, {
-        promptId,
-        successCount,
-        failCount,
-      });
+      logger.info(
+        "download",
+        `Downloaded ${successCount}/${results.length} files`,
+        {
+          promptId,
+          successCount,
+          failCount,
+        },
+      );
 
       return {
         success: true,
@@ -1061,6 +1079,129 @@ export default defineBackground(() => {
     }
   }
 
-  // Initialize badge on background script startup
+  async function handleBulkDownloadAllMedia() {
+    try {
+      const config = await storage.getConfig();
+      const subfolder = config.downloadSubfolder || "Sora";
+      const promptSaveLocation = config.promptSaveLocation || false;
+
+      logger.info("download", "Starting bulk download of all visible media");
+
+      let tabs = await chrome.tabs.query({ url: "*://sora.com/*" });
+      if (tabs.length === 0) {
+        tabs = await chrome.tabs.query({ url: "*://sora.chatgpt.com/*" });
+      }
+
+      if (tabs.length === 0 || !tabs[0].id) {
+        return {
+          success: false,
+          error: "No Sora tab found. Please open sora.com first.",
+        };
+      }
+
+      const tabId = tabs[0].id;
+
+      const extractResult = await chrome.tabs.sendMessage(tabId, {
+        action: "bulkExtractAllMedia",
+      });
+
+      if (!extractResult.success || !extractResult.mediaUrls?.length) {
+        return {
+          success: false,
+          error:
+            extractResult.error ||
+            "No media found on page. Make sure you're viewing your library.",
+        };
+      }
+
+      const mediaUrls: Array<{
+        url: string;
+        mediaType: "video" | "image";
+        date?: string;
+        alt?: string;
+      }> = extractResult.mediaUrls;
+      const byDate = extractResult.byDate || {};
+
+      logger.info(
+        "download",
+        `Bulk extracting ${mediaUrls.length} media items from ${Object.keys(byDate).length} categories`,
+      );
+
+      const results: Array<{
+        success: boolean;
+        filename?: string;
+        error?: string;
+        date?: string;
+      }> = [];
+      const baseTimestamp = Date.now();
+
+      for (let i = 0; i < mediaUrls.length; i++) {
+        const media = mediaUrls[i];
+        const timestamp = baseTimestamp + i;
+
+        const sanitizedDate = media.date
+          ? media.date
+              .replace(/[<>:"/\\|?*\x00-\x1f]/g, "")
+              .replace(/[\s\n\r]+/g, "_")
+              .substring(0, 30)
+          : "bulk";
+
+        const promptText = media.alt || `sora_${sanitizedDate}_${i}`;
+
+        try {
+          const result = await downloader.downloadMedia({
+            url: media.url,
+            promptText,
+            mediaType: media.mediaType,
+            subfolder: `${subfolder}/bulk_${new Date().toISOString().split("T")[0]}`,
+            promptSaveLocation,
+            timestamp,
+          });
+
+          results.push({ ...result, date: media.date });
+
+          if (i < mediaUrls.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 150));
+          }
+        } catch (downloadError) {
+          results.push({
+            success: false,
+            error:
+              downloadError instanceof Error
+                ? downloadError.message
+                : String(downloadError),
+            date: media.date,
+          });
+        }
+      }
+
+      const successCount = results.filter((r) => r.success).length;
+      const failCount = results.length - successCount;
+
+      logger.info(
+        "download",
+        `Bulk download complete: ${successCount}/${results.length} files`,
+        {
+          successCount,
+          failCount,
+          categories: Object.keys(byDate).length,
+        },
+      );
+
+      return {
+        success: true,
+        totalCount: results.length,
+        successCount,
+        failCount,
+        byDate,
+        downloads: results,
+      };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error("download", "Bulk download failed", { error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  }
+
   updateExtensionBadge();
 });

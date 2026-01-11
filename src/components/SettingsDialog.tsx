@@ -12,7 +12,9 @@ import {
   FaBrain,
   FaCheckCircle,
   FaCog,
+  FaDownload,
   FaExclamationCircle,
+  FaFolder,
   FaGoogle,
   FaKey,
   FaMagic,
@@ -982,6 +984,92 @@ export function SettingsDialog({
                     from external sources
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Download Settings */}
+        {showOnly === "all" && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <FaDownload className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base">Download Settings</CardTitle>
+              </div>
+              <CardDescription>
+                Configure automatic downloading of generated images and videos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Auto-download Toggle */}
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+                <input
+                  type="checkbox"
+                  id="autoDownload"
+                  checked={formData.autoDownload}
+                  onChange={(e) =>
+                    handleChange("autoDownload", e.target.checked)
+                  }
+                  disabled={loading}
+                  className="h-4 w-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                />
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="autoDownload"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Auto-download Generated Media
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Automatically download images and videos when generation
+                    completes
+                  </p>
+                </div>
+              </div>
+
+              {/* Download Subfolder */}
+              <div className="space-y-2">
+                <Label htmlFor="downloadSubfolder">Download Location</Label>
+                <div className="flex items-center gap-2">
+                  <FaFolder className="h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="downloadSubfolder"
+                    type="text"
+                    placeholder="Sora"
+                    value={formData.downloadSubfolder}
+                    onChange={(e) =>
+                      handleChange("downloadSubfolder", e.target.value)
+                    }
+                    disabled={loading || !formData.autoDownload}
+                    className="flex-1"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <FaFolder className="h-3 w-3" />
+                  Files saved to: Downloads/
+                  {formData.downloadSubfolder || "Sora"}/
+                </p>
+              </div>
+
+              {/* Prompt for Location Toggle */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.promptSaveLocation}
+                    onChange={(e) =>
+                      handleChange("promptSaveLocation", e.target.checked)
+                    }
+                    disabled={loading || !formData.autoDownload}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <span>Ask where to save each file</span>
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Prompt for download location on every file (overrides
+                  subfolder setting)
+                </p>
               </div>
             </CardContent>
           </Card>

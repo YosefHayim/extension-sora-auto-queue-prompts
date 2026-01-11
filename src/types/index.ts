@@ -25,6 +25,10 @@ export interface PromptConfig {
   setupCompleted: boolean; // First-time setup wizard completed
   telegramBotToken?: string; // Telegram Bot Token for notifications
   telegramChatId?: string; // Telegram Chat ID for notifications
+  // Auto-download settings
+  autoDownload: boolean; // Enable/disable auto-download of generated media
+  downloadSubfolder: string; // Subfolder within Downloads (e.g., "Sora")
+  promptSaveLocation: boolean; // If true, prompt user to choose location each time
 }
 
 export interface GeneratedPrompt {

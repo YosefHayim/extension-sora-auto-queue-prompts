@@ -47,6 +47,13 @@ pnpm run build
 - **Cloud URL Support**: Paste image URLs for image-to-video generation
 - **Automatic Cleanup**: Local images removed from storage after processing completes
 
+### Auto-Download
+- **Automatic Media Saving**: Automatically download generated images and videos when generation completes
+- **Configurable Download Path**: Set a custom subfolder within Downloads (e.g., `Downloads/Sora/`)
+- **Flexible Save Options**: Choose to auto-save or prompt for location on each download
+- **Batch Download**: Download all visible media on the Sora page at once
+- **Smart Filename Generation**: Files named using sanitized prompt text with timestamp
+
 ### Smart Rate Limiting
 - **API Response Monitoring**: Real-time detection of Sora API responses
 - **Rate Limit Detection**: Automatic queue pause when daily limits are reached
@@ -141,6 +148,7 @@ extension-sora-auto-queue-prompts/
 │   │   ├── promptGenerator.ts# Multi-provider AI integration
 │   │   ├── queueProcessor.ts # Queue orchestration singleton
 │   │   ├── csvParser.ts      # Import/export functionality
+│   │   ├── downloader.ts     # Auto-download media utility
 │   │   └── logger.ts         # Categorized logging system
 │   ├── types/                # TypeScript type definitions
 │   └── styles/               # Tailwind CSS configuration
@@ -233,6 +241,8 @@ prompt,type,aspect_ratio,variations,preset
 | `startQueue` / `pauseQueue` / `resumeQueue` / `stopQueue` | Queue lifecycle |
 | `promptAction` | Edit/delete/refine/duplicate prompt |
 | `enhancePrompt` | AI-powered prompt improvement |
+| `downloadMedia` | Download single media file |
+| `extractAndDownloadMedia` | Extract and download all visible media |
 | `getLogs` / `clearLogs` / `exportLogs` | Debug logging |
 
 ### Content Script Handlers
@@ -241,6 +251,7 @@ prompt,type,aspect_ratio,variations,preset
 | `submitPrompt` | Type and submit prompt to Sora |
 | `checkReady` | Verify Sora is ready for input |
 | `detectSettings` | Read current media type/aspect ratio |
+| `extractMedia` | Extract all image/video URLs from page |
 
 ## Privacy & Security
 

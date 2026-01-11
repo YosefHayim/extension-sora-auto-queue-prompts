@@ -323,6 +323,20 @@ export const log = {
       logger.error("csv", "CSV operation failed", { error }),
   },
 
+  // Download operations
+  download: {
+    started: (promptId: string, mediaType: string) =>
+      logger.info("download", `Download started for ${mediaType}`, { promptId }),
+    completed: (filename: string, mediaType: string) =>
+      logger.info("download", `Downloaded ${mediaType}: ${filename}`),
+    failed: (promptId: string, error: any) =>
+      logger.error("download", `Download failed`, { promptId, error }),
+    skipped: (promptId: string, reason: string) =>
+      logger.debug("download", `Download skipped: ${reason}`, { promptId }),
+    extracted: (promptId: string, count: number) =>
+      logger.info("download", `Extracted ${count} media URLs`, { promptId }),
+  },
+
   // UI operations
   ui: {
     action: (action: string, data?: any) =>

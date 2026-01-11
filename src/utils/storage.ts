@@ -13,6 +13,10 @@ const DEFAULT_CONFIG: PromptConfig = {
   minDelayMs: 2000, // 2 seconds minimum
   maxDelayMs: 5000, // 5 seconds maximum
   setupCompleted: false,
+  // Auto-download defaults
+  autoDownload: false,
+  downloadSubfolder: "Sora",
+  promptSaveLocation: false,
 };
 
 const DEFAULT_QUEUE_STATE: QueueState = {

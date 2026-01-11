@@ -307,6 +307,21 @@ export default defineContentScript({
                 });
               return true;
             }
+
+            if (request.action === "extractMedia") {
+              this.extractGeneratedMediaUrls()
+                .then((mediaUrls) => {
+                  this.log("info", `Extracted ${mediaUrls.length} media URLs`);
+                  sendResponse({ success: true, mediaUrls });
+                })
+                .catch((error) => {
+                  this.log("error", "Failed to extract media URLs", {
+                    error: error.message,
+                  });
+                  sendResponse({ success: false, error: error.message, mediaUrls: [] });
+                });
+              return true;
+            }
           },
         );
 
@@ -1737,6 +1752,119 @@ export default defineContentScript({
         this.isProcessing = false;
         this.currentPrompt = null;
         this.generationStarted = false;
+      }
+
+      /**
+       * Extract URLs of generated images and videos from the page
+       * Called after generation completes to support auto-download feature
+       */
+      private async extractGeneratedMediaUrls(): Promise<Array<{ url: string; mediaType: "video" | "image" }>> {
+        this.log("info", "📥 Extracting generated media URLs...");
+
+        // Wait a bit for DOM to stabilize after generation
+        await this.delay(500);
+
+        const mediaUrls: Array<{ url: string; mediaType: "video" | "image" }> = [];
+        const seenUrls = new Set<string>();
+
+        // Find generated tiles - these contain the generated images/videos
+        const tiles = document.querySelectorAll<HTMLElement>(".group\\/tile");
+        this.log("debug", `Found ${tiles.length} generated tiles`);
+
+        for (const tile of Array.from(tiles)) {
+          // Extract images from tile
+          const images = tile.querySelectorAll<HTMLImageElement>("img");
+          for (const img of Array.from(images)) {
+            if (img.src && !seenUrls.has(img.src)) {
+              // Skip tiny images (likely icons) and data URIs that are too small
+              if (img.naturalWidth > 100 || img.width > 100) {
+                seenUrls.add(img.src);
+                mediaUrls.push({ url: img.src, mediaType: "image" });
+                this.log("debug", `Found image: ${img.src.substring(0, 100)}...`);
+              }
+            }
+          }
+
+          // Extract videos from tile
+          const videos = tile.querySelectorAll<HTMLVideoElement>("video");
+          for (const video of Array.from(videos)) {
+            const videoSrc = video.src || video.querySelector("source")?.src;
+            if (videoSrc && !seenUrls.has(videoSrc)) {
+              seenUrls.add(videoSrc);
+              mediaUrls.push({ url: videoSrc, mediaType: "video" });
+              this.log("debug", `Found video: ${videoSrc.substring(0, 100)}...`);
+            }
+          }
+        }
+
+        // Also check for images/videos with OpenAI CDN URLs (oaiusercontent)
+        const allImages = document.querySelectorAll<HTMLImageElement>('img[src*="oaiusercontent"], img[src*="sora"]');
+        for (const img of Array.from(allImages)) {
+          if (img.src && !seenUrls.has(img.src)) {
+            if (img.naturalWidth > 100 || img.width > 100) {
+              seenUrls.add(img.src);
+              mediaUrls.push({ url: img.src, mediaType: "image" });
+              this.log("debug", `Found CDN image: ${img.src.substring(0, 100)}...`);
+            }
+          }
+        }
+
+        const allVideos = document.querySelectorAll<HTMLVideoElement>('video[src*="oaiusercontent"], video[src*="sora"]');
+        for (const video of Array.from(allVideos)) {
+          const videoSrc = video.src || video.querySelector("source")?.src;
+          if (videoSrc && !seenUrls.has(videoSrc)) {
+            seenUrls.add(videoSrc);
+            mediaUrls.push({ url: videoSrc, mediaType: "video" });
+            this.log("debug", `Found CDN video: ${videoSrc.substring(0, 100)}...`);
+          }
+        }
+
+        // Handle blob URLs - convert to data URLs for download
+        const processedUrls: Array<{ url: string; mediaType: "video" | "image" }> = [];
+
+        for (const media of mediaUrls) {
+          if (media.url.startsWith("blob:")) {
+            try {
+              // Fetch blob and convert to data URL
+              const response = await fetch(media.url);
+              const blob = await response.blob();
+              const dataUrl = await this.blobToDataUrl(blob);
+              processedUrls.push({ url: dataUrl, mediaType: media.mediaType });
+              this.log("debug", `Converted blob URL to data URL for ${media.mediaType}`);
+            } catch (error) {
+              this.log("warn", `Failed to convert blob URL: ${error}`);
+              // Still include the original URL in case it works
+              processedUrls.push(media);
+            }
+          } else {
+            processedUrls.push(media);
+          }
+        }
+
+        this.log("info", `✅ Extracted ${processedUrls.length} media URLs`, {
+          images: processedUrls.filter(m => m.mediaType === "image").length,
+          videos: processedUrls.filter(m => m.mediaType === "video").length,
+        });
+
+        return processedUrls;
+      }
+
+      /**
+       * Convert a Blob to a data URL
+       */
+      private blobToDataUrl(blob: Blob): Promise<string> {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (typeof reader.result === "string") {
+              resolve(reader.result);
+            } else {
+              reject(new Error("Failed to convert blob to data URL"));
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
       }
 
       /**

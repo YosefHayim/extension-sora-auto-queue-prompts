@@ -11,6 +11,7 @@ import { PromptGenerator } from "../src/utils/promptGenerator";
 import { generateUniqueId } from "../src/lib/utils";
 import { queueProcessor } from "../src/utils/queueProcessor";
 import { storage } from "../src/utils/storage";
+import { downloader, type ExtractedMedia } from "../src/utils/downloader";
 
 /**
  * Network Activity Monitor
@@ -400,6 +401,15 @@ export default defineBackground(() => {
 
             return { success: true, rateLimited: true };
 
+          case "downloadMedia":
+            return await handleDownloadMedia(request.data);
+
+          case "extractAndDownloadMedia":
+            return await handleExtractAndDownloadMedia(
+              request.promptId,
+              request.promptText,
+            );
+
           default:
             logger.warn("background", `Unknown action: ${request.action}`);
             return { success: false, error: "Unknown action" };
@@ -582,6 +592,22 @@ export default defineBackground(() => {
           logger.error("background", "Failed to send Telegram notification", {
             error,
           });
+        }
+      }
+
+      // Handle Auto-Download if enabled
+      if (config.autoDownload) {
+        try {
+          logger.info("background", "Triggering auto-download for completed prompt", {
+            promptId,
+          });
+          await handleExtractAndDownloadMedia(promptId, completedPrompt.text);
+        } catch (downloadError) {
+          logger.error("background", "Auto-download failed", {
+            promptId,
+            error: downloadError instanceof Error ? downloadError.message : String(downloadError),
+          });
+          // Don't throw - let queue continue even if download fails
         }
       }
     }
@@ -923,6 +949,114 @@ export default defineBackground(() => {
       logger.error("background", "Navigate to prompt failed", {
         error: errorMsg,
       });
+      return { success: false, error: errorMsg };
+    }
+  }
+
+  /**
+   * Handle download of a single media file
+   */
+  async function handleDownloadMedia(data: {
+    url: string;
+    promptText: string;
+    mediaType: "video" | "image";
+    subfolder: string;
+    promptSaveLocation: boolean;
+  }) {
+    try {
+      log.download.started(data.promptText.substring(0, 20), data.mediaType);
+
+      const result = await downloader.downloadMedia({
+        url: data.url,
+        promptText: data.promptText,
+        mediaType: data.mediaType,
+        subfolder: data.subfolder,
+        promptSaveLocation: data.promptSaveLocation,
+      });
+
+      if (result.success && result.filename) {
+        log.download.completed(result.filename, data.mediaType);
+      } else if (!result.success) {
+        log.download.failed(data.promptText.substring(0, 20), result.error);
+      }
+
+      return result;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      log.download.failed(data.promptText.substring(0, 20), errorMsg);
+      return { success: false, error: errorMsg };
+    }
+  }
+
+  /**
+   * Extract media URLs from content script and download all
+   */
+  async function handleExtractAndDownloadMedia(
+    promptId: string,
+    promptText: string,
+  ) {
+    try {
+      // Get config for download settings
+      const config = await storage.getConfig();
+
+      if (!config.autoDownload) {
+        log.download.skipped(promptId, "Auto-download disabled");
+        return { success: true, skipped: true, reason: "Auto-download disabled" };
+      }
+
+      // Find the Sora tab
+      let tabs = await chrome.tabs.query({ url: "*://sora.com/*" });
+      if (tabs.length === 0) {
+        tabs = await chrome.tabs.query({ url: "*://sora.chatgpt.com/*" });
+      }
+
+      if (tabs.length === 0 || !tabs[0].id) {
+        log.download.skipped(promptId, "No Sora tab found");
+        return { success: false, error: "No Sora tab found" };
+      }
+
+      const tabId = tabs[0].id;
+
+      // Send message to content script to extract media URLs
+      const extractResult = await chrome.tabs.sendMessage(tabId, {
+        action: "extractMedia",
+        promptId,
+      });
+
+      if (!extractResult.success || !extractResult.mediaUrls?.length) {
+        log.download.skipped(promptId, "No media found to download");
+        return { success: false, error: "No media found to download" };
+      }
+
+      const mediaUrls: ExtractedMedia[] = extractResult.mediaUrls;
+      log.download.extracted(promptId, mediaUrls.length);
+
+      // Download all extracted media
+      const results = await downloader.downloadAllMedia(
+        mediaUrls,
+        promptText,
+        config.downloadSubfolder || "Sora",
+        config.promptSaveLocation || false,
+      );
+
+      const successCount = results.filter((r) => r.success).length;
+      const failCount = results.length - successCount;
+
+      logger.info("download", `Downloaded ${successCount}/${results.length} files`, {
+        promptId,
+        successCount,
+        failCount,
+      });
+
+      return {
+        success: true,
+        downloads: results,
+        successCount,
+        failCount,
+      };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      log.download.failed(promptId, errorMsg);
       return { success: false, error: errorMsg };
     }
   }

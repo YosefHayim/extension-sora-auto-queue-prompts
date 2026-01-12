@@ -1337,39 +1337,48 @@ export default defineContentScript({
        */
       private startProgressMonitoring(): void {
         if (this.progressInterval) {
-          return; // Already monitoring
+          return;
         }
 
         this.log("info", "📊 Starting progress monitoring...");
-        this.progressInterval = setInterval(() => {
+        this.progressInterval = setInterval(async () => {
           const progress = this.extractProgress();
           if (progress !== null && this.currentPrompt) {
-            // Send progress update to background
-            chrome.runtime
-              .sendMessage({
+            try {
+              await chrome.runtime.sendMessage({
                 action: "updatePromptProgress",
                 promptId: this.currentPrompt.id,
                 progress,
-              })
-              .catch(() => {
-                // Ignore errors
               });
+            } catch (error) {
+              this.log("debug", "Progress update send failed", {
+                error: error instanceof Error ? error.message : String(error),
+              });
+            }
 
-            // If progress reaches 100%, mark as complete
             if (progress >= 100) {
               this.log("info", "✅ Progress reached 100%, marking as complete");
               this.stopProgressMonitoring();
-              chrome.runtime
-                .sendMessage({
+
+              try {
+                const response = await chrome.runtime.sendMessage({
                   action: "markPromptComplete",
                   promptId: this.currentPrompt.id,
-                })
-                .catch(() => {
-                  // Ignore errors
                 });
+
+                if (!response?.success) {
+                  this.log("warn", "❌ Mark complete returned non-success", {
+                    error: response?.error,
+                  });
+                }
+              } catch (error) {
+                this.log("error", "❌ Mark complete message failed at 100%", {
+                  error: error instanceof Error ? error.message : String(error),
+                });
+              }
             }
           }
-        }, 500) as unknown as number; // Check every 500ms for faster detection
+        }, 500) as unknown as number;
       }
 
       /**
@@ -1758,22 +1767,84 @@ export default defineContentScript({
 
       /**
        * Handle generation completion notification
+       * Includes retry logic and fallback to direct storage update
        */
       private async handleGenerationComplete(): Promise<void> {
         this.log("info", "🎉 Handling generation complete");
 
         // Notify background that this prompt is complete
         if (this.currentPrompt) {
-          try {
-            await chrome.runtime.sendMessage({
-              action: "markPromptComplete",
-              promptId: this.currentPrompt.id,
-            });
-            this.log("info", "✅ Notified background of completion", {
-              promptId: this.currentPrompt.id,
-            });
-          } catch (error) {
-            this.log("error", "❌ Failed to notify background", { error });
+          const maxRetries = 3;
+          let retries = 0;
+          let success = false;
+
+          while (retries < maxRetries && !success) {
+            try {
+              const response = await chrome.runtime.sendMessage({
+                action: "markPromptComplete",
+                promptId: this.currentPrompt.id,
+              });
+
+              if (response?.success) {
+                this.log("info", "✅ Successfully marked prompt complete", {
+                  promptId: this.currentPrompt.id,
+                  attempt: retries + 1,
+                });
+                success = true;
+              } else {
+                throw new Error(
+                  response?.error || "Background returned non-success response",
+                );
+              }
+            } catch (error) {
+              retries++;
+              this.log(
+                "warn",
+                `⚠️ Mark complete attempt ${retries}/${maxRetries} failed`,
+                {
+                  error: error instanceof Error ? error.message : String(error),
+                },
+              );
+
+              if (retries < maxRetries) {
+                // Exponential backoff: 1s, 2s, 3s
+                await this.delay(1000 * retries);
+              } else {
+                this.log("error", "❌ All retry attempts exhausted", { error });
+
+                // Last resort: try direct storage update
+                try {
+                  const result = await chrome.storage.local.get("prompts");
+                  const prompts = result.prompts || [];
+                  const promptId = this.currentPrompt?.id;
+                  const updated = prompts.map((p: any) =>
+                    p.id === promptId
+                      ? {
+                          ...p,
+                          status: "completed",
+                          completedTime: Date.now(),
+                          duration: p.startTime
+                            ? Date.now() - p.startTime
+                            : undefined,
+                        }
+                      : p,
+                  );
+                  await chrome.storage.local.set({ prompts: updated });
+                  this.log(
+                    "info",
+                    "✅ Status updated via direct storage access",
+                  );
+                  success = true;
+                } catch (storageError) {
+                  this.log("error", "❌ Direct storage update also failed", {
+                    error:
+                      storageError instanceof Error
+                        ? storageError.message
+                        : String(storageError),
+                  });
+                }
+              }
+            }
           }
         }
 

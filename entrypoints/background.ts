@@ -13,6 +13,42 @@ import { queueProcessor } from "../src/utils/queueProcessor";
 import { storage } from "../src/utils/storage";
 import { downloader, type ExtractedMedia } from "../src/utils/downloader";
 
+async function updatePromptWithRetry(
+  promptId: string,
+  updates: Partial<GeneratedPrompt>,
+  maxRetries: number = 3,
+): Promise<void> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await storage.updatePrompt(promptId, updates);
+      logger.debug("background", "Prompt updated successfully", {
+        promptId,
+        attempt,
+        updates: Object.keys(updates),
+      });
+      return;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      logger.warn(
+        "background",
+        `Update attempt ${attempt}/${maxRetries} failed`,
+        {
+          promptId,
+          error: lastError.message,
+        },
+      );
+
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 100 * attempt));
+      }
+    }
+  }
+
+  throw lastError || new Error("Failed to update prompt after retries");
+}
+
 /**
  * Network Activity Monitor
  * Tracks requests to DataDog RUM endpoint to detect when generation is complete
@@ -264,7 +300,20 @@ export default defineBackground(() => {
             return await handleGetNextPrompt();
 
           case "markPromptComplete":
-            return await handleMarkPromptComplete(request.promptId);
+            try {
+              await handleMarkPromptComplete(request.promptId);
+              return { success: true };
+            } catch (error) {
+              logger.error("background", "Failed to mark prompt complete", {
+                promptId: request.promptId,
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+              });
+              return {
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+              };
+            }
 
           case "updatePromptProgress":
             return await handleUpdatePromptProgress(
@@ -300,6 +349,100 @@ export default defineBackground(() => {
             await queueProcessor.processSelectedPrompts(request.data.promptIds);
             log.queue.start();
             return { success: true };
+
+          case "insertPrompts":
+            try {
+              await storage.insertPrompts(
+                request.data.prompts,
+                request.data.options,
+              );
+
+              const queueState = await storage.getQueueState();
+              const allPrompts = await storage.getPrompts();
+              await storage.setQueueState({
+                totalCount: allPrompts.length,
+              });
+
+              logger.info(
+                "background",
+                `Inserted ${request.data.prompts.length} prompts at position: ${request.data.options.position}`,
+              );
+
+              if (
+                queueState.isRunning &&
+                !queueState.isPaused &&
+                !queueState.currentPromptId
+              ) {
+                logger.info(
+                  "background",
+                  "Queue was idle, restarting after insertion",
+                );
+                setTimeout(() => {
+                  queueProcessor.processNext().catch((error) => {
+                    logger.error(
+                      "background",
+                      "Failed to restart queue after insertion",
+                      {
+                        error:
+                          error instanceof Error
+                            ? error.message
+                            : String(error),
+                      },
+                    );
+                  });
+                }, 1000);
+              }
+
+              return { success: true };
+            } catch (error) {
+              logger.error("background", "Failed to insert prompts", { error });
+              return {
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+              };
+            }
+
+          case "updateBatchLabels":
+            try {
+              await storage.updateBatchLabel(
+                request.data.promptIds,
+                request.data.batchLabel,
+              );
+              logger.info(
+                "background",
+                `Updated batch label for ${request.data.promptIds.length} prompts`,
+              );
+              return { success: true };
+            } catch (error) {
+              logger.error("background", "Failed to update batch labels", {
+                error,
+              });
+              return {
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+              };
+            }
+
+          case "updatePromptPriority":
+            try {
+              await storage.updatePromptPriority(
+                request.data.promptIds,
+                request.data.priority,
+              );
+              logger.info(
+                "background",
+                `Updated priority for ${request.data.promptIds.length} prompts`,
+              );
+              return { success: true };
+            } catch (error) {
+              logger.error("background", "Failed to update prompt priority", {
+                error,
+              });
+              return {
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+              };
+            }
 
           case "promptAction":
             return await handlePromptAction(request.data);
@@ -538,7 +681,6 @@ export default defineBackground(() => {
   }
 
   async function handleMarkPromptComplete(promptId: string) {
-    // Get prompt to calculate duration
     const prompts = await storage.getPrompts();
     const prompt = prompts.find((p) => p.id === promptId);
 
@@ -546,23 +688,21 @@ export default defineBackground(() => {
       const completedTime = Date.now();
       const duration = completedTime - prompt.startTime;
 
-      await storage.updatePrompt(promptId, {
+      await updatePromptWithRetry(promptId, {
         status: "completed",
         completedTime,
         duration,
       });
     } else {
-      await storage.updatePrompt(promptId, { status: "completed" });
+      await updatePromptWithRetry(promptId, { status: "completed" });
     }
 
-    // Clear imageData after completion to free up storage space
-    // Keep imageName for reference in history, but remove the large base64 data
     if (prompt?.imageData) {
       logger.info("background", "Clearing imageData after completion", {
         promptId,
         imageName: prompt.imageName,
       });
-      await storage.updatePrompt(promptId, {
+      await updatePromptWithRetry(promptId, {
         imageData: undefined,
       });
     }

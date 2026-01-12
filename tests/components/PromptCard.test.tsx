@@ -42,7 +42,9 @@ describe("PromptCard", () => {
   });
 
   it("should display video media type icon", () => {
-    const { container } = render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={mockPrompt} {...mockHandlers} />,
+    );
     // Video icon should be present
     const videoIcon = container.querySelector("svg");
     expect(videoIcon).toBeInTheDocument();
@@ -50,14 +52,19 @@ describe("PromptCard", () => {
 
   it("should display image media type icon", () => {
     const imagePrompt = { ...mockPrompt, mediaType: "image" as const };
-    const { container } = render(<PromptCard prompt={imagePrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={imagePrompt} {...mockHandlers} />,
+    );
     // Image icon should be present
     const icons = container.querySelectorAll("svg");
     expect(icons.length).toBeGreaterThan(0);
   });
 
   it("should display aspect ratio badge when provided", () => {
-    const promptWithAspectRatio = { ...mockPrompt, aspectRatio: "16:9" as const };
+    const promptWithAspectRatio = {
+      ...mockPrompt,
+      aspectRatio: "16:9" as const,
+    };
     render(<PromptCard prompt={promptWithAspectRatio} {...mockHandlers} />);
     expect(screen.getByText(/16:9/)).toBeInTheDocument();
   });
@@ -70,7 +77,9 @@ describe("PromptCard", () => {
 
   it("should display enhanced icon when prompt is enhanced", () => {
     const enhancedPrompt = { ...mockPrompt, enhanced: true };
-    const { container } = render(<PromptCard prompt={enhancedPrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={enhancedPrompt} {...mockHandlers} />,
+    );
     // Enhanced prompt should have magic icon
     const icons = container.querySelectorAll("svg");
     expect(icons.length).toBeGreaterThan(0);
@@ -83,35 +92,19 @@ describe("PromptCard", () => {
     expect(mockHandlers.onEdit).toHaveBeenCalledWith("test-1");
   });
 
-  it("should call onDuplicate when duplicate button is clicked", async () => {
-    const { container } = render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
+  it("should call onDuplicate when duplicate button is clicked", () => {
+    render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
 
-    // Open dropdown
-    const moreButton = container.querySelector('button[aria-haspopup="true"]');
-    fireEvent.click(moreButton!);
-
-    // Find and click Duplicate
-    const duplicateButton = await screen.findByText(/duplicate/i);
+    const duplicateButton = screen.getByTitle("Duplicate");
     fireEvent.click(duplicateButton);
     expect(mockHandlers.onDuplicate).toHaveBeenCalledWith("test-1");
   });
 
-  it("should call onRefine when refine button is clicked", async () => {
-    const { container } = render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
-
-    // Open dropdown
-    const moreButton = container.querySelector('button[aria-haspopup="true"]');
-    fireEvent.click(moreButton!);
-
-    // Find and click Refine
-    const refineButton = await screen.findByText(/refine with ai/i);
-    fireEvent.click(refineButton);
-    expect(mockHandlers.onRefine).toHaveBeenCalledWith("test-1");
-  });
-
   it("should display correct status icon for completed status", () => {
     const completedPrompt = { ...mockPrompt, status: "completed" as const };
-    const { container } = render(<PromptCard prompt={completedPrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={completedPrompt} {...mockHandlers} />,
+    );
     // Check for green border (completed status)
     const card = container.querySelector('[class*="border-l-green"]');
     expect(card).toBeInTheDocument();
@@ -119,14 +112,18 @@ describe("PromptCard", () => {
 
   it("should display correct status icon for processing status", () => {
     const processingPrompt = { ...mockPrompt, status: "processing" as const };
-    const { container } = render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={processingPrompt} {...mockHandlers} />,
+    );
     // Check for yellow border (processing status)
     const card = container.querySelector('[class*="border-l-yellow"]');
     expect(card).toBeInTheDocument();
   });
 
   it("should display correct status icon for pending status", () => {
-    const { container } = render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={mockPrompt} {...mockHandlers} />,
+    );
     // Check for gray border (pending status)
     const card = container.querySelector('[class*="border-l-gray"]');
     expect(card).toBeInTheDocument();
@@ -134,30 +131,27 @@ describe("PromptCard", () => {
 
   it("should display correct status icon for failed status", () => {
     const failedPrompt = { ...mockPrompt, status: "failed" as const };
-    const { container } = render(<PromptCard prompt={failedPrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={failedPrompt} {...mockHandlers} />,
+    );
     // Check for red border (failed status)
     const card = container.querySelector('[class*="border-l-red"]');
     expect(card).toBeInTheDocument();
   });
 
-  it("should call onDelete when delete is selected from dropdown", async () => {
-    const { container } = render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
+  it("should call onDelete when delete button is clicked", () => {
+    render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
 
-    // Find the dropdown trigger button by its aria-haspopup attribute
-    const moreButton = container.querySelector('button[aria-haspopup="true"]');
-    expect(moreButton).toBeInTheDocument();
-    fireEvent.click(moreButton!);
-
-    // In Radix UI with modal=false, we might need to look for the content in document.body
-    // But testing-library's screen usually covers body
-    const deleteOption = await screen.findByText("Delete");
-    fireEvent.click(deleteOption);
+    const deleteButton = screen.getByTitle("Delete");
+    fireEvent.click(deleteButton);
     expect(mockHandlers.onDelete).toHaveBeenCalledWith("test-1");
   });
 
   it("should display correct media type icon", () => {
     const videoPrompt = { ...mockPrompt, mediaType: "video" as const };
-    const { container: videoContainer, rerender } = render(<PromptCard prompt={videoPrompt} {...mockHandlers} />);
+    const { container: videoContainer, rerender } = render(
+      <PromptCard prompt={videoPrompt} {...mockHandlers} />,
+    );
     const videoIcons = videoContainer.querySelectorAll("svg");
     expect(videoIcons.length).toBeGreaterThan(0);
 
@@ -165,17 +159,6 @@ describe("PromptCard", () => {
     rerender(<PromptCard prompt={imagePrompt} {...mockHandlers} />);
     const imageIcons = videoContainer.querySelectorAll("svg");
     expect(imageIcons.length).toBeGreaterThan(0);
-  });
-
-  it("should call onGenerateSimilar when generate similar is selected", async () => {
-    const { container } = render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
-
-    const moreButton = container.querySelector('button[aria-haspopup="true"]');
-    fireEvent.click(moreButton!);
-
-    const generateSimilarOption = await screen.findByText(/generate similar/i);
-    fireEvent.click(generateSimilarOption);
-    expect(mockHandlers.onGenerateSimilar).toHaveBeenCalledWith("test-1");
   });
 
   it("should copy text to clipboard when copy button is clicked", async () => {
@@ -195,10 +178,14 @@ describe("PromptCard", () => {
 
   it("should handle clipboard copy error gracefully", async () => {
     // Mock clipboard API to throw error
-    const mockWriteText = jest.fn().mockRejectedValue(new Error("Clipboard error"));
+    const mockWriteText = jest
+      .fn()
+      .mockRejectedValue(new Error("Clipboard error"));
     Object.assign(navigator, { clipboard: { writeText: mockWriteText } });
 
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
 
@@ -214,7 +201,14 @@ describe("PromptCard", () => {
 
   it("should toggle selection when selection button is clicked", () => {
     const mockOnToggleSelection = jest.fn();
-    render(<PromptCard prompt={mockPrompt} isSelected={false} onToggleSelection={mockOnToggleSelection} {...mockHandlers} />);
+    render(
+      <PromptCard
+        prompt={mockPrompt}
+        isSelected={false}
+        onToggleSelection={mockOnToggleSelection}
+        {...mockHandlers}
+      />,
+    );
 
     const selectButton = screen.getByTitle("Select");
     fireEvent.click(selectButton);
@@ -223,7 +217,14 @@ describe("PromptCard", () => {
 
   it("should toggle enabled state when toggle button is clicked", () => {
     const mockOnToggleEnabled = jest.fn();
-    render(<PromptCard prompt={mockPrompt} isEnabled={true} onToggleEnabled={mockOnToggleEnabled} {...mockHandlers} />);
+    render(
+      <PromptCard
+        prompt={mockPrompt}
+        isEnabled={true}
+        onToggleEnabled={mockOnToggleEnabled}
+        {...mockHandlers}
+      />,
+    );
 
     const toggleButton = screen.getByTitle("Disable prompt");
     fireEvent.click(toggleButton);
@@ -232,23 +233,45 @@ describe("PromptCard", () => {
 
   it("should display enabled state correctly", () => {
     const mockOnToggleEnabled = jest.fn();
-    const { rerender } = render(<PromptCard prompt={mockPrompt} isEnabled={true} onToggleEnabled={mockOnToggleEnabled} {...mockHandlers} />);
+    const { rerender } = render(
+      <PromptCard
+        prompt={mockPrompt}
+        isEnabled={true}
+        onToggleEnabled={mockOnToggleEnabled}
+        {...mockHandlers}
+      />,
+    );
 
     expect(screen.getByTitle("Disable prompt")).toBeInTheDocument();
 
-    rerender(<PromptCard prompt={mockPrompt} isEnabled={false} onToggleEnabled={mockOnToggleEnabled} {...mockHandlers} />);
+    rerender(
+      <PromptCard
+        prompt={mockPrompt}
+        isEnabled={false}
+        onToggleEnabled={mockOnToggleEnabled}
+        {...mockHandlers}
+      />,
+    );
 
     expect(screen.getByTitle("Enable prompt")).toBeInTheDocument();
   });
 
   it("should not render toggle button when onToggleEnabled is not provided", () => {
     render(<PromptCard prompt={mockPrompt} {...mockHandlers} />);
-    expect(screen.queryByTitle(/disable prompt|enable prompt/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByTitle(/disable prompt|enable prompt/i),
+    ).not.toBeInTheDocument();
   });
 
   it("should call onProcess when process button is clicked", () => {
     const mockOnProcess = jest.fn();
-    render(<PromptCard prompt={mockPrompt} onProcess={mockOnProcess} {...mockHandlers} />);
+    render(
+      <PromptCard
+        prompt={mockPrompt}
+        onProcess={mockOnProcess}
+        {...mockHandlers}
+      />,
+    );
 
     const processButton = screen.getByTitle("Process");
     fireEvent.click(processButton);
@@ -258,19 +281,34 @@ describe("PromptCard", () => {
   it("should navigate to prompt when card is clicked for completed prompt", () => {
     const mockOnNavigateToPrompt = jest.fn();
     const completedPrompt = { ...mockPrompt, status: "completed" as const };
-    const { container } = render(<PromptCard prompt={completedPrompt} onNavigateToPrompt={mockOnNavigateToPrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard
+        prompt={completedPrompt}
+        onNavigateToPrompt={mockOnNavigateToPrompt}
+        {...mockHandlers}
+      />,
+    );
 
     const card = container.querySelector('[class*="card"]');
     if (card) {
       fireEvent.click(card);
-      expect(mockOnNavigateToPrompt).toHaveBeenCalledWith("test-1", "Test prompt text");
+      expect(mockOnNavigateToPrompt).toHaveBeenCalledWith(
+        "test-1",
+        "Test prompt text",
+      );
     }
   });
 
   it("should not navigate when clicking on interactive elements", () => {
     const mockOnNavigateToPrompt = jest.fn();
     const completedPrompt = { ...mockPrompt, status: "completed" as const };
-    render(<PromptCard prompt={completedPrompt} onNavigateToPrompt={mockOnNavigateToPrompt} {...mockHandlers} />);
+    render(
+      <PromptCard
+        prompt={completedPrompt}
+        onNavigateToPrompt={mockOnNavigateToPrompt}
+        {...mockHandlers}
+      />,
+    );
 
     // For completed prompts, edit button is disabled, so use copy button instead
     const copyButton = screen.getByTitle(/copy/i);
@@ -309,7 +347,9 @@ describe("PromptCard", () => {
       status: "completed" as const,
       processingDuration: 5000,
     };
-    const { container } = render(<PromptCard prompt={promptWithDuration} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={promptWithDuration} {...mockHandlers} />,
+    );
 
     // Processing duration might be displayed in a tooltip or badge
     // Just verify the component renders without error
@@ -348,7 +388,9 @@ describe("PromptCard", () => {
       startTime: Date.now() - 30000,
       progress: 75,
     };
-    const { container } = render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={processingPrompt} {...mockHandlers} />,
+    );
 
     // Progress bar should be rendered
     const progressBar = container.querySelector('[class*="h-1"]');
@@ -371,7 +413,9 @@ describe("PromptCard", () => {
 
   it("should handle default status color", () => {
     const unknownStatusPrompt = { ...mockPrompt, status: "unknown" as any };
-    const { container } = render(<PromptCard prompt={unknownStatusPrompt} {...mockHandlers} />);
+    const { container } = render(
+      <PromptCard prompt={unknownStatusPrompt} {...mockHandlers} />,
+    );
 
     // Should render without error
     expect(container).toBeInTheDocument();
@@ -387,7 +431,9 @@ describe("PromptCard", () => {
       progress: undefined,
     };
 
-    const { container, rerender } = render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+    const { container, rerender } = render(
+      <PromptCard prompt={processingPrompt} {...mockHandlers} />,
+    );
 
     // Should show estimated time remaining
     expect(screen.getByText(/remaining/)).toBeInTheDocument();
@@ -415,7 +461,9 @@ describe("PromptCard", () => {
       progress: undefined,
     };
 
-    const { rerender } = render(<PromptCard prompt={processingPrompt} {...mockHandlers} />);
+    const { rerender } = render(
+      <PromptCard prompt={processingPrompt} {...mockHandlers} />,
+    );
 
     // Change status to completed
     const completedPrompt = {

@@ -61,6 +61,8 @@ import { SettingsDialog } from "../src/components/SettingsDialog";
 import { SortablePromptCard } from "../src/components/SortablePromptCard";
 import { StatusBar } from "../src/components/StatusBar";
 import { Toaster } from "../src/components/ui/toaster";
+import { BatchOperationsPanel } from "../src/components/BatchOperationsPanel";
+import { QueueSortMenu, type SortType } from "../src/components/QueueSortMenu";
 import { log } from "../src/utils/logger";
 import { storage } from "../src/utils/storage";
 
@@ -102,6 +104,11 @@ function IndexPopup() {
     totalCount?: number;
     error?: string;
   } | null>(null);
+  const [currentSort, setCurrentSort] = React.useState<SortType | undefined>();
+  const [reorderHistory, setReorderHistory] = React.useState<
+    GeneratedPrompt[][]
+  >([]);
+  const [reorderHistoryIndex, setReorderHistoryIndex] = React.useState(-1);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -126,7 +133,6 @@ function IndexPopup() {
       document.documentElement.classList.remove("dark");
     }
 
-    // Listen for storage changes for real-time updates (replaces 2-second polling)
     let debounceTimer: NodeJS.Timeout | null = null;
 
     const handleStorageChange = (
@@ -135,7 +141,6 @@ function IndexPopup() {
     ) => {
       if (areaName !== "local") return;
 
-      // Check if relevant keys changed
       const relevantKeys = ["config", "prompts", "queueState"];
       const hasRelevantChanges = relevantKeys.some((key) => key in changes);
 
@@ -143,15 +148,34 @@ function IndexPopup() {
 
       log.ui.action("Storage change detected", Object.keys(changes));
 
-      // Debounce rapid changes (e.g., during batch operations)
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
+      const isCriticalChange =
+        "prompts" in changes &&
+        changes.prompts?.newValue &&
+        Array.isArray(changes.prompts.newValue) &&
+        changes.prompts.newValue.some(
+          (p: GeneratedPrompt) =>
+            p.status === "processing" ||
+            p.status === "completed" ||
+            p.status === "failed",
+        );
 
-      debounceTimer = setTimeout(() => {
+      if (isCriticalChange) {
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+          debounceTimer = null;
+        }
         loadData();
-        debounceTimer = null;
-      }, 100); // 100ms debounce
+        log.ui.action("Critical status change - immediate refresh");
+      } else {
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+
+        debounceTimer = setTimeout(() => {
+          loadData();
+          debounceTimer = null;
+        }, 50);
+      }
     };
 
     // Check if chrome.storage API is available
@@ -681,6 +705,141 @@ function IndexPopup() {
     setSettingsDialogOpen(true);
   }
 
+  async function handleSort(sortType: SortType) {
+    setCurrentSort(sortType);
+    const sorted = [...prompts];
+
+    const priorityOrder: Record<string, number> = {
+      high: 3,
+      normal: 2,
+      low: 1,
+    };
+
+    switch (sortType) {
+      case "timestamp-asc":
+        sorted.sort((a, b) => a.timestamp - b.timestamp);
+        break;
+      case "timestamp-desc":
+        sorted.sort((a, b) => b.timestamp - a.timestamp);
+        break;
+      case "priority-desc":
+        sorted.sort((a, b) => {
+          const aPriority = priorityOrder[a.priority || "normal"];
+          const bPriority = priorityOrder[b.priority || "normal"];
+          return bPriority - aPriority;
+        });
+        break;
+      case "mediaType-video":
+        sorted.sort((a, b) => (a.mediaType === "video" ? -1 : 1));
+        break;
+      case "mediaType-image":
+        sorted.sort((a, b) => (a.mediaType === "image" ? -1 : 1));
+        break;
+      case "status-pending":
+        sorted.sort((a, b) => (a.status === "pending" ? -1 : 1));
+        break;
+      case "batchLabel":
+        sorted.sort((a, b) => {
+          const aLabel = a.batchLabel || "zzz";
+          const bLabel = b.batchLabel || "zzz";
+          return aLabel.localeCompare(bLabel);
+        });
+        break;
+    }
+
+    pushReorderHistory(prompts);
+    setPrompts(sorted);
+    await storage.setPrompts(sorted);
+    log.ui.action("handleSort", { sortType });
+  }
+
+  function pushReorderHistory(promptsState: GeneratedPrompt[]) {
+    setReorderHistory((prev) => {
+      const newHistory = prev.slice(0, reorderHistoryIndex + 1);
+      newHistory.push([...promptsState]);
+      return newHistory.slice(-5);
+    });
+    setReorderHistoryIndex((prev) => Math.min(prev + 1, 4));
+  }
+
+  async function handleMoveSelectedToPosition(position: number) {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    pushReorderHistory(prompts);
+
+    const selectedItems = prompts.filter((p) => selectedIds.includes(p.id));
+    const remainingItems = prompts.filter((p) => !selectedIds.includes(p.id));
+
+    const reordered = [
+      ...remainingItems.slice(0, position),
+      ...selectedItems,
+      ...remainingItems.slice(position),
+    ];
+
+    setPrompts(reordered);
+    await storage.setPrompts(reordered);
+    setSelectedPrompts(new Set());
+    log.ui.action("handleMoveSelectedToPosition", {
+      position,
+      count: selectedIds.length,
+    });
+  }
+
+  async function handleCreateBatchFromSelected(batchLabel: string) {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    await chrome.runtime.sendMessage({
+      action: "updateBatchLabels",
+      data: { promptIds: selectedIds, batchLabel },
+    });
+
+    await loadData();
+    setSelectedPrompts(new Set());
+    log.ui.action("handleCreateBatchFromSelected", {
+      batchLabel,
+      count: selectedIds.length,
+    });
+  }
+
+  async function handleSetPriorityForSelected(
+    priority: "high" | "normal" | "low",
+  ) {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    await chrome.runtime.sendMessage({
+      action: "updatePromptPriority",
+      data: { promptIds: selectedIds, priority },
+    });
+
+    await loadData();
+    setSelectedPrompts(new Set());
+    log.ui.action("handleSetPriorityForSelected", {
+      priority,
+      count: selectedIds.length,
+    });
+  }
+
+  async function handleDeleteSelected() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Delete ${selectedIds.length} selected prompt(s)?`,
+    );
+    if (!confirmed) return;
+
+    for (const id of selectedIds) {
+      await storage.deletePrompt(id);
+    }
+
+    await loadData();
+    setSelectedPrompts(new Set());
+    log.ui.action("handleDeleteSelected", { count: selectedIds.length });
+  }
+
   async function handleGeneratePrompts(
     count: number,
     context: string,
@@ -1009,6 +1168,7 @@ function IndexPopup() {
                 </div>
               </div>
               <div className="flex gap-2">
+                <QueueSortMenu onSort={handleSort} currentSort={currentSort} />
                 <Button
                   variant="outline"
                   size="sm"
@@ -1030,6 +1190,25 @@ function IndexPopup() {
               </div>
             </div>
           )}
+
+          {/* Batch Operations Panel */}
+          <BatchOperationsPanel
+            selectedCount={selectedPrompts.size}
+            onMoveToPosition={handleMoveSelectedToPosition}
+            onCreateBatch={handleCreateBatchFromSelected}
+            onSetPriority={handleSetPriorityForSelected}
+            onEnableAll={() => {
+              selectedPrompts.forEach((id) => enabledPrompts.delete(id));
+              setEnabledPrompts(new Set(enabledPrompts));
+            }}
+            onDisableAll={() => {
+              selectedPrompts.forEach((id) => enabledPrompts.add(id));
+              setEnabledPrompts(new Set(enabledPrompts));
+            }}
+            onDeleteSelected={handleDeleteSelected}
+            onClearSelection={() => setSelectedPrompts(new Set())}
+            totalPrompts={prompts.length}
+          />
 
           {/* Prompt List */}
           <div className="space-y-3">

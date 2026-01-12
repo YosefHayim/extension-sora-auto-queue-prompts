@@ -1,4 +1,9 @@
-import type { GeneratedPrompt, PromptConfig, QueueState } from "../types";
+import type {
+  GeneratedPrompt,
+  PromptConfig,
+  QueueInsertOptions,
+  QueueState,
+} from "../types";
 
 const DEFAULT_CONFIG: PromptConfig = {
   contextPrompt: "",
@@ -146,12 +151,134 @@ export const storage = {
   },
 
   async stopQueue(): Promise<void> {
-    // Don't reset processedCount - keep it so user knows how many were processed
     await this.setQueueState({
       isRunning: false,
       isPaused: false,
       currentPromptId: null,
-      // Keep processedCount and totalCount to show progress
     });
+  },
+
+  async insertPromptsAfter(
+    afterId: string,
+    prompts: GeneratedPrompt[],
+  ): Promise<void> {
+    const currentPrompts = await this.getPrompts();
+    const insertIndex = currentPrompts.findIndex((p) => p.id === afterId) + 1;
+
+    if (insertIndex === 0) {
+      throw new Error(`Prompt with ID ${afterId} not found`);
+    }
+
+    const updatedPrompts = [
+      ...currentPrompts.slice(0, insertIndex),
+      ...prompts,
+      ...currentPrompts.slice(insertIndex),
+    ];
+
+    await this.setPrompts(updatedPrompts);
+  },
+
+  async insertPromptsBefore(
+    beforeId: string,
+    prompts: GeneratedPrompt[],
+  ): Promise<void> {
+    const currentPrompts = await this.getPrompts();
+    const insertIndex = currentPrompts.findIndex((p) => p.id === beforeId);
+
+    if (insertIndex === -1) {
+      throw new Error(`Prompt with ID ${beforeId} not found`);
+    }
+
+    const updatedPrompts = [
+      ...currentPrompts.slice(0, insertIndex),
+      ...prompts,
+      ...currentPrompts.slice(insertIndex),
+    ];
+
+    await this.setPrompts(updatedPrompts);
+  },
+
+  async insertPromptsAt(
+    index: number,
+    prompts: GeneratedPrompt[],
+  ): Promise<void> {
+    const currentPrompts = await this.getPrompts();
+
+    if (index < 0 || index > currentPrompts.length) {
+      throw new Error(
+        `Invalid index: ${index} (valid range: 0-${currentPrompts.length})`,
+      );
+    }
+
+    const updatedPrompts = [
+      ...currentPrompts.slice(0, index),
+      ...prompts,
+      ...currentPrompts.slice(index),
+    ];
+
+    await this.setPrompts(updatedPrompts);
+  },
+
+  async insertPrompts(
+    prompts: GeneratedPrompt[],
+    options: QueueInsertOptions,
+  ): Promise<void> {
+    const enrichedPrompts = prompts.map((p) => ({
+      ...p,
+      insertedAt: Date.now(),
+      insertedAfter:
+        options.position === "after" ? options.referenceId : undefined,
+      batchLabel: options.batchLabel || p.batchLabel,
+    }));
+
+    switch (options.position) {
+      case "end":
+        await this.addPrompts(enrichedPrompts);
+        break;
+      case "start":
+        const current = await this.getPrompts();
+        await this.setPrompts([...enrichedPrompts, ...current]);
+        break;
+      case "after":
+        if (!options.referenceId) {
+          throw new Error("referenceId required for 'after' position");
+        }
+        await this.insertPromptsAfter(options.referenceId, enrichedPrompts);
+        break;
+      case "before":
+        if (!options.referenceId) {
+          throw new Error("referenceId required for 'before' position");
+        }
+        await this.insertPromptsBefore(options.referenceId, enrichedPrompts);
+        break;
+      default:
+        if (typeof options.position === "number") {
+          await this.insertPromptsAt(options.position, enrichedPrompts);
+        } else {
+          throw new Error(`Invalid position: ${options.position}`);
+        }
+    }
+  },
+
+  async updateBatchLabel(
+    promptIds: string[],
+    batchLabel: string,
+  ): Promise<void> {
+    const prompts = await this.getPrompts();
+    const updatedPrompts = prompts.map((p) =>
+      promptIds.includes(p.id) ? { ...p, batchLabel } : p,
+    );
+    await this.setPrompts(updatedPrompts);
+  },
+
+  async updatePromptPriority(
+    promptIds: string[],
+    priority: "high" | "normal" | "low",
+  ): Promise<void> {
+    const prompts = await this.getPrompts();
+    const updatedPrompts = prompts.map((p) =>
+      promptIds.includes(p.id) ? { ...p, priority } : p,
+    );
+    await this.setPrompts(updatedPrompts);
   },
 };

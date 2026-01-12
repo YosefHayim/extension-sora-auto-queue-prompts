@@ -34,22 +34,26 @@ export interface PromptConfig {
 export interface GeneratedPrompt {
   id: string;
   text: string;
-  originalText?: string; // Before enhancement
+  originalText?: string;
   timestamp: number;
   status: "pending" | "processing" | "completed" | "failed" | "editing";
   mediaType: "video" | "image";
   aspectRatio?: AspectRatio;
-  variations?: number; // Per-prompt override
+  variations?: number;
   preset?: PresetType;
-  enhanced?: boolean; // Was secret prompt applied
-  startTime?: number; // When processing started
-  completedTime?: number; // When processing completed
-  duration?: number; // Duration in milliseconds
-  progress?: number; // Generation progress percentage (0-100)
-  imageUrl?: string; // Reference image URL for image-to-video or image generation
-  imageData?: string; // Base64 encoded image data for local files (temporary, cleared after processing)
-  imageName?: string; // Original filename for local files
-  imageType?: string; // MIME type (e.g., "image/png", "image/jpeg")
+  enhanced?: boolean;
+  startTime?: number;
+  completedTime?: number;
+  duration?: number;
+  progress?: number;
+  imageUrl?: string;
+  imageData?: string;
+  imageName?: string;
+  imageType?: string;
+  batchLabel?: string;
+  insertedAt?: number;
+  insertedAfter?: string;
+  priority?: "high" | "normal" | "low";
 }
 
 export interface QueueState {
@@ -112,4 +116,15 @@ export interface DetectedSettings {
   variations: number | null;
   success: boolean;
   error?: string;
+}
+
+export interface QueueInsertOptions {
+  position: "end" | "after" | "before" | "start" | number;
+  referenceId?: string;
+  batchLabel?: string;
+}
+
+export interface InsertPromptsRequest {
+  prompts: GeneratedPrompt[];
+  options: QueueInsertOptions;
 }

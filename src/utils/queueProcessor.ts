@@ -599,13 +599,47 @@ export class QueueProcessor {
           },
         );
 
-        // Continue with next prompt even if one fails
         console.error(
           "[Sora Auto Queue] Failed to process prompt:",
           errorMsg,
           errorStack,
         );
       }
+    }
+
+    const queueState = await storage.getQueueState();
+    const allPrompts = await storage.getPrompts();
+    const pendingPrompts = allPrompts.filter((p) => p.status === "pending");
+
+    if (
+      queueState.isRunning &&
+      !queueState.isPaused &&
+      pendingPrompts.length > 0
+    ) {
+      logger.info(
+        "queueProcessor",
+        "Selected prompts done, continuing with remaining queue",
+        { pendingCount: pendingPrompts.length },
+      );
+
+      const config = await storage.getConfig();
+      const delay = this.getRandomDelay(
+        config.minDelayMs || 2000,
+        config.maxDelayMs || 5000,
+      );
+
+      setTimeout(
+        () => {
+          this.processNext().catch((error) => {
+            logger.error(
+              "queueProcessor",
+              "Failed to continue queue after manual processing",
+              { error: error instanceof Error ? error.message : String(error) },
+            );
+          });
+        },
+        delay as unknown as number,
+      );
     }
   }
 }

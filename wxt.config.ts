@@ -26,7 +26,7 @@ export default defineConfig({
     name: "Sora Auto Queue Prompts",
     version: "2.5.0",
     description:
-      "Browser extension to automate prompt generation and queueing for Sora AI",
+      "Automate prompt generation and queue management for Sora AI with Side Panel, Presets, Auto-Download, and Batch Operations",
     permissions: [
       "activeTab",
       "storage",

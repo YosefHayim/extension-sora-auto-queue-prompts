@@ -761,14 +761,16 @@ describe("QueueControls", () => {
     expect(statusIconContainer).toBeInTheDocument();
   });
 
-  describe("Add Prompts Button", () => {
-    const mockOnAddPrompts = jest.fn();
+  describe("Add Prompts Dropdown", () => {
+    const mockOnGeneratePrompts = jest.fn();
+    const mockOnManualAdd = jest.fn();
 
     beforeEach(() => {
-      mockOnAddPrompts.mockClear();
+      mockOnGeneratePrompts.mockClear();
+      mockOnManualAdd.mockClear();
     });
 
-    it("should render Add button when onAddPrompts is provided", () => {
+    it("should render Add dropdown when onGeneratePrompts or onManualAdd is provided", () => {
       const queueState = createQueueState({ isRunning: false });
       render(
         <QueueControls
@@ -778,7 +780,8 @@ describe("QueueControls", () => {
           onPause={mockOnPause}
           onResume={mockOnResume}
           onStop={mockOnStop}
-          onAddPrompts={mockOnAddPrompts}
+          onGeneratePrompts={mockOnGeneratePrompts}
+          onManualAdd={mockOnManualAdd}
         />,
       );
 
@@ -786,7 +789,7 @@ describe("QueueControls", () => {
       expect(addButton).toBeInTheDocument();
     });
 
-    it("should not render Add button when onAddPrompts is not provided", () => {
+    it("should not render Add dropdown when neither callback is provided", () => {
       const queueState = createQueueState({ isRunning: false });
       render(
         <QueueControls
@@ -803,7 +806,7 @@ describe("QueueControls", () => {
       expect(addButton).not.toBeInTheDocument();
     });
 
-    it("should call onAddPrompts when Add button is clicked", () => {
+    it("should show dropdown options when Add button is clicked", () => {
       const queueState = createQueueState({ isRunning: false });
       render(
         <QueueControls
@@ -813,16 +816,19 @@ describe("QueueControls", () => {
           onPause={mockOnPause}
           onResume={mockOnResume}
           onStop={mockOnStop}
-          onAddPrompts={mockOnAddPrompts}
+          onGeneratePrompts={mockOnGeneratePrompts}
+          onManualAdd={mockOnManualAdd}
         />,
       );
 
       const addButton = screen.getByText("Add");
       fireEvent.click(addButton);
-      expect(mockOnAddPrompts).toHaveBeenCalledTimes(1);
+
+      expect(screen.getByText("Generate with AI")).toBeInTheDocument();
+      expect(screen.getByText("Manual Add")).toBeInTheDocument();
     });
 
-    it("should show Add button when queue is running", () => {
+    it("should show Add dropdown when queue is running", () => {
       const queueState = createQueueState({ isRunning: true, isPaused: false });
       render(
         <QueueControls
@@ -832,7 +838,7 @@ describe("QueueControls", () => {
           onPause={mockOnPause}
           onResume={mockOnResume}
           onStop={mockOnStop}
-          onAddPrompts={mockOnAddPrompts}
+          onGeneratePrompts={mockOnGeneratePrompts}
         />,
       );
 
@@ -840,7 +846,7 @@ describe("QueueControls", () => {
       expect(addButton).toBeInTheDocument();
     });
 
-    it("should show Add button when queue is paused", () => {
+    it("should show Add dropdown when queue is paused", () => {
       const queueState = createQueueState({ isRunning: true, isPaused: true });
       render(
         <QueueControls
@@ -850,7 +856,7 @@ describe("QueueControls", () => {
           onPause={mockOnPause}
           onResume={mockOnResume}
           onStop={mockOnStop}
-          onAddPrompts={mockOnAddPrompts}
+          onManualAdd={mockOnManualAdd}
         />,
       );
 

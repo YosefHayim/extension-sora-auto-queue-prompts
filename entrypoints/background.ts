@@ -50,8 +50,9 @@ async function updatePromptWithRetry(
 }
 
 /**
- * Network Activity Monitor
- * Tracks requests to DataDog RUM endpoint to detect when generation is complete
+ * Network Activity Monitor (Legacy Fallback)
+ * Uses DataDog RUM endpoint silence as secondary completion detection.
+ * Primary detection now happens via API interception in content script.
  */
 class NetworkMonitor {
   private monitoredTabs: Map<
@@ -65,11 +66,10 @@ class NetworkMonitor {
 
   private readonly DATADOG_PATTERN =
     "https://browser-intake-datadoghq.com/api/v2/rum";
-  private readonly SILENCE_THRESHOLD = 30000; // 30 seconds
-  private readonly CHECK_INTERVAL = 5000; // Check every 5 seconds
+  private readonly SILENCE_THRESHOLD = 30000;
+  private readonly CHECK_INTERVAL = 5000;
 
   constructor() {
-    // Only setup listener if we're in a browser environment (not during build)
     if (typeof chrome !== "undefined" && chrome.webRequest) {
       this.setupWebRequestListener();
     }
@@ -106,13 +106,10 @@ class NetworkMonitor {
   startMonitoring(tabId: number, onComplete: () => void) {
     logger.info(
       "networkMonitor",
-      `Starting network monitoring for tab ${tabId}`,
+      `Starting network monitoring (fallback) for tab ${tabId}`,
     );
-
-    // Clear any existing monitoring for this tab
     this.stopMonitoring(tabId);
 
-    // Set initial request time to now
     const checkInterval = setInterval(() => {
       this.checkForCompletion(tabId);
     }, this.CHECK_INTERVAL) as unknown as number;
@@ -138,7 +135,7 @@ class NetworkMonitor {
     if (timeSinceLastRequest >= this.SILENCE_THRESHOLD) {
       logger.info(
         "networkMonitor",
-        `Generation completed for tab ${tabId} - no requests for 30s`,
+        `Fallback completion for tab ${tabId} - no requests for 30s`,
       );
       this.stopMonitoring(tabId);
       monitored.onComplete();
@@ -160,7 +157,6 @@ class NetworkMonitor {
   }
 }
 
-// Initialize network monitor lazily (only when needed, not during build)
 let networkMonitor: NetworkMonitor | null = null;
 
 function getNetworkMonitor(): NetworkMonitor {
@@ -1138,15 +1134,11 @@ export default defineBackground(() => {
     }
   }
 
-  /**
-   * Extract media URLs from content script and download all
-   */
   async function handleExtractAndDownloadMedia(
     promptId: string,
     promptText: string,
   ) {
     try {
-      // Get config for download settings
       const config = await storage.getConfig();
 
       if (!config.autoDownload) {
@@ -1158,7 +1150,6 @@ export default defineBackground(() => {
         };
       }
 
-      // Find the Sora tab
       let tabs = await chrome.tabs.query({ url: "*://sora.com/*" });
       if (tabs.length === 0) {
         tabs = await chrome.tabs.query({ url: "*://sora.chatgpt.com/*" });
@@ -1171,21 +1162,41 @@ export default defineBackground(() => {
 
       const tabId = tabs[0].id;
 
-      // Send message to content script to extract media URLs
-      const extractResult = await chrome.tabs.sendMessage(tabId, {
-        action: "extractMedia",
-        promptId,
+      let mediaUrls: ExtractedMedia[] = [];
+      let mediaSource = "unknown";
+
+      const apiMediaResult = await chrome.tabs.sendMessage(tabId, {
+        action: "getApiExtractedMedia",
       });
 
-      if (!extractResult.success || !extractResult.mediaUrls?.length) {
+      if (apiMediaResult?.success && apiMediaResult.mediaUrls?.length > 0) {
+        mediaUrls = apiMediaResult.mediaUrls;
+        mediaSource = "api";
+        logger.info("download", `Using API-extracted media URLs`, {
+          count: mediaUrls.length,
+        });
+      } else {
+        const extractResult = await chrome.tabs.sendMessage(tabId, {
+          action: "extractMedia",
+          promptId,
+        });
+
+        if (extractResult?.success && extractResult.mediaUrls?.length > 0) {
+          mediaUrls = extractResult.mediaUrls;
+          mediaSource = "dom";
+          logger.info("download", `Using DOM-extracted media URLs`, {
+            count: mediaUrls.length,
+          });
+        }
+      }
+
+      if (mediaUrls.length === 0) {
         log.download.skipped(promptId, "No media found to download");
         return { success: false, error: "No media found to download" };
       }
 
-      const mediaUrls: ExtractedMedia[] = extractResult.mediaUrls;
       log.download.extracted(promptId, mediaUrls.length);
 
-      // Download all extracted media
       const results = await downloader.downloadAllMedia(
         mediaUrls,
         promptText,
@@ -1203,6 +1214,7 @@ export default defineBackground(() => {
           promptId,
           successCount,
           failCount,
+          source: mediaSource,
         },
       );
 
@@ -1211,6 +1223,7 @@ export default defineBackground(() => {
         downloads: results,
         successCount,
         failCount,
+        source: mediaSource,
       };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);

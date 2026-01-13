@@ -1,6 +1,6 @@
 # Privacy Policy for Sora Auto Queue Prompts
 
-**Last Updated**: December 2024
+**Last Updated**: January 2026
 
 ## Overview
 
@@ -56,15 +56,16 @@ When you process your prompt queue:
 
 ## Permissions Explained
 
-| Permission         | Why We Need It                                           |
-| ------------------ | -------------------------------------------------------- |
-| `activeTab`        | Access the current Sora tab to inject prompts            |
-| `storage`          | Save your settings and prompt queue locally              |
-| `scripting`        | Interact with Sora's webpage (fill forms, click buttons) |
-| `tabs`             | Find and communicate with the Sora tab                   |
-| `downloads`        | Let you export prompts as CSV/JSON files                 |
-| `webRequest`       | Detect when Sora pages finish loading                    |
-| `host_permissions` | Access sora.com for automation                           |
+| Permission         | Why We Need It                                            |
+| ------------------ | --------------------------------------------------------- |
+| `activeTab`        | Access the current Sora tab to inject prompts             |
+| `storage`          | Save your settings and prompt queue locally               |
+| `scripting`        | Interact with Sora's webpage (fill forms, click buttons)  |
+| `tabs`             | Find and communicate with the Sora tab                    |
+| `downloads`        | Auto-download generated images/videos and export prompts  |
+| `webRequest`       | Monitor Sora API responses for completion detection       |
+| `notifications`    | Alert you when rate limits are reached or queue completes |
+| `host_permissions` | Access sora.com and sora.chatgpt.com for automation       |
 
 ## Data Security
 

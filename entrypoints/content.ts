@@ -3,7 +3,14 @@
  * This script runs on sora.com pages and handles prompt submission
  */
 
-import type { GeneratedPrompt } from "../src/types";
+import type {
+  GeneratedPrompt,
+  SoraTaskResponse,
+  SoraPollingResponse,
+  SoraTaskCreationResponse,
+  SoraActiveTaskState,
+  SoraGeneration,
+} from "../src/types";
 
 export default defineContentScript({
   matches: ["*://sora.chatgpt.com/*", "*://sora.com/*"],
@@ -16,22 +23,28 @@ export default defineContentScript({
       private debugMode = true;
       private progressInterval: number | null = null;
       private completionObserver: MutationObserver | null = null;
+
       private lastApiResponse: {
         success: boolean;
-        data?: any;
+        data?: SoraTaskCreationResponse;
         error?: string;
         isRateLimited?: boolean;
       } | null = null;
       private apiResponsePromise: Promise<void> | null = null;
       private apiResponseResolve: (() => void) | null = null;
+
+      private activeTask: SoraActiveTaskState | null = null;
+      private taskCompletionPromise: Promise<SoraActiveTaskState> | null = null;
+      private taskCompletionResolve:
+        | ((state: SoraActiveTaskState) => void)
+        | null = null;
+      private taskCompletionReject: ((error: Error) => void) | null = null;
+
       constructor() {
         this.init();
         this.setupApiInterceptor();
       }
 
-      /**
-       * Setup fetch interceptor to monitor Sora API calls
-       */
       private setupApiInterceptor(): void {
         const self = this;
         const originalFetch = window.fetch;
@@ -47,15 +60,17 @@ export default defineContentScript({
                 ? input.href
                 : input.url;
 
-          // Check if this is the video_gen API call
-          const isVideoGenApi =
+          const isTaskCreationApi =
             url.includes("/backend/video_gen") ||
             url.includes("/backend/image_gen");
 
-          if (isVideoGenApi) {
-            self.log("info", "🔍 Intercepted Sora API call", { url });
+          const isTaskPollingApi =
+            url.includes("/backend/tasks") ||
+            url.includes("/v1/video/tasks") ||
+            url.includes("/api/tasks");
 
-            // Reset the response promise for this new request
+          if (isTaskCreationApi) {
+            self.log("info", "🔍 Intercepted Sora task creation API", { url });
             self.lastApiResponse = null;
             self.apiResponsePromise = new Promise((resolve) => {
               self.apiResponseResolve = resolve;
@@ -65,75 +80,15 @@ export default defineContentScript({
           try {
             const response = await originalFetch.call(window, input, init);
 
-            if (isVideoGenApi) {
-              // Clone the response to read the body without consuming it
-              const clonedResponse = response.clone();
-
-              try {
-                const data = await clonedResponse.json();
-                self.log("info", "📡 Sora API response received", {
-                  status: response.status,
-                  ok: response.ok,
-                  hasError: !!data.error,
-                  taskId: data.id,
-                });
-
-                // Check for rate limit or other errors
-                if (data.error) {
-                  const errorCode = data.error.code;
-                  const errorMessage = data.error.message;
-
-                  self.lastApiResponse = {
-                    success: false,
-                    error: errorMessage,
-                    isRateLimited: errorCode === "too_many_daily_tasks",
-                    data,
-                  };
-
-                  self.log("error", "❌ Sora API error", {
-                    code: errorCode,
-                    message: errorMessage,
-                    details: data.error.details,
-                  });
-
-                  // Notify background script about rate limit
-                  if (errorCode === "too_many_daily_tasks") {
-                    self.log("error", "🚫 Rate limit reached - stopping queue");
-                    chrome.runtime
-                      .sendMessage({
-                        action: "rateLimitReached",
-                        error: errorMessage,
-                        details: data.error.details,
-                      })
-                      .catch(() => {});
-                  }
-                } else if (data.id) {
-                  // Successful task creation
-                  self.lastApiResponse = {
-                    success: true,
-                    data,
-                  };
-                  self.log("info", "✅ Sora task created successfully", {
-                    taskId: data.id,
-                  });
-                }
-              } catch (jsonError) {
-                self.log("warn", "⚠️ Could not parse API response as JSON");
-                self.lastApiResponse = {
-                  success: true, // Assume success if we can't parse
-                  data: null,
-                };
-              }
-
-              // Resolve the promise so waitForApiResponse can continue
-              if (self.apiResponseResolve) {
-                self.apiResponseResolve();
-              }
+            if (isTaskCreationApi) {
+              await self.handleTaskCreationResponse(response.clone());
+            } else if (isTaskPollingApi && self.activeTask) {
+              await self.handleTaskPollingResponse(response.clone());
             }
 
             return response;
           } catch (fetchError) {
-            if (isVideoGenApi) {
+            if (isTaskCreationApi) {
               self.lastApiResponse = {
                 success: false,
                 error:
@@ -150,6 +105,226 @@ export default defineContentScript({
         };
 
         this.log("info", "✅ API interceptor installed");
+      }
+
+      private async handleTaskCreationResponse(
+        response: Response,
+      ): Promise<void> {
+        try {
+          const data = await response.json();
+          this.log("info", "📡 Task creation response", {
+            status: response.status,
+            ok: response.ok,
+            hasError: !!data.error,
+            taskId: data.id,
+          });
+
+          if (data.error) {
+            const errorCode = data.error.code;
+            const errorMessage = data.error.message;
+
+            this.lastApiResponse = {
+              success: false,
+              error: errorMessage,
+              isRateLimited: errorCode === "too_many_daily_tasks",
+              data,
+            };
+
+            this.log("error", "❌ Sora API error", {
+              code: errorCode,
+              message: errorMessage,
+              details: data.error.details,
+            });
+
+            if (errorCode === "too_many_daily_tasks") {
+              this.log("error", "🚫 Rate limit reached - stopping queue");
+              chrome.runtime
+                .sendMessage({
+                  action: "rateLimitReached",
+                  error: errorMessage,
+                  details: data.error.details,
+                })
+                .catch(() => {});
+            }
+          } else if (data.id) {
+            this.lastApiResponse = {
+              success: true,
+              data,
+            };
+
+            this.activeTask = {
+              taskId: data.id,
+              status: "queued",
+              progress: 0,
+              startedAt: Date.now(),
+              lastUpdatedAt: Date.now(),
+              generations: [],
+              failureReason: null,
+              isCompleted: false,
+            };
+
+            this.log("info", "✅ Sora task created, tracking started", {
+              taskId: data.id,
+            });
+          }
+        } catch (jsonError) {
+          this.log("warn", "⚠️ Could not parse task creation response");
+          this.lastApiResponse = { success: true, data: undefined };
+        }
+
+        if (this.apiResponseResolve) {
+          this.apiResponseResolve();
+        }
+      }
+
+      private async handleTaskPollingResponse(
+        response: Response,
+      ): Promise<void> {
+        if (!this.activeTask) return;
+
+        try {
+          const data = await response.json();
+          const taskData = this.extractTaskFromPollingResponse(data);
+
+          if (!taskData || taskData.id !== this.activeTask.taskId) {
+            return;
+          }
+
+          const prevStatus = this.activeTask.status;
+          const prevProgress = this.activeTask.progress;
+
+          this.activeTask.status = taskData.status;
+          this.activeTask.progress = (taskData.progress_pct ?? 0) * 100;
+          this.activeTask.lastUpdatedAt = Date.now();
+          this.activeTask.failureReason = taskData.failure_reason;
+
+          if (taskData.generations && taskData.generations.length > 0) {
+            this.activeTask.generations = taskData.generations;
+          }
+
+          if (
+            prevStatus !== taskData.status ||
+            Math.abs(prevProgress - this.activeTask.progress) >= 5
+          ) {
+            this.log("info", "📊 Task status update from API", {
+              taskId: taskData.id,
+              status: taskData.status,
+              progress: `${this.activeTask.progress.toFixed(1)}%`,
+              generationsCount: this.activeTask.generations.length,
+            });
+          }
+
+          if (
+            this.currentPrompt &&
+            Math.abs(prevProgress - this.activeTask.progress) >= 1
+          ) {
+            chrome.runtime
+              .sendMessage({
+                action: "updatePromptProgress",
+                promptId: this.currentPrompt.id,
+                progress: Math.round(this.activeTask.progress),
+              })
+              .catch(() => {});
+          }
+
+          if (taskData.status === "succeeded" && !this.activeTask.isCompleted) {
+            this.activeTask.isCompleted = true;
+            this.log("info", "✅ Task completed via API status", {
+              taskId: taskData.id,
+              generations: this.activeTask.generations.length,
+            });
+
+            if (this.taskCompletionResolve) {
+              this.taskCompletionResolve(this.activeTask);
+            }
+          } else if (
+            taskData.status === "failed" &&
+            !this.activeTask.isCompleted
+          ) {
+            this.activeTask.isCompleted = true;
+            this.log("error", "❌ Task failed via API status", {
+              taskId: taskData.id,
+              reason: taskData.failure_reason,
+            });
+
+            if (this.taskCompletionReject) {
+              this.taskCompletionReject(
+                new Error(taskData.failure_reason || "Task failed"),
+              );
+            }
+          }
+        } catch (err) {
+          this.log("debug", "Could not parse polling response");
+        }
+      }
+
+      private extractTaskFromPollingResponse(
+        data: SoraPollingResponse | SoraTaskResponse | SoraTaskResponse[],
+      ): SoraTaskResponse | null {
+        if (Array.isArray(data)) {
+          return data.find((t) => t.id === this.activeTask?.taskId) || null;
+        }
+
+        if ("task_responses" in data && Array.isArray(data.task_responses)) {
+          return (
+            data.task_responses.find((t) => t.id === this.activeTask?.taskId) ||
+            null
+          );
+        }
+
+        if ("data" in data && Array.isArray(data.data)) {
+          const match = data.data.find(
+            (d) => d.payload?.id === this.activeTask?.taskId,
+          );
+          return match?.payload || null;
+        }
+
+        if ("id" in data && "status" in data) {
+          return data as SoraTaskResponse;
+        }
+
+        return null;
+      }
+
+      private getApiExtractedMedia(): Array<{
+        url: string;
+        mediaType: "video" | "image";
+        generationId?: string;
+        width?: number;
+        height?: number;
+      }> {
+        if (
+          !this.activeTask?.generations ||
+          this.activeTask.generations.length === 0
+        ) {
+          return [];
+        }
+
+        const media: Array<{
+          url: string;
+          mediaType: "video" | "image";
+          generationId?: string;
+          width?: number;
+          height?: number;
+        }> = [];
+
+        for (const gen of this.activeTask.generations) {
+          const mediaType: "video" | "image" =
+            gen.task_type === "video_gen" ? "video" : "image";
+
+          const url = gen.encodings?.source?.path || gen.url;
+          if (url) {
+            media.push({
+              url,
+              mediaType,
+              generationId: gen.id,
+              width: gen.width,
+              height: gen.height,
+            });
+          }
+        }
+
+        return media;
       }
 
       /**
@@ -345,6 +520,25 @@ export default defineContentScript({
                 });
               return true;
             }
+
+            if (request.action === "getActiveTaskState") {
+              sendResponse({
+                success: true,
+                activeTask: this.activeTask,
+                hasGenerations: (this.activeTask?.generations?.length ?? 0) > 0,
+              });
+              return true;
+            }
+
+            if (request.action === "getApiExtractedMedia") {
+              const media = this.getApiExtractedMedia();
+              sendResponse({
+                success: true,
+                mediaUrls: media,
+                source: media.length > 0 ? "api" : "none",
+              });
+              return true;
+            }
           },
         );
 
@@ -449,6 +643,10 @@ export default defineContentScript({
         this.isProcessing = true;
         this.currentPrompt = prompt;
         this.generationStarted = false;
+        this.activeTask = null;
+        this.taskCompletionPromise = null;
+        this.taskCompletionResolve = null;
+        this.taskCompletionReject = null;
 
         this.log("info", "═══ SUBMIT PROMPT START ═══");
         this.log("info", "Prompt details", {
@@ -537,27 +735,36 @@ export default defineContentScript({
           this.stopCompletionObserver();
 
           this.log("info", "═══ SUBMIT PROMPT SUCCESS ═══");
-          this.isProcessing = false;
-          this.currentPrompt = null;
-          this.generationStarted = false;
+          this.cleanupAfterPrompt();
         } catch (error) {
+          const activeTaskRef = this.activeTask as SoraActiveTaskState | null;
           this.log("error", "═══ SUBMIT PROMPT FAILED ═══", {
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
             currentStep: this.isProcessing ? "unknown" : "cleanup",
+            taskState: activeTaskRef
+              ? {
+                  status: activeTaskRef.status,
+                  progress: activeTaskRef.progress,
+                }
+              : null,
           });
           this.stopProgressMonitoring();
           this.stopCompletionObserver();
-          this.isProcessing = false;
-          this.currentPrompt = null;
-          this.generationStarted = false;
+          this.cleanupAfterPrompt();
           throw error;
         }
       }
 
-      /**
-       * Find the Sora textarea input
-       */
+      private cleanupAfterPrompt(): void {
+        this.isProcessing = false;
+        this.currentPrompt = null;
+        this.generationStarted = false;
+        this.activeTask = null;
+        this.taskCompletionPromise = null;
+        this.taskCompletionResolve = null;
+        this.taskCompletionReject = null;
+      }
       private findTextarea(): HTMLTextAreaElement | null {
         this.log("info", "🔍 Starting textarea search...");
 
@@ -1110,40 +1317,55 @@ export default defineContentScript({
         return null;
       }
 
-      /**
-       * Wait for the generation to complete using MutationObserver
-       */
       private async waitForCompletion(): Promise<void> {
         this.log(
           "info",
-          "⏳ Starting completion detection (MutationObserver)...",
+          "⏳ Starting completion detection (API + DOM fallback)...",
         );
 
-        const maxWaitTime = 300000; // 5 minutes max
-        let timeoutId: NodeJS.Timeout;
+        const maxWaitTime = 300000;
+        let timeoutId: ReturnType<typeof setTimeout>;
 
-        // Start progress monitoring
+        this.taskCompletionPromise = new Promise<SoraActiveTaskState>(
+          (resolve, reject) => {
+            this.taskCompletionResolve = resolve;
+            this.taskCompletionReject = reject;
+          },
+        );
+
         this.startProgressMonitoring();
 
-        // Phase 1: Wait for generation to START (loader appears)
-        // We still use polling for start detection because it's usually very fast and we want to be sure
-        const startWaitTime = 15000; // Wait up to 15 seconds for generation to start
+        const startWaitTime = 15000;
         let startElapsed = 0;
-        const checkInterval = 500; // Check every 500ms for faster detection
+        const checkInterval = 500;
 
         while (startElapsed < startWaitTime && !this.generationStarted) {
+          if (
+            this.activeTask?.status === "running" ||
+            this.activeTask?.status === "queued"
+          ) {
+            this.generationStarted = true;
+            this.log("info", "✅ Generation started (API detected)", {
+              status: this.activeTask.status,
+            });
+            break;
+          }
+
           if (this.checkIfGenerationStarted()) {
             this.generationStarted = true;
             this.log("info", "✅ Generation started (DOM detected)");
             break;
           }
+
           await this.delay(checkInterval);
           startElapsed += checkInterval;
         }
 
         if (!this.generationStarted) {
-          // One last check before giving up
-          if (this.checkIfGenerationStarted()) {
+          if (
+            this.activeTask?.status === "running" ||
+            this.checkIfGenerationStarted()
+          ) {
             this.generationStarted = true;
           } else {
             this.log("error", "❌ Generation did not start within 15 seconds");
@@ -1152,45 +1374,65 @@ export default defineContentScript({
                 "Generation failed to start - error detected on page",
               );
             }
-            throw new Error(
-              "Generation failed to start within 15 seconds - check Sora page for issues",
-            );
+            throw new Error("Generation failed to start within 15 seconds");
           }
         }
 
-        // Phase 2: Wait for generation to COMPLETE (loader disappears) using MutationObserver
         return new Promise<void>((resolve, reject) => {
-          // Set a safety timeout
           timeoutId = setTimeout(() => {
             this.stopCompletionObserver();
+            this.taskCompletionResolve = null;
+            this.taskCompletionReject = null;
             this.log("error", "❌ Generation timed out", {
               maxWaitTime: maxWaitTime / 1000 + "s",
             });
             reject(new Error("Generation timed out after 5 minutes"));
           }, maxWaitTime);
 
-          // Check immediately in case it's already done
-          if (this.checkIfReady()) {
-            this.log("info", "✅ Generation completed immediately!");
+          if (this.activeTask?.isCompleted) {
+            this.log("info", "✅ Generation already completed (API)!");
             clearTimeout(timeoutId);
             resolve();
             return;
           }
 
-          // Setup MutationObserver
-          this.completionObserver = new MutationObserver((mutations) => {
-            // We don't need to check every mutation specifically, just check the state
-            // Throttle checks slightly if needed, but checking the DOM is fast
+          if (this.checkIfReady()) {
+            this.log("info", "✅ Generation completed immediately (DOM)!");
+            clearTimeout(timeoutId);
+            resolve();
+            return;
+          }
+
+          const apiCompletionHandler = this.taskCompletionPromise!.then(
+            (state) => {
+              this.log("info", "✅ Generation completed via API!", {
+                generations: state.generations.length,
+                progress: state.progress,
+              });
+              clearTimeout(timeoutId);
+              this.stopCompletionObserver();
+              resolve();
+            },
+          ).catch((err) => {
+            this.log("error", "❌ Task failed via API", { error: err.message });
+            clearTimeout(timeoutId);
+            this.stopCompletionObserver();
+            reject(err);
+          });
+
+          this.completionObserver = new MutationObserver(() => {
             if (this.checkIfReady()) {
-              this.log("info", "✅ Generation completed (Observer detected)!");
+              this.log("info", "✅ Generation completed (DOM Observer)!");
               this.stopCompletionObserver();
               clearTimeout(timeoutId);
-              // Wait a bit more to ensure it's fully done (animation settle)
               this.delay(1000).then(() => resolve());
             }
           });
 
-          this.log("info", "👀 Observer started, watching for completion...");
+          this.log(
+            "info",
+            "👀 Watching for completion (API primary, DOM fallback)...",
+          );
           this.completionObserver.observe(document.body, {
             childList: true,
             subtree: true,
@@ -1854,23 +2096,56 @@ export default defineContentScript({
         this.generationStarted = false;
       }
 
-      /**
-       * Extract URLs of generated images and videos from the page
-       * Called after generation completes to support auto-download feature
-       */
       private async extractGeneratedMediaUrls(): Promise<
         Array<{ url: string; mediaType: "video" | "image" }>
       > {
         this.log("info", "📥 Extracting generated media URLs...");
 
-        // Wait a bit for DOM to stabilize after generation
-        await this.delay(500);
-
         const mediaUrls: Array<{ url: string; mediaType: "video" | "image" }> =
           [];
         const seenUrls = new Set<string>();
 
-        // Find generated tiles - these contain the generated images/videos
+        if (
+          this.activeTask?.generations &&
+          this.activeTask.generations.length > 0
+        ) {
+          this.log("info", "📡 Using API-provided generation URLs", {
+            count: this.activeTask.generations.length,
+          });
+
+          for (const gen of this.activeTask.generations) {
+            const mediaType: "video" | "image" =
+              gen.task_type === "video_gen" ? "video" : "image";
+
+            if (gen.url && !seenUrls.has(gen.url)) {
+              seenUrls.add(gen.url);
+              mediaUrls.push({ url: gen.url, mediaType });
+              this.log(
+                "debug",
+                `API URL (${mediaType}): ${gen.url.substring(0, 80)}...`,
+              );
+            }
+
+            const sourcePath = gen.encodings?.source?.path;
+            if (sourcePath && !seenUrls.has(sourcePath)) {
+              seenUrls.add(sourcePath);
+              mediaUrls.push({ url: sourcePath, mediaType });
+              this.log(
+                "debug",
+                `API source (${mediaType}): ${sourcePath.substring(0, 80)}...`,
+              );
+            }
+          }
+
+          if (mediaUrls.length > 0) {
+            this.log("info", `✅ Extracted ${mediaUrls.length} URLs from API`);
+            return mediaUrls;
+          }
+        }
+
+        this.log("info", "📋 Falling back to DOM extraction...");
+        await this.delay(500);
+
         const tiles = document.querySelectorAll<HTMLElement>(".group\\/tile");
         this.log("debug", `Found ${tiles.length} generated tiles`);
 

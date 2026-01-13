@@ -7,13 +7,15 @@ import { useToast } from "./use-toast";
 export function Toaster() {
   const { toasts, dismiss } = useToast();
 
+  const visibleToasts = toasts.filter((toast) => toast.open !== false);
+
   return (
     <div
       className={cn(
         "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px] pointer-events-none",
       )}
     >
-      {toasts.map((toast) => (
+      {visibleToasts.map((toast) => (
         <Toast
           key={toast.id}
           {...toast}

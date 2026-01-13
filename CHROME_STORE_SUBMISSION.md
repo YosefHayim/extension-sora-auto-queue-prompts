@@ -25,23 +25,33 @@ Automate prompt generation and queue management for Sora AI video/image generati
 ```
 Sora Auto Queue Prompts is a productivity extension that automates prompt generation and queue management for Sora AI (sora.com).
 
+NEW IN V2.5.0:
+• Side Panel UI - Persistent queue view while you work
+• Preset System - Save and switch between generation styles
+• Onboarding Tour - Quick start guide for new users
+• Auto-Download - Automatically save generated media
+• Batch Operations - Manage multiple prompts at once
+
 KEY FEATURES:
 
 🤖 AI-Powered Prompt Generation
 • Generate up to 100 prompts at once using OpenAI GPT-4, Anthropic Claude, or Google Gemini
 • Enhanced mode adds cinematic details (camera movements, lighting, cinematography)
 • Use custom context to guide prompt themes and styles
+• Save presets for quick switching between generation styles
 
 📋 Smart Queue Management
+• Side Panel UI for persistent queue visibility while working
 • Drag-and-drop queue reordering
 • Bulk operations: select, enable/disable, delete multiple prompts
 • Filter by status: pending, processing, completed, failed
+• Sort by priority, date, status, or alphabetically
 • Real-time progress tracking with visual indicators
 
 ⚡ Intelligent Automation
 • Human-like typing simulation with natural delays
 • Anti-detection with configurable random delays between submissions
-• Automatic detection of generation completion via API monitoring
+• Dual completion detection (API + DOM) for reliability
 • Smart rate limit detection with automatic queue pause
 
 📥 Auto-Download
@@ -155,6 +165,16 @@ Required to alert users about important queue events:
 Notifications are non-intrusive and respect system notification settings.
 ```
 
+#### sidePanel
+
+```
+Required for the Side Panel UI feature introduced in v2.5.0. The side panel provides:
+- Persistent queue visibility while working on Sora pages
+- Access to all queue management features without opening popup
+- Improved workflow for users managing large prompt queues
+The side panel only displays extension UI and does not access additional user data.
+```
+
 ---
 
 ## 3. HOST PERMISSIONS JUSTIFICATIONS
@@ -257,16 +277,34 @@ All functionality is self-contained within the extension bundle.
 ### Changes in v2.5.0:
 
 ```
+MAJOR NEW FEATURES:
+• Side Panel UI: New persistent side panel mode for queue visibility while working
+• Preset System: Save and load prompt configuration presets
+• Onboarding Tour: Interactive guided tour for new users
+• Batch Operations Panel: Manage multiple prompts at once
+• Auto-Download: Automatically save generated media when complete
+• Bulk Download: Download all visible media from library with one click
+
+UI/UX IMPROVEMENTS:
+• Settings Dialog redesigned with tabbed interface (General, API Keys, Automation, Presets)
+• Queue Insertion Picker: Choose where new prompts appear in queue
+• Priority Badges: Visual priority indicators on prompt cards
+• Queue Sort Menu: Sort by status, priority, date, or alphabetically
+• Enhanced focus ring styling for better accessibility
+• Improved dark mode support throughout
+
 ROBUSTNESS IMPROVEMENTS:
-• Enhanced API interception for more reliable completion detection
-• Added direct progress tracking from Sora's API responses
-• Improved media URL extraction using API data instead of DOM scraping
-• Better handling of status transitions (queued → running → succeeded)
-• Added failure reason reporting from API
+• Dual completion detection (API primary, DOM fallback)
+• Direct progress tracking from Sora API responses
+• Fixed completion detection timing race conditions
+• Better checkbox visibility in dark mode
+• Fixed layout issues in queue controls
 
 TECHNICAL CHANGES:
-• New TypeScript interfaces for Sora API response types
-• Dual completion detection (API primary, DOM fallback)
+• 10+ new React components for enhanced modularity
+• New downloader utility for media handling
+• Comprehensive test coverage for new features
+• TypeScript interfaces for Sora API response types
 • Improved error logging with task state snapshots
 
 NO PERMISSION CHANGES - Same permissions as previous version.

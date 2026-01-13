@@ -1680,9 +1680,9 @@ export default defineContentScript({
           return false;
         }
 
-        // Fallback: DOM-based detection using same selectors as start detection
         const loadingSelectors = [
           "svg circle[stroke-dashoffset]",
+          '[aria-live="polite"]',
           ".bg-token-bg-secondary svg circle",
         ];
 
@@ -1697,12 +1697,23 @@ export default defineContentScript({
                 element.closest(
                   '[class*="progress"], [class*="loader"], [role="progressbar"]',
                 ) || element.parentElement;
-              const text = parent?.textContent || "";
+              const text = (parent?.textContent || "").toLowerCase();
+
               if (text.includes("%")) {
                 const percentage = text.match(/\d+%/)?.[0];
+                this.log("debug", `⏳ Still loading: ${percentage}`);
+                return false;
+              }
+
+              if (
+                text.includes("processing") ||
+                text.includes("generating") ||
+                text.includes("remaining") ||
+                text.includes("queued")
+              ) {
                 this.log(
                   "debug",
-                  `⏳ Still loading: ${percentage || "checking..."}`,
+                  `⏳ Loading indicator active: ${text.substring(0, 40)}`,
                 );
                 return false;
               }
@@ -1739,20 +1750,10 @@ export default defineContentScript({
           }
         }
 
-        // Without API confirmation, be conservative - check for textarea ready state
-        const textarea = document.querySelector<HTMLTextAreaElement>(
-          'textarea[placeholder*="Describe"]',
+        this.log(
+          "debug",
+          "⏳ Still waiting for API or clear completion signal...",
         );
-        if (textarea && !textarea.disabled && textarea.offsetParent !== null) {
-          // Textarea is enabled and visible - likely ready for next prompt
-          this.log(
-            "info",
-            "✅ Textarea is enabled and visible - generation appears complete",
-          );
-          return true;
-        }
-
-        this.log("debug", "⏳ Still waiting for completion signals...");
         return false;
       }
 

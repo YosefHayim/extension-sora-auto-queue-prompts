@@ -801,7 +801,7 @@ export function SettingsDialog({
                     handleChange("useSecretPrompt", e.target.checked)
                   }
                   disabled={loading}
-                  className="h-4 w-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                  className="h-4 w-4 mt-0.5 rounded border-input bg-background accent-primary cursor-pointer disabled:opacity-50"
                 />
                 <div className="space-y-1">
                   <Label
@@ -937,7 +937,7 @@ export function SettingsDialog({
                         handleChange("autoRun", e.target.checked)
                       }
                       disabled={loading}
-                      className="h-4 w-4 rounded border-gray-300"
+                      className="h-4 w-4 rounded border-input bg-background accent-primary disabled:opacity-50"
                     />
                     <span>Auto-start Queue</span>
                   </Label>
@@ -956,7 +956,7 @@ export function SettingsDialog({
                         handleChange("autoGenerateOnEmpty", e.target.checked)
                       }
                       disabled={loading}
-                      className="h-4 w-4 rounded border-gray-300"
+                      className="h-4 w-4 rounded border-input bg-background accent-primary disabled:opacity-50"
                     />
                     <span>Auto-generate on Empty Queue</span>
                   </Label>
@@ -975,7 +975,7 @@ export function SettingsDialog({
                         handleChange("autoGenerateOnReceived", e.target.checked)
                       }
                       disabled={loading}
-                      className="h-4 w-4 rounded border-gray-300"
+                      className="h-4 w-4 rounded border-input bg-background accent-primary disabled:opacity-50"
                     />
                     <span>Auto-generate on Prompt Received</span>
                   </Label>
@@ -1013,7 +1013,7 @@ export function SettingsDialog({
                     handleChange("autoDownload", e.target.checked)
                   }
                   disabled={loading}
-                  className="h-4 w-4 mt-0.5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                  className="h-4 w-4 mt-0.5 rounded border-input bg-background accent-primary cursor-pointer disabled:opacity-50"
                 />
                 <div className="space-y-1">
                   <Label
@@ -1063,7 +1063,7 @@ export function SettingsDialog({
                       handleChange("promptSaveLocation", e.target.checked)
                     }
                     disabled={loading || !formData.autoDownload}
-                    className="h-4 w-4 rounded border-gray-300"
+                    className="h-4 w-4 rounded border-input bg-background accent-primary disabled:opacity-50"
                   />
                   <span>Ask where to save each file</span>
                 </Label>

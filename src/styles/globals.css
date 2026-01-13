@@ -92,4 +92,8 @@
   .prompt-card-processing {
     @apply animate-pulse-border;
   }
+
+  .accent-primary {
+    accent-color: hsl(var(--primary));
+  }
 }

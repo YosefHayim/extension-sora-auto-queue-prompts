@@ -7,6 +7,7 @@ import {
   FaClock,
   FaPause,
   FaPlay,
+  FaPlus,
   FaStop,
   FaTrash,
 } from "react-icons/fa";
@@ -34,12 +35,13 @@ function formatDuration(ms: number): string {
 interface QueueControlsProps {
   queueState: QueueState;
   totalCount: number;
-  prompts?: GeneratedPrompt[]; // Optional prompts array to calculate current progress
+  prompts?: GeneratedPrompt[];
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
   onCleanCompletedAndFailed?: () => void;
+  onAddPrompts?: () => void;
   completedCount?: number;
   failedCount?: number;
 }
@@ -53,6 +55,7 @@ export function QueueControls({
   onResume,
   onStop,
   onCleanCompletedAndFailed,
+  onAddPrompts,
   completedCount = 0,
   failedCount = 0,
 }: QueueControlsProps) {
@@ -234,6 +237,30 @@ export function QueueControls({
         {/* Buttons row */}
         {!isCollapsed && (
           <div className="flex gap-2 flex-shrink-0 justify-end">
+            {onAddPrompts && (
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={onAddPrompts}
+                    size="sm"
+                    className="min-w-[80px]"
+                  >
+                    <FaPlus className="h-4 w-4 mr-2" />
+                    Add
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent className="w-64">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold">Add Prompts</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Add more prompts to the queue. You can add prompts even
+                      while the queue is running.
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            )}
             {!queueState.isRunning && (
               <HoverCard>
                 <HoverCardTrigger asChild>

@@ -1324,7 +1324,9 @@ export default defineContentScript({
         );
 
         const maxWaitTime = 300000;
+        const minWaitAfterStart = 5000; // Minimum 5 seconds after start before checking completion
         let timeoutId: ReturnType<typeof setTimeout>;
+        let generationStartTime = 0;
 
         this.taskCompletionPromise = new Promise<SoraActiveTaskState>(
           (resolve, reject) => {
@@ -1345,6 +1347,7 @@ export default defineContentScript({
             this.activeTask?.status === "queued"
           ) {
             this.generationStarted = true;
+            generationStartTime = Date.now();
             this.log("info", "✅ Generation started (API detected)", {
               status: this.activeTask.status,
             });
@@ -1353,6 +1356,7 @@ export default defineContentScript({
 
           if (this.checkIfGenerationStarted()) {
             this.generationStarted = true;
+            generationStartTime = Date.now();
             this.log("info", "✅ Generation started (DOM detected)");
             break;
           }
@@ -1367,6 +1371,7 @@ export default defineContentScript({
             this.checkIfGenerationStarted()
           ) {
             this.generationStarted = true;
+            generationStartTime = Date.now();
           } else {
             this.log("error", "❌ Generation did not start within 15 seconds");
             if (this.checkForError()) {
@@ -1389,6 +1394,7 @@ export default defineContentScript({
             reject(new Error("Generation timed out after 5 minutes"));
           }, maxWaitTime);
 
+          // Check if API already confirmed completion
           if (this.activeTask?.isCompleted) {
             this.log("info", "✅ Generation already completed (API)!");
             clearTimeout(timeoutId);
@@ -1396,36 +1402,43 @@ export default defineContentScript({
             return;
           }
 
-          if (this.checkIfReady()) {
-            this.log("info", "✅ Generation completed immediately (DOM)!");
-            clearTimeout(timeoutId);
-            resolve();
-            return;
-          }
+          // Helper to check completion with minimum wait enforcement
+          const canCheckCompletion = (): boolean => {
+            const elapsed = Date.now() - generationStartTime;
+            if (elapsed < minWaitAfterStart) {
+              this.log(
+                "debug",
+                `⏳ Too early to check completion (${elapsed}ms < ${minWaitAfterStart}ms)`,
+              );
+              return false;
+            }
+            return true;
+          };
 
-          const apiCompletionHandler = this.taskCompletionPromise!.then(
-            (state) => {
-              this.log("info", "✅ Generation completed via API!", {
-                generations: state.generations.length,
-                progress: state.progress,
-              });
-              clearTimeout(timeoutId);
-              this.stopCompletionObserver();
-              resolve();
-            },
-          ).catch((err) => {
+          // API completion handler (primary method)
+          this.taskCompletionPromise!.then((state) => {
+            this.log("info", "✅ Generation completed via API!", {
+              generations: state.generations.length,
+              progress: state.progress,
+            });
+            clearTimeout(timeoutId);
+            this.stopCompletionObserver();
+            resolve();
+          }).catch((err) => {
             this.log("error", "❌ Task failed via API", { error: err.message });
             clearTimeout(timeoutId);
             this.stopCompletionObserver();
             reject(err);
           });
 
+          // DOM Observer as fallback (with minimum wait)
           this.completionObserver = new MutationObserver(() => {
-            if (this.checkIfReady()) {
+            if (canCheckCompletion() && this.checkIfReady()) {
               this.log("info", "✅ Generation completed (DOM Observer)!");
               this.stopCompletionObserver();
               clearTimeout(timeoutId);
-              this.delay(1000).then(() => resolve());
+              // Add buffer time to ensure any final DOM updates complete
+              this.delay(2000).then(() => resolve());
             }
           });
 
@@ -1634,11 +1647,7 @@ export default defineContentScript({
         }
       }
 
-      /**
-       * Check if Sora is ready for next prompt (generation completed)
-       */
       private checkIfReady(): boolean {
-        // Only check for completion if generation has started
         if (!this.generationStarted) {
           this.log(
             "debug",
@@ -1647,75 +1656,103 @@ export default defineContentScript({
           return false;
         }
 
-        // Check if loader is still present with percentage
-        const loader = document.querySelector("svg circle[stroke-dashoffset]");
-        if (loader && loader.parentElement?.textContent?.includes("%")) {
-          // Still loading
-          const percentage =
-            loader.parentElement?.textContent?.match(/\d+%/)?.[0];
-          this.log("debug", `⏳ Still loading: ${percentage || "checking..."}`);
+        // Primary: trust API status if available
+        if (this.activeTask?.status === "succeeded") {
+          this.log("info", "✅ API confirms generation succeeded");
+          return true;
+        }
+
+        if (this.activeTask?.status === "failed") {
+          this.log("warn", "⚠️ API confirms generation failed");
+          return true;
+        }
+
+        // If API shows running/queued, definitely not ready
+        if (
+          this.activeTask?.status === "running" ||
+          this.activeTask?.status === "queued"
+        ) {
+          const progress = this.activeTask.progress?.toFixed(1) || "0";
+          this.log(
+            "debug",
+            `⏳ API shows ${this.activeTask.status}: ${progress}%`,
+          );
           return false;
         }
 
-        // Check for any visible loading indicators
+        // Fallback: DOM-based detection using same selectors as start detection
         const loadingSelectors = [
           "svg circle[stroke-dashoffset]",
-          '[aria-live="polite"]',
           ".bg-token-bg-secondary svg circle",
         ];
 
         for (const selector of loadingSelectors) {
-          const element = document.querySelector(selector);
-          if (element instanceof HTMLElement && element.offsetParent !== null) {
-            const parent = element.parentElement;
-            if (parent?.textContent?.includes("%")) {
-              this.log(
-                "debug",
-                `⏳ Still loading - found active loader: ${selector}`,
-              );
-              return false; // Still showing percentage = still loading
+          const elements = document.querySelectorAll(selector);
+          for (const element of elements) {
+            if (
+              element instanceof HTMLElement &&
+              element.offsetParent !== null
+            ) {
+              const parent =
+                element.closest(
+                  '[class*="progress"], [class*="loader"], [role="progressbar"]',
+                ) || element.parentElement;
+              const text = parent?.textContent || "";
+              if (text.includes("%")) {
+                const percentage = text.match(/\d+%/)?.[0];
+                this.log(
+                  "debug",
+                  `⏳ Still loading: ${percentage || "checking..."}`,
+                );
+                return false;
+              }
             }
           }
         }
 
-        // Check for "Ready" status toast
+        // Check for status toast with explicit states
         const statusToast =
           document.querySelector<HTMLElement>('[role="status"]');
         if (statusToast) {
           const text = statusToast.textContent?.toLowerCase() || "";
-          if (text.includes("ready")) {
+          if (
+            text.includes("generating") ||
+            text.includes("processing") ||
+            text.includes("%")
+          ) {
             this.log(
-              "info",
-              '✅ Generation ready - status toast shows "ready"',
+              "debug",
+              `⏳ Status toast shows in-progress: ${text.substring(0, 50)}`,
             );
+            return false;
+          }
+          if (text.includes("ready") || text.includes("complete")) {
+            this.log("info", "✅ Status toast shows ready/complete");
             return true;
           }
-          // If error or failed, consider it done (so we can move to next prompt)
           if (text.includes("error") || text.includes("failed")) {
             this.log(
               "warn",
-              `⚠️ Generation failed - status toast: ${text.substring(0, 50)}`,
+              `⚠️ Generation failed - status: ${text.substring(0, 50)}`,
             );
             return true;
           }
         }
 
-        // If no loader is visible and generation had started, consider it complete
-        const visibleLoader = document.querySelector(
-          ".bg-token-bg-secondary svg circle",
+        // Without API confirmation, be conservative - check for textarea ready state
+        const textarea = document.querySelector<HTMLTextAreaElement>(
+          'textarea[placeholder*="Describe"]',
         );
-        if (!visibleLoader) {
+        if (textarea && !textarea.disabled && textarea.offsetParent !== null) {
+          // Textarea is enabled and visible - likely ready for next prompt
           this.log(
             "info",
-            "✅ No visible loader - generation appears complete",
+            "✅ Textarea is enabled and visible - generation appears complete",
           );
           return true;
         }
 
-        this.log(
-          "debug",
-          "⏳ Still checking... loader visible but no percentage",
-        );
+        this.log("debug", "⏳ Still waiting for completion signals...");
         return false;
       }
 

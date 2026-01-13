@@ -1039,6 +1039,7 @@ function IndexPopup() {
             onResume={handleResumeQueue}
             onStop={handleStopQueue}
             onCleanCompletedAndFailed={handleCleanCompletedAndFailed}
+            onAddPrompts={handleGenerate}
             completedCount={
               prompts.filter((p) => p.status === "completed").length
             }
@@ -1121,8 +1122,8 @@ function IndexPopup() {
 
           {/* Bulk Actions */}
           {prompts.length > 0 && (
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-wrap justify-between items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -1154,7 +1155,7 @@ function IndexPopup() {
                     Process Selected ({selectedPrompts.size})
                   </Button>
                 )}
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground whitespace-nowrap">
                   {filteredPrompts.length === prompts.length ? (
                     <span>
                       {prompts.length} prompt{prompts.length !== 1 ? "s" : ""}
@@ -1167,7 +1168,7 @@ function IndexPopup() {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <QueueSortMenu onSort={handleSort} currentSort={currentSort} />
                 <Button
                   variant="outline"

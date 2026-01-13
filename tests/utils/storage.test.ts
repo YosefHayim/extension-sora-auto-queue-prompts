@@ -27,6 +27,7 @@ describe("Storage Utility", () => {
         autoDownload: false,
         downloadSubfolder: "Sora",
         promptSaveLocation: false,
+        defaultPreset: "none",
       });
     });
 

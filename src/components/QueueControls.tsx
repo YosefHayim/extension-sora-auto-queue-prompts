@@ -2,10 +2,18 @@ import * as React from "react";
 
 import { Card, CardContent, CardHeader } from "./ui/card";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import {
   FaChevronDown,
   FaChevronUp,
   FaClock,
+  FaMagic,
   FaPause,
+  FaPencilAlt,
   FaPlay,
   FaPlus,
   FaStop,
@@ -41,7 +49,8 @@ interface QueueControlsProps {
   onResume: () => void;
   onStop: () => void;
   onCleanCompletedAndFailed?: () => void;
-  onAddPrompts?: () => void;
+  onGeneratePrompts?: () => void;
+  onManualAdd?: () => void;
   completedCount?: number;
   failedCount?: number;
 }
@@ -55,7 +64,8 @@ export function QueueControls({
   onResume,
   onStop,
   onCleanCompletedAndFailed,
-  onAddPrompts,
+  onGeneratePrompts,
+  onManualAdd,
   completedCount = 0,
   failedCount = 0,
 }: QueueControlsProps) {
@@ -156,8 +166,8 @@ export function QueueControls({
   const hasCompletedOrFailed = (completedCount || 0) + (failedCount || 0) > 0;
 
   return (
-    <Card className="border-2 overflow-hidden">
-      <CardHeader className="pb-3 overflow-hidden">
+    <Card className="border-2" data-tour="queue-controls">
+      <CardHeader className="pb-3">
         {/* Top row: Toggle button (left), Small circle, Status, and Timer (right) */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
@@ -237,29 +247,31 @@ export function QueueControls({
         {/* Buttons row */}
         {!isCollapsed && (
           <div className="flex gap-2 flex-shrink-0 justify-end">
-            {onAddPrompts && (
-              <HoverCard>
-                <HoverCardTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={onAddPrompts}
-                    size="sm"
-                    className="min-w-[80px]"
-                  >
-                    <FaPlus className="h-4 w-4 mr-2" />
-                    Add
-                  </Button>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-64">
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-semibold">Add Prompts</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Add more prompts to the queue. You can add prompts even
-                      while the queue is running.
-                    </p>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
+            {(onGeneratePrompts || onManualAdd) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 min-w-[80px]"
+                  data-tour="add-prompts"
+                >
+                  <FaPlus className="h-3.5 w-3.5" />
+                  Add
+                  <FaChevronDown className="h-3 w-3 opacity-50" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {onGeneratePrompts && (
+                    <DropdownMenuItem onSelect={onGeneratePrompts}>
+                      <FaMagic className="h-3.5 w-3.5 mr-2" />
+                      Generate with AI
+                    </DropdownMenuItem>
+                  )}
+                  {onManualAdd && (
+                    <DropdownMenuItem onSelect={onManualAdd}>
+                      <FaPencilAlt className="h-3.5 w-3.5 mr-2" />
+                      Manual Add
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             {!queueState.isRunning && (
               <HoverCard>

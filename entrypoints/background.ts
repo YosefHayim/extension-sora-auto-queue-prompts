@@ -552,6 +552,13 @@ export default defineBackground(() => {
           case "bulkDownloadAllMedia":
             return await handleBulkDownloadAllMedia();
 
+          case "openSidePanel":
+            if (chrome.sidePanel && request.tabId) {
+              await chrome.sidePanel.open({ tabId: request.tabId });
+              return { success: true };
+            }
+            return { success: false, error: "Side panel not available" };
+
           default:
             logger.warn("background", `Unknown action: ${request.action}`);
             return { success: false, error: "Unknown action" };

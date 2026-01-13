@@ -56,6 +56,10 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  *:focus-visible {
+    @apply outline-none ring-4 ring-primary ring-offset-2 ring-offset-background;
+  }
 }
 
 /* Popup container */
@@ -85,6 +89,122 @@
 
 .popup-container::-webkit-scrollbar-thumb:hover {
   background-color: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* Side Panel container - mobile-first responsive */
+.sidepanel-container {
+  @apply w-full min-h-screen overflow-y-auto p-3;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) transparent;
+  position: relative;
+}
+
+.sidepanel-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidepanel-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidepanel-container::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted));
+  border-radius: 3px;
+}
+
+.sidepanel-container::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* Responsive adjustments for narrow side panel */
+@media (max-width: 320px) {
+  .sidepanel-container {
+    @apply p-2;
+  }
+
+  .sidepanel-container .card {
+    @apply p-2;
+  }
+}
+
+/* Onboarding Tour - Glim Effect */
+.tour-overlay {
+  @apply fixed inset-0 z-50 bg-black/80 transition-opacity duration-300;
+}
+
+.tour-spotlight {
+  @apply absolute z-[51] rounded-lg transition-all duration-300;
+  box-shadow:
+    0 0 0 12px hsl(var(--primary)),
+    0 0 30px 16px hsl(var(--primary) / 0.5),
+    0 0 60px 32px hsl(var(--primary) / 0.3);
+  animation: spotlight-pulse 2s ease-in-out infinite;
+}
+
+@keyframes spotlight-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 12px hsl(var(--primary)),
+      0 0 30px 16px hsl(var(--primary) / 0.5),
+      0 0 60px 32px hsl(var(--primary) / 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 0 16px hsl(var(--primary)),
+      0 0 45px 24px hsl(var(--primary) / 0.6),
+      0 0 90px 48px hsl(var(--primary) / 0.4);
+  }
+}
+
+.tour-tooltip {
+  @apply absolute z-[52] bg-card border border-border rounded-lg p-4 shadow-lg max-w-[280px];
+  animation: tooltip-enter 0.2s ease-out;
+}
+
+@keyframes tooltip-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Processing animation for queue items */
+@keyframes pulse-border {
+  0%,
+  100% {
+    border-color: hsl(var(--primary) / 0.5);
+  }
+  50% {
+    border-color: hsl(var(--primary));
+  }
+}
+
+.animate-pulse-border {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+/* Generating state spinner */
+.generating-spinner {
+  @apply animate-spin;
+}
+
+/* Thumbnail hover effect */
+.thumbnail-preview {
+  @apply relative overflow-hidden rounded-md;
+}
+
+.thumbnail-preview::after {
+  content: "";
+  @apply absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity;
+}
+
+.thumbnail-preview:hover::after {
+  @apply opacity-100;
 }
 
 /* Custom utility classes */

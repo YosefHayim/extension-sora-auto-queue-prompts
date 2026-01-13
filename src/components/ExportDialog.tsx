@@ -1,5 +1,5 @@
 import * as React from "react";
-import { FaDownload, FaTimes, FaFileAlt, FaFileExcel } from "react-icons/fa";
+import { FaFileExport, FaTimes, FaFileAlt, FaFileExcel } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Label } from "./ui/label";
@@ -122,7 +122,7 @@ export function ExportDialog({ isOpen, onClose, prompts }: ExportDialogProps) {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FaDownload className="h-5 w-5 text-primary" />
+            <FaFileExport className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Export Prompts</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -179,7 +179,7 @@ export function ExportDialog({ isOpen, onClose, prompts }: ExportDialogProps) {
 
           <div className="flex gap-2">
             <Button onClick={handleExport} className="flex-1">
-              <FaDownload className="h-4 w-4 mr-2" />
+              <FaFileExport className="h-4 w-4 mr-2" />
               Export
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>

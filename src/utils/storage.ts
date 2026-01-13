@@ -3,6 +3,7 @@ import type {
   PromptConfig,
   QueueInsertOptions,
   QueueState,
+  SoraPreset,
 } from "../types";
 
 const DEFAULT_CONFIG: PromptConfig = {
@@ -12,17 +13,21 @@ const DEFAULT_CONFIG: PromptConfig = {
   mediaType: "image",
   variationCount: 2,
   autoRun: false,
-  useSecretPrompt: true, // Default to enhanced prompts
+  useSecretPrompt: true,
   autoGenerateOnEmpty: false,
   autoGenerateOnReceived: false,
-  minDelayMs: 2000, // 2 seconds minimum
-  maxDelayMs: 5000, // 5 seconds maximum
+  minDelayMs: 2000,
+  maxDelayMs: 5000,
   setupCompleted: false,
-  // Auto-download defaults
   autoDownload: false,
   downloadSubfolder: "Sora",
   promptSaveLocation: false,
+  defaultPreset: "none",
 };
+
+const DEFAULT_PRESETS: SoraPreset[] = [
+  { id: "none", name: "None", detected: false },
+];
 
 const DEFAULT_QUEUE_STATE: QueueState = {
   isRunning: false,
@@ -278,6 +283,23 @@ export const storage = {
     const prompts = await this.getPrompts();
     const updatedPrompts = prompts.map((p) =>
       promptIds.includes(p.id) ? { ...p, priority } : p,
+    );
+    await this.setPrompts(updatedPrompts);
+  },
+
+  async getAvailablePresets(): Promise<SoraPreset[]> {
+    const result = await chrome.storage.local.get("availablePresets");
+    return result.availablePresets || DEFAULT_PRESETS;
+  },
+
+  async setAvailablePresets(presets: SoraPreset[]): Promise<void> {
+    await chrome.storage.local.set({ availablePresets: presets });
+  },
+
+  async updatePromptPreset(promptId: string, preset: string): Promise<void> {
+    const prompts = await this.getPrompts();
+    const updatedPrompts = prompts.map((p) =>
+      p.id === promptId ? { ...p, preset } : p,
     );
     await this.setPrompts(updatedPrompts);
   },

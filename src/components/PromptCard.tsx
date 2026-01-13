@@ -14,19 +14,23 @@ import {
   FaClipboard,
   FaClock,
   FaCopy,
+  FaDice,
   FaImage,
   FaLink,
   FaLocationArrow,
   FaMagic,
+  FaPalette,
   FaPencilAlt,
   FaPlay,
   FaPowerOff,
+  FaRedo,
   FaSquare,
   FaTimesCircle,
   FaTrash,
   FaUpload,
   FaVideo,
 } from "react-icons/fa";
+import { FaWandMagicSparkles } from "react-icons/fa6";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 import { Badge } from "./ui/badge";
@@ -85,6 +89,7 @@ interface PromptCardProps {
   onRefine: (id: string) => void;
   onGenerateSimilar: (id: string) => void;
   onDelete: (id: string) => void;
+  onRetry?: (id: string) => void;
   onAddImage?: (id: string, imageUrl: string) => void;
   onAddLocalImage?: (
     id: string,
@@ -167,6 +172,7 @@ export function PromptCard({
   onRefine,
   onGenerateSimilar,
   onDelete,
+  onRetry,
   onAddImage,
   onAddLocalImage,
   onRemoveImage,
@@ -237,6 +243,13 @@ export function PromptCard({
     onDelete(prompt.id);
   };
 
+  const handleRetry = () => {
+    log.ui.action("PromptCard:Retry", {
+      promptId: prompt.id,
+    });
+    onRetry?.(prompt.id);
+  };
+
   const handleAddImage = () => {
     if (imageUrlInput.trim() && onAddImage) {
       log.ui.action("PromptCard:AddImage", {
@@ -279,7 +292,9 @@ export function PromptCard({
         error: "Invalid file type",
         type: file.type,
       });
-      alert("Invalid file type. Please select a PNG, JPEG, GIF, or WebP image.");
+      alert(
+        "Invalid file type. Please select a PNG, JPEG, GIF, or WebP image.",
+      );
       return;
     }
 
@@ -490,6 +505,24 @@ export function PromptCard({
             {prompt.enhanced && (
               <span className="text-xs text-purple-600 dark:text-purple-400">
                 <FaMagic className="h-3 w-3 inline mr-0.5" />
+              </span>
+            )}
+            {prompt.preset && prompt.preset !== "none" && (
+              <span
+                className={cn(
+                  "text-xs flex items-center gap-0.5",
+                  prompt.preset === "random"
+                    ? "text-purple-600 dark:text-purple-400"
+                    : "text-orange-600 dark:text-orange-400",
+                )}
+                title={`Preset: ${prompt.preset === "random" ? "Random" : prompt.preset}`}
+              >
+                •
+                {prompt.preset === "random" ? (
+                  <FaDice className="h-3 w-3" />
+                ) : (
+                  <FaPalette className="h-3 w-3" />
+                )}
               </span>
             )}
           </div>
@@ -759,7 +792,32 @@ export function PromptCard({
           >
             <FaCopy className="h-3.5 w-3.5" />
           </Button>
-          {/* Image buttons - show only when no image attached and can edit */}
+          {canRefine && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefine}
+              title="Duplicate with AI refinement"
+              type="button"
+              data-no-drag
+              className="h-6 w-6"
+            >
+              <FaWandMagicSparkles className="h-3.5 w-3.5 text-purple-500" />
+            </Button>
+          )}
+          {prompt.status === "failed" && onRetry && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRetry}
+              title="Retry failed prompt"
+              type="button"
+              data-no-drag
+              className="h-6 w-6 text-orange-500 hover:text-orange-600"
+            >
+              <FaRedo className="h-3.5 w-3.5" />
+            </Button>
+          )}
           {!prompt.imageUrl && !prompt.imageData && canEdit && (
             <>
               {onAddImage && (

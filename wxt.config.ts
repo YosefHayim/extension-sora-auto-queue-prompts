@@ -35,6 +35,7 @@ export default defineConfig({
       "downloads",
       "webRequest",
       "notifications",
+      "sidePanel",
     ],
     host_permissions: [
       "*://sora.com/*",
@@ -53,6 +54,9 @@ export default defineConfig({
       "16": "icon16.png",
       "48": "icon48.png",
       "128": "icon128.png",
+    },
+    side_panel: {
+      default_path: "sidepanel.html",
     },
     // Content scripts are now defined in entrypoints/content.ts using defineContentScript
     // No need to define them here when using defineContentScript API

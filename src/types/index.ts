@@ -1,4 +1,5 @@
 export type AspectRatio = "16:9" | "9:16" | "1:1" | "4:3" | "3:4" | "21:9";
+
 export type PresetType =
   | "cinematic"
   | "documentary"
@@ -6,6 +7,15 @@ export type PresetType =
   | "realistic"
   | "animated"
   | "none";
+
+export interface SoraPreset {
+  id: string;
+  name: string;
+  detected: boolean;
+}
+
+export type PresetAssignment = string | "none" | "random";
+
 export type LogLevel = "debug" | "info" | "warn" | "error";
 export type ApiProvider = "openai" | "anthropic" | "google";
 
@@ -26,9 +36,10 @@ export interface PromptConfig {
   telegramBotToken?: string; // Telegram Bot Token for notifications
   telegramChatId?: string; // Telegram Chat ID for notifications
   // Auto-download settings
-  autoDownload: boolean; // Enable/disable auto-download of generated media
-  downloadSubfolder: string; // Subfolder within Downloads (e.g., "Sora")
-  promptSaveLocation: boolean; // If true, prompt user to choose location each time
+  autoDownload: boolean;
+  downloadSubfolder: string;
+  promptSaveLocation: boolean;
+  defaultPreset?: PresetAssignment;
 }
 
 export interface GeneratedPrompt {
@@ -40,7 +51,7 @@ export interface GeneratedPrompt {
   mediaType: "video" | "image";
   aspectRatio?: AspectRatio;
   variations?: number;
-  preset?: PresetType;
+  preset?: PresetAssignment;
   enhanced?: boolean;
   startTime?: number;
   completedTime?: number;
@@ -54,6 +65,10 @@ export interface GeneratedPrompt {
   insertedAt?: number;
   insertedAfter?: string;
   priority?: "high" | "normal" | "low";
+  thumbnailUrl?: string;
+  generatedMediaUrl?: string;
+  seed?: number;
+  errorMessage?: string;
 }
 
 export interface QueueState {
@@ -70,6 +85,7 @@ export interface StorageData {
   prompts: GeneratedPrompt[];
   history: GeneratedPrompt[];
   queueState: QueueState;
+  availablePresets: SoraPreset[];
 }
 
 export interface PromptGenerationRequest {

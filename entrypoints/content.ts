@@ -539,6 +539,39 @@ export default defineContentScript({
               });
               return true;
             }
+
+            if (request.action === "detectPresets") {
+              this.detectAvailablePresets()
+                .then((presets) => {
+                  sendResponse({ success: true, presets });
+                })
+                .catch((error) => {
+                  this.log("error", "Failed to detect presets", { error });
+                  sendResponse({
+                    success: false,
+                    error:
+                      error instanceof Error ? error.message : String(error),
+                    presets: [{ id: "none", name: "None", detected: false }],
+                  });
+                });
+              return true;
+            }
+
+            if (request.action === "selectPreset") {
+              this.selectPreset(request.presetId)
+                .then(() => {
+                  sendResponse({ success: true });
+                })
+                .catch((error) => {
+                  this.log("error", "Failed to select preset", { error });
+                  sendResponse({
+                    success: false,
+                    error:
+                      error instanceof Error ? error.message : String(error),
+                  });
+                });
+              return true;
+            }
           },
         );
 
@@ -673,6 +706,39 @@ export default defineContentScript({
               "info",
               "📍 Image URL present - URL-based images require manual attachment",
             );
+          }
+
+          // Step 0.5: Handle preset selection if specified
+          if (prompt.preset && prompt.preset !== "none") {
+            this.log("info", "📍 Step 0.5: Handling preset selection...", {
+              preset: prompt.preset,
+            });
+            let presetToSelect = prompt.preset;
+
+            if (prompt.preset === "random") {
+              const availablePresets = await this.detectAvailablePresets();
+              const selectablePresets = availablePresets.filter(
+                (p) => p.id !== "none",
+              );
+              if (selectablePresets.length > 0) {
+                const randomIndex = Math.floor(
+                  Math.random() * selectablePresets.length,
+                );
+                presetToSelect = selectablePresets[randomIndex].id;
+                this.log(
+                  "info",
+                  `Random preset resolved to: ${presetToSelect}`,
+                );
+              } else {
+                this.log("warn", "No presets available for random selection");
+                presetToSelect = "none";
+              }
+            }
+
+            if (presetToSelect !== "none") {
+              await this.selectPreset(presetToSelect);
+              this.log("info", "✅ Step 0.5 SUCCESS: Preset selected");
+            }
           }
 
           // Step 1: Find textarea
@@ -2042,6 +2108,141 @@ export default defineContentScript({
             error: error instanceof Error ? error.message : String(error),
           });
           throw error;
+        }
+      }
+
+      private slugify(text: string): string {
+        return text
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, "")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+      }
+
+      private findPresetButton(): HTMLButtonElement | null {
+        const comboboxes = document.querySelectorAll<HTMLButtonElement>(
+          'button[role="combobox"]',
+        );
+
+        for (const btn of Array.from(comboboxes)) {
+          const container = btn.closest('[class*="flex"]');
+          const labels = container?.querySelectorAll("span, label, div");
+
+          for (const label of Array.from(labels || [])) {
+            const text = label.textContent?.toLowerCase() || "";
+            if (text.includes("preset") || text.includes("style")) {
+              return btn;
+            }
+          }
+
+          const ariaLabel = btn.getAttribute("aria-label")?.toLowerCase() || "";
+          if (ariaLabel.includes("preset") || ariaLabel.includes("style")) {
+            return btn;
+          }
+        }
+
+        return null;
+      }
+
+      async detectAvailablePresets(): Promise<
+        Array<{ id: string; name: string; detected: boolean }>
+      > {
+        const presets: Array<{ id: string; name: string; detected: boolean }> =
+          [{ id: "none", name: "None", detected: true }];
+
+        try {
+          const presetButton = this.findPresetButton();
+          if (!presetButton) {
+            this.log("warn", "Could not find preset button");
+            return presets;
+          }
+
+          presetButton.click();
+          await this.delay(300);
+
+          const popperWrapper = document.querySelector(
+            "[data-radix-popper-content-wrapper]",
+          );
+          if (!popperWrapper) {
+            this.log("warn", "Preset dropdown did not open");
+            return presets;
+          }
+
+          const options = popperWrapper.querySelectorAll(
+            '[role="option"], [role="menuitem"]',
+          );
+
+          for (const option of Array.from(options)) {
+            const text = option.textContent?.trim();
+            if (
+              text &&
+              text.toLowerCase() !== "none" &&
+              text.toLowerCase() !== "manage"
+            ) {
+              presets.push({
+                id: this.slugify(text),
+                name: text,
+                detected: true,
+              });
+            }
+          }
+
+          document.body.click();
+          await this.delay(100);
+
+          this.log("info", `Detected ${presets.length} presets`, { presets });
+          return presets;
+        } catch (error) {
+          this.log("error", "Failed to detect presets", { error });
+          return presets;
+        }
+      }
+
+      async selectPreset(presetId: string): Promise<void> {
+        if (presetId === "none" || !presetId) {
+          this.log("info", "No preset to select");
+          return;
+        }
+
+        this.log("info", `Selecting preset: ${presetId}`);
+
+        try {
+          const presetButton = this.findPresetButton();
+          if (!presetButton) {
+            this.log("warn", "Cannot select preset - button not found");
+            return;
+          }
+
+          presetButton.click();
+          await this.delay(300);
+
+          const popperWrapper = document.querySelector(
+            "[data-radix-popper-content-wrapper]",
+          );
+          if (!popperWrapper) {
+            this.log("warn", "Preset dropdown did not open");
+            return;
+          }
+
+          const options = popperWrapper.querySelectorAll(
+            '[role="option"], [role="menuitem"]',
+          );
+
+          for (const option of Array.from(options)) {
+            const text = option.textContent?.trim();
+            if (text && this.slugify(text) === presetId) {
+              (option as HTMLElement).click();
+              await this.delay(200);
+              this.log("info", `Selected preset: ${text}`);
+              return;
+            }
+          }
+
+          document.body.click();
+          this.log("warn", `Preset "${presetId}" not found in dropdown`);
+        } catch (error) {
+          this.log("error", "Failed to select preset", { error });
         }
       }
 

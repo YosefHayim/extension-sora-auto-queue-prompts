@@ -1,4 +1,4 @@
-import { FaGithub, FaLinkedin } from "react-icons/fa";
+import { FaGithub, FaLinkedin, FaCoffee } from "react-icons/fa";
 
 import { AiFillHeart } from "react-icons/ai";
 
@@ -30,6 +30,15 @@ export function Footer() {
             aria-label="LinkedIn profile"
           >
             <FaLinkedin className="h-4 w-4" />
+          </a>
+          <a
+            href="https://buymeacoffee.com/yosefhayim"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            aria-label="Buy me a coffee"
+          >
+            <FaCoffee className="h-4 w-4" />
           </a>
         </div>
       </div>

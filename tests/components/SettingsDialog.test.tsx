@@ -1,7 +1,13 @@
 import * as React from "react";
 
 import type { DetectedSettings, PromptConfig } from "../../src/types";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 
 import { SettingsDialog } from "../../src/components/SettingsDialog";
 
@@ -29,6 +35,10 @@ describe("SettingsDialog", () => {
     minDelayMs: 2000,
     maxDelayMs: 5000,
     setupCompleted: true,
+    autoDownload: false,
+    downloadSubfolder: "Sora",
+    promptSaveLocation: false,
+    defaultPreset: "none",
   };
 
   const mockOnClose = jest.fn();
@@ -45,22 +55,49 @@ describe("SettingsDialog", () => {
   });
 
   it("should not render when isOpen is false", () => {
-    const { container } = render(<SettingsDialog config={mockConfig} isOpen={false} onClose={mockOnClose} onSave={mockOnSave} />);
+    const { container } = render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={false}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     expect(container.firstChild).toBeNull();
   });
 
   it("should render when isOpen is true", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     expect(screen.getByText("Settings")).toBeInTheDocument();
   });
 
   it("should initialize with config values", async () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     await waitFor(() => {
       expect(screen.getByDisplayValue("Default context")).toBeInTheDocument();
     });
+
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
+
     expect(screen.getByDisplayValue("10")).toBeInTheDocument();
-    const mediaTypeSelect = screen.getByLabelText("Media Type") as HTMLSelectElement;
+    const mediaTypeSelect = screen.getByLabelText(
+      "Media Type",
+    ) as HTMLSelectElement;
     expect(mediaTypeSelect.value).toBe("video");
   });
 
@@ -72,14 +109,29 @@ describe("SettingsDialog", () => {
       success: true,
     };
 
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        detectedSettings={detectedSettings}
+      />,
+    );
+
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
 
     await waitFor(() => {
       expect(screen.getByText("Using detected settings")).toBeInTheDocument();
     });
-    const mediaTypeSelect = screen.getByLabelText("Media Type") as HTMLSelectElement;
+    const mediaTypeSelect = screen.getByLabelText(
+      "Media Type",
+    ) as HTMLSelectElement;
     expect(mediaTypeSelect.value).toBe("image");
-    const variationsSelect = screen.getByLabelText("Variations") as HTMLSelectElement;
+    const variationsSelect = screen.getByLabelText(
+      "Variations",
+    ) as HTMLSelectElement;
     expect(variationsSelect.value).toBe("4");
   });
 
@@ -91,7 +143,15 @@ describe("SettingsDialog", () => {
       success: true,
     };
 
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        detectedSettings={detectedSettings}
+      />,
+    );
 
     expect(screen.getAllByText("Detected")[0]).toBeInTheDocument();
   });
@@ -105,7 +165,13 @@ describe("SettingsDialog", () => {
     };
 
     const { container } = render(
-      <SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        detectedSettings={detectedSettings}
+      />,
     );
 
     // Find the Sora Generation Settings card by finding the title and then its parent card
@@ -120,7 +186,14 @@ describe("SettingsDialog", () => {
   });
 
   it("should validate min delay", async () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const minDelayInput = screen.getByLabelText("Min Delay (seconds)");
     fireEvent.change(minDelayInput, { target: { value: "1" } });
     const form = minDelayInput.closest("form");
@@ -130,14 +203,23 @@ describe("SettingsDialog", () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText(/Min delay must be between 2-60 seconds/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Min delay must be between 2-60 seconds/i),
+        ).toBeInTheDocument();
       },
-      { timeout: 2000 }
+      { timeout: 2000 },
     );
   });
 
   it("should validate max delay", async () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
     fireEvent.change(maxDelayInput, { target: { value: "1" } });
     const form = maxDelayInput.closest("form");
@@ -149,12 +231,19 @@ describe("SettingsDialog", () => {
       () => {
         expect(screen.getByText(/Max delay must be/i)).toBeInTheDocument();
       },
-      { timeout: 2000 }
+      { timeout: 2000 },
     );
   });
 
   it("should validate batch size", async () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const batchSizeInput = screen.getByLabelText("Batch Size");
     fireEvent.change(batchSizeInput, { target: { value: "101" } });
     const form = batchSizeInput.closest("form");
@@ -164,15 +253,24 @@ describe("SettingsDialog", () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText(/Batch size must be between 1-100/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Batch size must be between 1-100/i),
+        ).toBeInTheDocument();
       },
-      { timeout: 2000 }
+      { timeout: 2000 },
     );
   });
 
   it("should call onSave when form is submitted", async () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
+
     fireEvent.click(screen.getByText("Save Settings"));
 
     await waitFor(() => {
@@ -181,29 +279,53 @@ describe("SettingsDialog", () => {
   });
 
   it("should show success message after saving", async () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
+
     await act(async () => {
       fireEvent.click(screen.getByText("Save Settings"));
       await Promise.resolve(); // Wait for onSave to resolve
     });
 
-    await waitFor(() => {
-      expect(screen.getByText("Settings saved successfully!")).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText("Settings saved successfully!"),
+        ).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
   });
 
   it("should close dialog after successful save", async () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
+
     await act(async () => {
       fireEvent.click(screen.getByText("Save Settings"));
       await Promise.resolve(); // Wait for onSave to resolve
     });
 
-    await waitFor(() => {
-      expect(screen.getByText("Settings saved successfully!")).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText("Settings saved successfully!"),
+        ).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
 
     await act(async () => {
       jest.advanceTimersByTime(1000);
@@ -216,48 +338,97 @@ describe("SettingsDialog", () => {
   });
 
   it("should call onClose when cancel is clicked", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     fireEvent.click(screen.getByText("Cancel"));
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   it("should update form fields", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const batchSizeInput = screen.getByLabelText("Batch Size");
     fireEvent.change(batchSizeInput, { target: { value: "20" } });
     expect((batchSizeInput as HTMLInputElement).value).toBe("20");
   });
 
   it("should handle useSecretPrompt checkbox", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const checkbox = screen.getByLabelText(/Enhanced Prompts/);
     fireEvent.click(checkbox);
     expect((checkbox as HTMLInputElement).checked).toBe(true);
   });
 
   it("should handle autoRun checkbox", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const checkbox = screen.getByLabelText(/Auto-start Queue/);
     fireEvent.click(checkbox);
     expect((checkbox as HTMLInputElement).checked).toBe(true);
   });
 
   it("should handle autoGenerateOnEmpty checkbox", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const checkbox = screen.getByLabelText(/Auto-generate on Empty Queue/);
     fireEvent.click(checkbox);
     expect((checkbox as HTMLInputElement).checked).toBe(true);
   });
 
   it("should handle autoGenerateOnReceived checkbox", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const checkbox = screen.getByLabelText(/Auto-generate on Prompt Received/);
     fireEvent.click(checkbox);
     expect((checkbox as HTMLInputElement).checked).toBe(true);
   });
 
   it("should display section headers correctly", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     expect(screen.getByText("API Configuration")).toBeInTheDocument();
     expect(screen.getByText("Sora Generation Settings")).toBeInTheDocument();
     expect(screen.getByText("Queue Processing Settings")).toBeInTheDocument();
@@ -265,32 +436,59 @@ describe("SettingsDialog", () => {
 
   it("should handle error when onSave throws", async () => {
     const errorOnSave = jest.fn().mockRejectedValue(new Error("Save failed"));
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={errorOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={errorOnSave}
+      />,
+    );
 
     await act(async () => {
       fireEvent.click(screen.getByText("Save Settings"));
     });
 
-    await waitFor(() => {
-      expect(screen.getByText("Save failed")).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Save failed")).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
   });
 
   it("should handle non-Error exceptions", async () => {
     const errorOnSave = jest.fn().mockRejectedValue("String error");
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={errorOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={errorOnSave}
+      />,
+    );
 
     await act(async () => {
       fireEvent.click(screen.getByText("Save Settings"));
     });
 
-    await waitFor(() => {
-      expect(screen.getByText("Failed to save settings")).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Failed to save settings")).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
   });
 
   it("should close dialog when backdrop is clicked", () => {
-    const { container } = render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    const { container } = render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
 
     const backdrop = container.querySelector(".fixed.inset-0");
     expect(backdrop).toBeInTheDocument();
@@ -302,8 +500,19 @@ describe("SettingsDialog", () => {
   });
 
   it("should not close dialog when backdrop is clicked while loading", async () => {
-    const slowSave = jest.fn().mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
-    const { container } = render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={slowSave} />);
+    const slowSave = jest
+      .fn()
+      .mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
+      );
+    const { container } = render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={slowSave}
+      />,
+    );
 
     // Start saving to set loading state
     fireEvent.click(screen.getByText("Save Settings"));
@@ -324,7 +533,14 @@ describe("SettingsDialog", () => {
   });
 
   it("should not close dialog when clicking inside the card", () => {
-    const { container } = render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    const { container } = render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
 
     const card = container.querySelector(".rounded-lg.border");
     expect(card).toBeInTheDocument();
@@ -338,60 +554,129 @@ describe("SettingsDialog", () => {
   });
 
   it("should update apiKey field", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const apiKeyInput = screen.getByLabelText("API Key");
     fireEvent.change(apiKeyInput, { target: { value: "sk-new-key" } });
     expect((apiKeyInput as HTMLInputElement).value).toBe("sk-new-key");
   });
 
   it("should update contextPrompt field", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const contextInput = screen.getByLabelText("Default Context Prompt");
     fireEvent.change(contextInput, { target: { value: "New context prompt" } });
-    expect((contextInput as HTMLTextAreaElement).value).toBe("New context prompt");
+    expect((contextInput as HTMLTextAreaElement).value).toBe(
+      "New context prompt",
+    );
   });
 
   it("should update mediaType field", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    const mediaTypeSelect = screen.getByLabelText("Media Type") as HTMLSelectElement;
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
+    const mediaTypeSelect = screen.getByLabelText(
+      "Media Type",
+    ) as HTMLSelectElement;
     fireEvent.change(mediaTypeSelect, { target: { value: "image" } });
     expect(mediaTypeSelect.value).toBe("image");
   });
 
   it("should update variationCount field", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
-    const variationSelect = screen.getByLabelText("Variations") as HTMLSelectElement;
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
+    const variationSelect = screen.getByLabelText(
+      "Variations",
+    ) as HTMLSelectElement;
     fireEvent.change(variationSelect, { target: { value: "4" } });
     expect(variationSelect.value).toBe("4");
   });
 
   it("should update minDelayMs field", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const minDelayInput = screen.getByLabelText("Min Delay (seconds)");
     fireEvent.change(minDelayInput, { target: { value: "5" } });
     expect((minDelayInput as HTMLInputElement).value).toBe("5");
   });
 
   it("should update maxDelayMs field", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
     fireEvent.change(maxDelayInput, { target: { value: "10" } });
     expect((maxDelayInput as HTMLInputElement).value).toBe("10");
   });
 
   it("should reset form data when dialog opens", () => {
-    const { rerender } = render(<SettingsDialog config={mockConfig} isOpen={false} onClose={mockOnClose} onSave={mockOnSave} />);
+    const { rerender } = render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={false}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
 
     expect(screen.queryByText("Settings")).not.toBeInTheDocument();
 
-    rerender(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    rerender(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
 
     expect(screen.getByText("Settings")).toBeInTheDocument();
     expect(screen.getByDisplayValue("Default context")).toBeInTheDocument();
   });
 
   it("should update form data when config changes", () => {
-    const { rerender } = render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    const { rerender } = render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
 
     const newConfig: PromptConfig = {
       ...mockConfig,
@@ -399,14 +684,28 @@ describe("SettingsDialog", () => {
       batchSize: 20,
     };
 
-    rerender(<SettingsDialog config={newConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    rerender(
+      <SettingsDialog
+        config={newConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
 
     expect(screen.getByDisplayValue("Updated context")).toBeInTheDocument();
     expect(screen.getByDisplayValue("20")).toBeInTheDocument();
   });
 
   it("should apply detected settings when they change", () => {
-    const { rerender } = render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    const { rerender } = render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
 
     const detectedSettings: DetectedSettings = {
       mediaType: "image",
@@ -415,11 +714,23 @@ describe("SettingsDialog", () => {
       success: true,
     };
 
-    rerender(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
+    rerender(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        detectedSettings={detectedSettings}
+      />,
+    );
 
-    const mediaTypeSelect = screen.getByLabelText("Media Type") as HTMLSelectElement;
+    const mediaTypeSelect = screen.getByLabelText(
+      "Media Type",
+    ) as HTMLSelectElement;
     expect(mediaTypeSelect.value).toBe("image");
-    const variationSelect = screen.getByLabelText("Variations") as HTMLSelectElement;
+    const variationSelect = screen.getByLabelText(
+      "Variations",
+    ) as HTMLSelectElement;
     expect(variationSelect.value).toBe("4");
   });
 
@@ -431,15 +742,36 @@ describe("SettingsDialog", () => {
       success: false,
     };
 
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        detectedSettings={detectedSettings}
+      />,
+    );
 
-    expect(screen.queryByText("Using detected settings")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Using detected settings"),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText("Detected")).not.toBeInTheDocument();
   });
 
   it("should disable all inputs when loading", async () => {
-    const slowSave = jest.fn().mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={slowSave} />);
+    const slowSave = jest
+      .fn()
+      .mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100)),
+      );
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={slowSave}
+      />,
+    );
 
     fireEvent.click(screen.getByText("Save Settings"));
 
@@ -450,7 +782,14 @@ describe("SettingsDialog", () => {
   });
 
   it("should validate max delay is greater than min delay", async () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const minDelayInput = screen.getByLabelText("Min Delay (seconds)");
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
 
@@ -464,14 +803,23 @@ describe("SettingsDialog", () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText(/Max delay must be >= min delay/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Max delay must be >= min delay/i),
+        ).toBeInTheDocument();
       },
-      { timeout: 2000 }
+      { timeout: 2000 },
     );
   });
 
   it("should validate max delay is not greater than 60 seconds", async () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
 
     fireEvent.change(maxDelayInput, { target: { value: "61" } });
@@ -485,7 +833,7 @@ describe("SettingsDialog", () => {
       () => {
         expect(screen.getByText(/Max delay must be/i)).toBeInTheDocument();
       },
-      { timeout: 2000 }
+      { timeout: 2000 },
     );
   });
 
@@ -495,13 +843,27 @@ describe("SettingsDialog", () => {
       apiKey: "",
     };
 
-    render(<SettingsDialog config={configWithoutKey} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={configWithoutKey}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const apiKeyInput = screen.getByLabelText("API Key");
     expect((apiKeyInput as HTMLInputElement).value).toBe("");
   });
 
   it("should display all form sections with proper labels", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
 
     expect(screen.getByText("API Key")).toBeInTheDocument();
     expect(screen.getByText("Default Context Prompt")).toBeInTheDocument();
@@ -521,7 +883,15 @@ describe("SettingsDialog", () => {
       success: true,
     };
 
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        detectedSettings={detectedSettings}
+      />,
+    );
 
     expect(screen.getByText("Using detected settings")).toBeInTheDocument();
   });
@@ -534,13 +904,28 @@ describe("SettingsDialog", () => {
       success: true,
     };
 
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} detectedSettings={detectedSettings} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        detectedSettings={detectedSettings}
+      />,
+    );
 
     expect(screen.getByText("Using detected settings")).toBeInTheDocument();
   });
 
   it("should handle empty batch size input with fallback to 1", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const batchSizeInput = screen.getByLabelText("Batch Size");
 
     // Clear the input
@@ -560,7 +945,14 @@ describe("SettingsDialog", () => {
   });
 
   it("should handle empty min delay input with fallback to 2", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const minDelayInput = screen.getByLabelText("Min Delay (seconds)");
 
     // Set invalid value
@@ -574,7 +966,14 @@ describe("SettingsDialog", () => {
   });
 
   it("should handle empty max delay input with fallback to 5", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
 
     // Set invalid value
@@ -588,7 +987,18 @@ describe("SettingsDialog", () => {
   });
 
   it("should handle batch size with invalid input", () => {
-    render(<SettingsDialog config={mockConfig} isOpen={true} onClose={mockOnClose} onSave={mockOnSave} />);
+    render(
+      <SettingsDialog
+        config={mockConfig}
+        isOpen={true}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+      />,
+    );
+
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
+
     const batchSizeInput = screen.getByLabelText("Batch Size");
 
     // Set invalid value that will result in NaN

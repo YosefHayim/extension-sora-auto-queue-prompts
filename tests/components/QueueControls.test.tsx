@@ -16,7 +16,9 @@ describe("QueueControls", () => {
     jest.clearAllMocks();
   });
 
-  const createQueueState = (overrides: Partial<QueueState> = {}): QueueState => ({
+  const createQueueState = (
+    overrides: Partial<QueueState> = {},
+  ): QueueState => ({
     isRunning: false,
     isPaused: false,
     currentPromptId: null,
@@ -27,15 +29,38 @@ describe("QueueControls", () => {
 
   it("should render stopped state", () => {
     const queueState = createQueueState({ isRunning: false });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     expect(screen.getByText(/0 \/ 10 prompts/)).toBeInTheDocument();
     expect(screen.getByText("Start")).toBeInTheDocument();
   });
 
   it("should render running state", () => {
-    const queueState = createQueueState({ isRunning: true, isPaused: false, processedCount: 3, totalCount: 10 });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    const queueState = createQueueState({
+      isRunning: true,
+      isPaused: false,
+      processedCount: 3,
+      totalCount: 10,
+    });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     expect(screen.getByText(/3 \/ 10 prompts/)).toBeInTheDocument();
     expect(screen.getByText("Pause")).toBeInTheDocument();
@@ -43,8 +68,22 @@ describe("QueueControls", () => {
   });
 
   it("should render paused state", () => {
-    const queueState = createQueueState({ isRunning: true, isPaused: true, processedCount: 3, totalCount: 10 });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    const queueState = createQueueState({
+      isRunning: true,
+      isPaused: true,
+      processedCount: 3,
+      totalCount: 10,
+    });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     expect(screen.getByText(/3 \/ 10 prompts/)).toBeInTheDocument();
     expect(screen.getByText("Resume")).toBeInTheDocument();
@@ -52,29 +91,77 @@ describe("QueueControls", () => {
   });
 
   it("should display progress count", () => {
-    const queueState = createQueueState({ isRunning: true, processedCount: 3, totalCount: 10 });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    const queueState = createQueueState({
+      isRunning: true,
+      processedCount: 3,
+      totalCount: 10,
+    });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     expect(screen.getByText(/3 \/ 10 prompts/)).toBeInTheDocument();
   });
 
   it("should display progress percentage", () => {
-    const queueState = createQueueState({ isRunning: true, processedCount: 5, totalCount: 10 });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    const queueState = createQueueState({
+      isRunning: true,
+      processedCount: 5,
+      totalCount: 10,
+    });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     expect(screen.getByText("50% complete")).toBeInTheDocument();
   });
 
   it("should display remaining count", () => {
-    const queueState = createQueueState({ isRunning: true, processedCount: 3, totalCount: 10 });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    const queueState = createQueueState({
+      isRunning: true,
+      processedCount: 3,
+      totalCount: 10,
+    });
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     expect(screen.getByText("7 remaining")).toBeInTheDocument();
   });
 
   it("should call onStart when start button is clicked", () => {
     const queueState = createQueueState({ isRunning: false });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     fireEvent.click(screen.getByText("Start"));
     expect(mockOnStart).toHaveBeenCalledTimes(1);
@@ -82,7 +169,16 @@ describe("QueueControls", () => {
 
   it("should call onPause when pause button is clicked", () => {
     const queueState = createQueueState({ isRunning: true, isPaused: false });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     fireEvent.click(screen.getByText("Pause"));
     expect(mockOnPause).toHaveBeenCalledTimes(1);
@@ -90,7 +186,16 @@ describe("QueueControls", () => {
 
   it("should call onResume when resume button is clicked", () => {
     const queueState = createQueueState({ isRunning: true, isPaused: true });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     fireEvent.click(screen.getByText("Resume"));
     expect(mockOnResume).toHaveBeenCalledTimes(1);
@@ -98,7 +203,16 @@ describe("QueueControls", () => {
 
   it("should call onStop when stop button is clicked", () => {
     const queueState = createQueueState({ isRunning: true });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     fireEvent.click(screen.getByText("Stop"));
     expect(mockOnStop).toHaveBeenCalledTimes(1);
@@ -107,7 +221,14 @@ describe("QueueControls", () => {
   it("should show progress bar when running", () => {
     const queueState = createQueueState({ isRunning: true, totalCount: 10 });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Check for progress-related text or elements
@@ -118,7 +239,14 @@ describe("QueueControls", () => {
   it("should not show progress bar when stopped", () => {
     const queueState = createQueueState({ isRunning: false });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     const progressBar = container.querySelector('[role="progressbar"]');
@@ -133,7 +261,14 @@ describe("QueueControls", () => {
       queueStartTime,
     });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Timer should be visible - look for Timer icon (lucide-react icon)
@@ -149,7 +284,14 @@ describe("QueueControls", () => {
       queueStartTime,
     });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Timer should not be visible when paused
@@ -163,7 +305,14 @@ describe("QueueControls", () => {
       queueStartTime: Date.now() - 5000,
     });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Timer should not be visible when stopped
@@ -173,7 +322,16 @@ describe("QueueControls", () => {
 
   it("should handle zero total count", () => {
     const queueState = createQueueState({ isRunning: false });
-    render(<QueueControls queueState={queueState} totalCount={0} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={0}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     expect(screen.getByText(/0 \/ 0 prompts/)).toBeInTheDocument();
   });
@@ -184,7 +342,16 @@ describe("QueueControls", () => {
       processedCount: 7,
       totalCount: 10,
     });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     expect(screen.getByText("70% complete")).toBeInTheDocument();
     expect(screen.getByText("3 remaining")).toBeInTheDocument();
@@ -217,7 +384,7 @@ describe("QueueControls", () => {
         onPause={mockOnPause}
         onResume={mockOnResume}
         onStop={mockOnStop}
-      />
+      />,
     );
 
     // Should show 55% complete (5 completed + 0.5 from current prompt = 5.5/10 = 55%)
@@ -241,7 +408,7 @@ describe("QueueControls", () => {
         onPause={mockOnPause}
         onResume={mockOnResume}
         onStop={mockOnStop}
-      />
+      />,
     );
 
     // Should show 50% complete (5/10 = 50%)
@@ -273,7 +440,7 @@ describe("QueueControls", () => {
         onPause={mockOnPause}
         onResume={mockOnResume}
         onStop={mockOnStop}
-      />
+      />,
     );
 
     // Should show 50% complete (5/10 = 50%, no progress from pending prompt)
@@ -307,7 +474,7 @@ describe("QueueControls", () => {
         onPause={mockOnPause}
         onResume={mockOnResume}
         onStop={mockOnStop}
-      />
+      />,
     );
 
     // Should show 50% complete (5/10 = 50%, no progress value available)
@@ -316,7 +483,16 @@ describe("QueueControls", () => {
 
   it("should show hover card for start button", () => {
     const queueState = createQueueState({ isRunning: false });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     const startButton = screen.getByText("Start");
     expect(startButton).toBeInTheDocument();
@@ -324,7 +500,16 @@ describe("QueueControls", () => {
 
   it("should show hover card for pause button", () => {
     const queueState = createQueueState({ isRunning: true, isPaused: false });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     const pauseButton = screen.getByText("Pause");
     expect(pauseButton).toBeInTheDocument();
@@ -332,7 +517,16 @@ describe("QueueControls", () => {
 
   it("should show hover card for resume button", () => {
     const queueState = createQueueState({ isRunning: true, isPaused: true });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     const resumeButton = screen.getByText("Resume");
     expect(resumeButton).toBeInTheDocument();
@@ -340,7 +534,16 @@ describe("QueueControls", () => {
 
   it("should show hover card for stop button", () => {
     const queueState = createQueueState({ isRunning: true });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     const stopButton = screen.getByText("Stop");
     expect(stopButton).toBeInTheDocument();
@@ -348,7 +551,16 @@ describe("QueueControls", () => {
 
   it("should toggle collapse state", () => {
     const queueState = createQueueState({ isRunning: false });
-    render(<QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />);
+    render(
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
+    );
 
     const toggleButton = screen.getByTitle("Collapse");
     expect(toggleButton).toBeInTheDocument();
@@ -371,7 +583,7 @@ describe("QueueControls", () => {
         onCleanCompletedAndFailed={mockOnCleanCompletedAndFailed}
         completedCount={3}
         failedCount={2}
-      />
+      />,
     );
 
     const cleanButton = screen.getByText("Clean");
@@ -391,7 +603,7 @@ describe("QueueControls", () => {
         onCleanCompletedAndFailed={mockOnCleanCompletedAndFailed}
         completedCount={0}
         failedCount={0}
-      />
+      />,
     );
 
     const cleanButton = screen.queryByText("Clean");
@@ -411,7 +623,7 @@ describe("QueueControls", () => {
         onCleanCompletedAndFailed={mockOnCleanCompletedAndFailed}
         completedCount={3}
         failedCount={2}
-      />
+      />,
     );
 
     const cleanButton = screen.getByText("Clean");
@@ -422,7 +634,14 @@ describe("QueueControls", () => {
   it("should hide progress bar when collapsed", () => {
     const queueState = createQueueState({ isRunning: true, totalCount: 10 });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     const toggleButton = screen.getByTitle("Collapse");
@@ -435,7 +654,14 @@ describe("QueueControls", () => {
   it("should display stopped status icon", () => {
     const queueState = createQueueState({ isRunning: false });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Check for status icon (should be stop icon for stopped state)
@@ -447,7 +673,14 @@ describe("QueueControls", () => {
   it("should display running status icon", () => {
     const queueState = createQueueState({ isRunning: true, isPaused: false });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Check for status icon (should be play icon for running state)
@@ -458,7 +691,14 @@ describe("QueueControls", () => {
   it("should display paused status icon", () => {
     const queueState = createQueueState({ isRunning: true, isPaused: true });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Check for status icon (should be pause icon for paused state)
@@ -469,7 +709,14 @@ describe("QueueControls", () => {
   it("should show status icon with hover tooltip when stopped", async () => {
     const queueState = createQueueState({ isRunning: false });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Verify the status icon is present (stop icon for stopped state)
@@ -481,7 +728,14 @@ describe("QueueControls", () => {
   it("should show status icon with hover tooltip when running", async () => {
     const queueState = createQueueState({ isRunning: true, isPaused: false });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Verify the status icon is present (play icon for running state)
@@ -492,11 +746,157 @@ describe("QueueControls", () => {
   it("should show status icon with hover tooltip when paused", async () => {
     const queueState = createQueueState({ isRunning: true, isPaused: true });
     const { container } = render(
-      <QueueControls queueState={queueState} totalCount={10} onStart={mockOnStart} onPause={mockOnPause} onResume={mockOnResume} onStop={mockOnStop} />
+      <QueueControls
+        queueState={queueState}
+        totalCount={10}
+        onStart={mockOnStart}
+        onPause={mockOnPause}
+        onResume={mockOnResume}
+        onStop={mockOnStop}
+      />,
     );
 
     // Verify the status icon is present (pause icon for paused state)
     const statusIconContainer = container.querySelector(".cursor-help");
     expect(statusIconContainer).toBeInTheDocument();
+  });
+
+  describe("Add Prompts Button", () => {
+    const mockOnAddPrompts = jest.fn();
+
+    beforeEach(() => {
+      mockOnAddPrompts.mockClear();
+    });
+
+    it("should render Add button when onAddPrompts is provided", () => {
+      const queueState = createQueueState({ isRunning: false });
+      render(
+        <QueueControls
+          queueState={queueState}
+          totalCount={10}
+          onStart={mockOnStart}
+          onPause={mockOnPause}
+          onResume={mockOnResume}
+          onStop={mockOnStop}
+          onAddPrompts={mockOnAddPrompts}
+        />,
+      );
+
+      const addButton = screen.getByText("Add");
+      expect(addButton).toBeInTheDocument();
+    });
+
+    it("should not render Add button when onAddPrompts is not provided", () => {
+      const queueState = createQueueState({ isRunning: false });
+      render(
+        <QueueControls
+          queueState={queueState}
+          totalCount={10}
+          onStart={mockOnStart}
+          onPause={mockOnPause}
+          onResume={mockOnResume}
+          onStop={mockOnStop}
+        />,
+      );
+
+      const addButton = screen.queryByText("Add");
+      expect(addButton).not.toBeInTheDocument();
+    });
+
+    it("should call onAddPrompts when Add button is clicked", () => {
+      const queueState = createQueueState({ isRunning: false });
+      render(
+        <QueueControls
+          queueState={queueState}
+          totalCount={10}
+          onStart={mockOnStart}
+          onPause={mockOnPause}
+          onResume={mockOnResume}
+          onStop={mockOnStop}
+          onAddPrompts={mockOnAddPrompts}
+        />,
+      );
+
+      const addButton = screen.getByText("Add");
+      fireEvent.click(addButton);
+      expect(mockOnAddPrompts).toHaveBeenCalledTimes(1);
+    });
+
+    it("should show Add button when queue is running", () => {
+      const queueState = createQueueState({ isRunning: true, isPaused: false });
+      render(
+        <QueueControls
+          queueState={queueState}
+          totalCount={10}
+          onStart={mockOnStart}
+          onPause={mockOnPause}
+          onResume={mockOnResume}
+          onStop={mockOnStop}
+          onAddPrompts={mockOnAddPrompts}
+        />,
+      );
+
+      const addButton = screen.getByText("Add");
+      expect(addButton).toBeInTheDocument();
+    });
+
+    it("should show Add button when queue is paused", () => {
+      const queueState = createQueueState({ isRunning: true, isPaused: true });
+      render(
+        <QueueControls
+          queueState={queueState}
+          totalCount={10}
+          onStart={mockOnStart}
+          onPause={mockOnPause}
+          onResume={mockOnResume}
+          onStop={mockOnStop}
+          onAddPrompts={mockOnAddPrompts}
+        />,
+      );
+
+      const addButton = screen.getByText("Add");
+      expect(addButton).toBeInTheDocument();
+    });
+
+    it("should hide Add button when collapsed", () => {
+      const queueState = createQueueState({ isRunning: false });
+      render(
+        <QueueControls
+          queueState={queueState}
+          totalCount={10}
+          onStart={mockOnStart}
+          onPause={mockOnPause}
+          onResume={mockOnResume}
+          onStop={mockOnStop}
+          onAddPrompts={mockOnAddPrompts}
+        />,
+      );
+
+      expect(screen.getByText("Add")).toBeInTheDocument();
+
+      const toggleButton = screen.getByTitle("Collapse");
+      fireEvent.click(toggleButton);
+
+      expect(screen.queryByText("Add")).not.toBeInTheDocument();
+    });
+
+    it("should show Add button with min-width styling", () => {
+      const queueState = createQueueState({ isRunning: false });
+      render(
+        <QueueControls
+          queueState={queueState}
+          totalCount={10}
+          onStart={mockOnStart}
+          onPause={mockOnPause}
+          onResume={mockOnResume}
+          onStop={mockOnStop}
+          onAddPrompts={mockOnAddPrompts}
+        />,
+      );
+
+      const addButton = screen.getByText("Add").closest("button");
+      expect(addButton).toBeInTheDocument();
+      expect(addButton).toHaveClass("min-w-[80px]");
+    });
   });
 });

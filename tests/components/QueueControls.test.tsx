@@ -11,6 +11,7 @@ describe("QueueControls", () => {
   const mockOnResume = jest.fn();
   const mockOnStop = jest.fn();
   const mockOnCleanCompletedAndFailed = jest.fn();
+  const mockOnAddPrompts = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();

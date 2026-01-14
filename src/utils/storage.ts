@@ -3,6 +3,7 @@ import type {
   PromptConfig,
   QueueInsertOptions,
   QueueState,
+  RateLimitState,
   SoraPreset,
 } from "../types";
 
@@ -35,6 +36,10 @@ const DEFAULT_QUEUE_STATE: QueueState = {
   currentPromptId: null,
   processedCount: 0,
   totalCount: 0,
+};
+
+const DEFAULT_RATE_LIMIT_STATE: RateLimitState = {
+  isLimited: false,
 };
 
 export const storage = {
@@ -302,5 +307,23 @@ export const storage = {
       p.id === promptId ? { ...p, preset } : p,
     );
     await this.setPrompts(updatedPrompts);
+  },
+
+  async getRateLimitState(): Promise<RateLimitState> {
+    const result = await chrome.storage.local.get("rateLimitState");
+    return result.rateLimitState || DEFAULT_RATE_LIMIT_STATE;
+  },
+
+  async setRateLimitState(state: Partial<RateLimitState>): Promise<void> {
+    const currentState = await this.getRateLimitState();
+    await chrome.storage.local.set({
+      rateLimitState: { ...currentState, ...state },
+    });
+  },
+
+  async clearRateLimitState(): Promise<void> {
+    await chrome.storage.local.set({
+      rateLimitState: DEFAULT_RATE_LIMIT_STATE,
+    });
   },
 };

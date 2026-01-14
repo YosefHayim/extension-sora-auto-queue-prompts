@@ -17,6 +17,7 @@ import {
   FaExclamationCircle,
   FaFolder,
   FaGoogle,
+  FaImages,
   FaKey,
   FaMagic,
   FaPlayCircle,
@@ -45,6 +46,15 @@ interface SettingsDialogProps {
   detectedSettings?: DetectedSettings | null;
   showOnly?: "api" | "generation" | "all";
   embedded?: boolean;
+  onBulkDownload?: () => Promise<void>;
+  bulkDownloading?: boolean;
+  bulkDownloadResult?: {
+    success: boolean;
+    successCount?: number;
+    failCount?: number;
+    totalCount?: number;
+    error?: string;
+  } | null;
 }
 
 export function SettingsDialog({
@@ -55,6 +65,9 @@ export function SettingsDialog({
   detectedSettings,
   showOnly = "all",
   embedded = false,
+  onBulkDownload,
+  bulkDownloading = false,
+  bulkDownloadResult,
 }: SettingsDialogProps) {
   const [formData, setFormData] = React.useState<PromptConfig>(config);
   const [loading, setLoading] = React.useState(false);
@@ -187,12 +200,6 @@ export function SettingsDialog({
         }
         await onSave(updates);
         log.ui.action("SettingsDialog:AutoSaveApiKey:Success");
-
-        toast({
-          title: "API key verified and saved",
-          description: "Your API key has been verified and saved successfully.",
-          duration: 3000,
-        });
       } else {
         setError(result.error || "API key verification failed");
         log.ui.error("SettingsDialog:AutoVerifyApiKey:Failed", result.error);
@@ -662,7 +669,6 @@ export function SettingsDialog({
 
   const DownloadTabContent = (
     <div className="space-y-4">
-      {/* Auto-download Toggle */}
       <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
         <input
           type="checkbox"
@@ -685,7 +691,6 @@ export function SettingsDialog({
         </div>
       </div>
 
-      {/* Download Subfolder */}
       <div className="space-y-2">
         <Label htmlFor="downloadSubfolder">Download Location</Label>
         <div className="flex items-center gap-2">
@@ -706,7 +711,6 @@ export function SettingsDialog({
         </p>
       </div>
 
-      {/* Prompt for Location Toggle */}
       <div className="space-y-2">
         <Label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -725,6 +729,49 @@ export function SettingsDialog({
           setting)
         </p>
       </div>
+
+      {onBulkDownload && (
+        <div className="pt-2 border-t border-border">
+          <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+            <div className="flex items-center gap-2">
+              <FaImages className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-sm font-medium">Bulk Download</p>
+                <p className="text-xs text-muted-foreground">
+                  Download all media from your Sora library
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onBulkDownload}
+              disabled={bulkDownloading || loading}
+              className="gap-1.5"
+            >
+              {bulkDownloading ? (
+                <FaSpinner className="h-3 w-3 animate-spin" />
+              ) : (
+                <FaDownload className="h-3 w-3" />
+              )}
+              {bulkDownloading ? "Downloading..." : "Download All"}
+            </Button>
+          </div>
+          {bulkDownloadResult && (
+            <div
+              className={`mt-2 text-xs p-2 rounded ${
+                bulkDownloadResult.success
+                  ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                  : "bg-destructive/10 text-destructive"
+              }`}
+            >
+              {bulkDownloadResult.success
+                ? `${bulkDownloadResult.successCount}/${bulkDownloadResult.totalCount} files downloaded`
+                : bulkDownloadResult.error}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 

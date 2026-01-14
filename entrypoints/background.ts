@@ -502,35 +502,43 @@ export default defineBackground(() => {
             return await handleSetMediaType(request.data.mediaType);
 
           case "rateLimitReached":
-            // Handle rate limit notification from content script
             logger.error("background", "Rate limit reached - stopping queue", {
               error: request.error,
               details: request.details,
+              resetAt: request.resetAt,
+              remainingCredits: request.remainingCredits,
+              maxCredits: request.maxCredits,
             });
 
-            // Stop the queue
             await storage.setQueueState({
               isRunning: false,
               isPaused: false,
               currentPromptId: null,
             });
 
-            // Update badge to indicate error
+            await storage.setRateLimitState({
+              isLimited: true,
+              resetAt: request.resetAt,
+              message: request.error,
+              remainingCredits: request.remainingCredits,
+              maxCredits: request.maxCredits,
+              detectedAt: Date.now(),
+            });
+
             await chrome.action.setBadgeText({ text: "!" });
             await chrome.action.setBadgeBackgroundColor({ color: "#EF4444" });
 
-            // Send notification
             try {
+              const resetMessage = request.resetAt
+                ? ` Resets at ${new Date(request.resetAt).toLocaleTimeString()}.`
+                : "";
               await chrome.notifications.create({
                 type: "basic",
                 iconUrl: "icon128.png",
                 title: "Sora Queue - Rate Limit Reached",
-                message:
-                  request.error ||
-                  "You have reached the daily limit. Queue has been stopped.",
+                message: `${request.error || "You have reached the daily limit."}${resetMessage}`,
               });
             } catch (notifError) {
-              // Notifications might not be available
               logger.warn(
                 "background",
                 "Could not show notification",
@@ -539,6 +547,17 @@ export default defineBackground(() => {
             }
 
             return { success: true, rateLimited: true };
+
+          case "getRateLimitState":
+            return {
+              success: true,
+              rateLimitState: await storage.getRateLimitState(),
+            };
+
+          case "clearRateLimitState":
+            await storage.clearRateLimitState();
+            await chrome.action.setBadgeText({ text: "" });
+            return { success: true };
 
           case "downloadMedia":
             return await handleDownloadMedia(request.data);

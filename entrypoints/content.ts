@@ -138,11 +138,15 @@ export default defineContentScript({
 
             if (errorCode === "too_many_daily_tasks") {
               this.log("error", "🚫 Rate limit reached - stopping queue");
+              const rateLimitInfo = data.rate_limit_and_credit_balance || {};
               chrome.runtime
                 .sendMessage({
                   action: "rateLimitReached",
                   error: errorMessage,
                   details: data.error.details,
+                  resetAt: rateLimitInfo.reset_at,
+                  remainingCredits: rateLimitInfo.remaining_credits,
+                  maxCredits: rateLimitInfo.max_credits,
                 })
                 .catch(() => {});
             }

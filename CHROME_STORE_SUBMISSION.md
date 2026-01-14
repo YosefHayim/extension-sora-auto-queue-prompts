@@ -27,6 +27,7 @@ Sora Auto Queue Prompts is a productivity extension that automates prompt genera
 
 NEW IN V2.5.0:
 • Side Panel UI - Persistent queue view while you work
+• Rate Limit Countdown - Know exactly when you can generate again
 • Preset System - Save and switch between generation styles
 • Onboarding Tour - Quick start guide for new users
 • Auto-Download - Automatically save generated media
@@ -53,6 +54,7 @@ KEY FEATURES:
 • Anti-detection with configurable random delays between submissions
 • Dual completion detection (API + DOM) for reliability
 • Smart rate limit detection with automatic queue pause
+• Rate limit countdown timer showing when you can generate again
 
 📥 Auto-Download
 • Automatically save generated images and videos when complete
@@ -279,6 +281,7 @@ All functionality is self-contained within the extension bundle.
 ```
 MAJOR NEW FEATURES:
 • Side Panel UI: New persistent side panel mode for queue visibility while working
+• Rate Limit Countdown: Real-time countdown showing when daily limit resets
 • Preset System: Save and load prompt configuration presets
 • Onboarding Tour: Interactive guided tour for new users
 • Batch Operations Panel: Manage multiple prompts at once
@@ -316,11 +319,19 @@ NO PERMISSION CHANGES - Same permissions as previous version.
 
 Prepare the following screenshots (1280x800 or 640x400):
 
-1. **Main Queue View** - Show the popup with prompts in queue
-2. **Generation Progress** - Show active generation with progress bar
-3. **Settings Dialog** - Show configuration options
-4. **Generate Dialog** - Show AI prompt generation interface
-5. **Completed Queue** - Show queue with completed prompts
+1. **Side Panel Queue View** - Show the side panel with prompts in queue (main differentiator)
+2. **Generation Progress** - Show active generation with progress bar and percentage
+3. **Rate Limit Countdown** - Show the countdown timer when daily limit is reached
+4. **Settings Dialog** - Show tabbed configuration options (General, API, Automation, Presets)
+5. **Batch Operations** - Show multiple prompts selected with batch action buttons
+6. **Auto-Download Notification** - Show media being downloaded automatically
+
+### Screenshot Best Practices
+
+- Use a clean Sora.com page in the background for context
+- Show actual prompts (not placeholder text)
+- Capture both light and dark mode if possible
+- Highlight unique features like side panel and rate limit countdown
 
 ---
 
@@ -340,13 +351,85 @@ https://github.com/YosefHayim/extension-sora-auto-queue-prompts/blob/main/PRIVAC
 
 ---
 
-## 10. CHECKLIST BEFORE SUBMISSION
+## 10. COMMON REJECTION REASONS TO AVOID
+
+### ⚠️ DataDog Host Permission
+
+The `browser-intake-datadoghq.com` permission may raise questions. Be prepared to:
+
+- Explain it's for completion detection only (30s silence = generation complete)
+- Emphasize no request content is read or modified
+- Point out the extension uses `onCompleted` only (not `onBeforeRequest`)
+
+### ⚠️ webRequest Permission
+
+This is a sensitive permission. Reviewers will check:
+
+- That you only observe, not modify requests
+- That it's necessary for core functionality (completion detection)
+- That justification is clear and specific
+
+### ✅ Single Purpose - PASS
+
+The extension has a clear single purpose: "Automate Sora AI prompt queue management"
+All features support this: queue management, prompt generation, auto-download, rate limit tracking.
+
+### ✅ No Remote Code - PASS
+
+All JavaScript is bundled locally. No eval(), no external script loading.
+
+### ✅ Privacy Policy - PASS
+
+Comprehensive privacy policy exists at PRIVACY-POLICY.md.
+
+---
+
+## 11. PROMOTIONAL ASSETS REQUIREMENTS
+
+| Asset               | Size                | Required                | Status            |
+| ------------------- | ------------------- | ----------------------- | ----------------- |
+| Extension Icon      | 128×128px           | Yes                     | ✅ `icon128.png`  |
+| Small Promo Tile    | 440×280px           | Yes                     | ❌ Need to create |
+| Screenshots (min 1) | 1280×800 or 640×400 | Yes                     | ❌ Need to create |
+| Marquee Promo       | 1400×560px          | No (featured placement) | Optional          |
+| Promotional Video   | YouTube URL         | No                      | Optional          |
+
+---
+
+## 12. CHECKLIST BEFORE SUBMISSION
+
+### Assets
+
+- [ ] Screenshots created (minimum 1, recommended 5)
+- [ ] Small promo tile created (440×280px PNG/JPEG)
+- [ ] All screenshots show real functionality (not mockups)
+
+### Code & Build
 
 - [ ] Version number updated in wxt.config.ts
+- [ ] `pnpm run build` completes successfully
+- [ ] `pnpm test` all tests pass
+- [ ] `pnpm exec tsc --noEmit` no TypeScript errors
+- [ ] ZIP package created: `pnpm wxt zip`
+
+### Documentation
+
 - [ ] PRIVACY-POLICY.md is current
-- [ ] All permissions have justifications ready
-- [ ] Screenshots are 1280x800 or 640x400
-- [ ] Extension tested on latest Chrome
-- [ ] npm run build completes successfully
-- [ ] All tests pass (npm test)
-- [ ] ZIP package created (npm run package)
+- [ ] CHANGELOG.md updated with new features
+- [ ] All permissions have justifications ready (see Section 2)
+- [ ] Host permissions have justifications ready (see Section 3)
+
+### Testing
+
+- [ ] Extension tested on latest Chrome stable
+- [ ] Side panel opens and functions correctly
+- [ ] Rate limit countdown displays properly
+- [ ] Auto-download works when enabled
+- [ ] All queue operations work (start, pause, resume, stop)
+
+### Privacy Dashboard Answers Ready
+
+- [ ] "Does your extension collect user data?" → No (local storage only)
+- [ ] Data types collected → None transmitted to developer servers
+- [ ] Third-party data sharing → Only user-configured services
+- [ ] All certification checkboxes can be selected

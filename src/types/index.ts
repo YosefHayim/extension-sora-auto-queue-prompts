@@ -80,6 +80,15 @@ export interface QueueState {
   queueStartTime?: number; // When queue started
 }
 
+export interface RateLimitState {
+  isLimited: boolean;
+  resetAt?: string; // ISO timestamp when limit resets
+  message?: string;
+  remainingCredits?: number;
+  maxCredits?: number;
+  detectedAt?: number; // When rate limit was detected (Unix timestamp)
+}
+
 export interface StorageData {
   config: PromptConfig;
   prompts: GeneratedPrompt[];

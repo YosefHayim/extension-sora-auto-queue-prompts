@@ -26,7 +26,10 @@ describe("Footer", () => {
     render(<Footer />);
     const linkedinLink = screen.getByLabelText("LinkedIn profile");
     expect(linkedinLink).toBeInTheDocument();
-    expect(linkedinLink).toHaveAttribute("href", "https://www.linkedin.com/in/yosef-hayim-sabag/");
+    expect(linkedinLink).toHaveAttribute(
+      "href",
+      "https://www.linkedin.com/in/yosef-hayim-sabag/",
+    );
     expect(linkedinLink).toHaveAttribute("target", "_blank");
     expect(linkedinLink).toHaveAttribute("rel", "noopener noreferrer");
   });
@@ -84,6 +87,38 @@ describe("Footer", () => {
     expect(footer).toHaveClass("flex", "flex-col");
 
     const versionText = screen.getByText(/^v\d+\.\d+\.\d+$/);
-    expect(versionText).toHaveClass("text-xs", "text-muted-foreground");
+    expect(versionText).toBeInTheDocument();
+    const parentDiv = versionText.closest("div");
+    expect(parentDiv).toHaveClass("text-xs");
+  });
+
+  it("should render Rate link for Chrome Web Store", () => {
+    render(<Footer />);
+    const rateLink = screen.getByLabelText("Rate on Chrome Web Store");
+    expect(rateLink).toBeInTheDocument();
+    expect(rateLink).toHaveAttribute(
+      "href",
+      "https://chromewebstore.google.com/detail/sora-auto-queue-prompts/kbpbdckjechbjmnjagfkgcplmhdkkgph",
+    );
+  });
+
+  it("should render Report Bug link", () => {
+    render(<Footer />);
+    const bugLink = screen.getByLabelText("Report a bug");
+    expect(bugLink).toBeInTheDocument();
+    expect(bugLink).toHaveAttribute(
+      "href",
+      "https://github.com/YosefHayim/extension-sora-auto-queue-prompts/issues",
+    );
+  });
+
+  it("should render Buy me a coffee link", () => {
+    render(<Footer />);
+    const coffeeLink = screen.getByLabelText("Buy me a coffee");
+    expect(coffeeLink).toBeInTheDocument();
+    expect(coffeeLink).toHaveAttribute(
+      "href",
+      "https://buymeacoffee.com/yosefhayim",
+    );
   });
 });

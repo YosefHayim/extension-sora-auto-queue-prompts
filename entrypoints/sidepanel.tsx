@@ -7,6 +7,7 @@ import type {
   GeneratedPrompt,
   PromptConfig,
   QueueState,
+  RateLimitState,
 } from "../src/types";
 import {
   DndContext,
@@ -19,11 +20,12 @@ import {
 import {
   FaCheckSquare,
   FaDownload,
-  FaImages,
+  FaEllipsisH,
   FaList,
   FaMoon,
   FaPlay,
   FaQuestion,
+  FaSort,
   FaSpinner,
   FaSquare,
   FaSun,
@@ -43,6 +45,14 @@ import {
 
 import { Button } from "../src/components/ui/button";
 import { CSVImportDialog } from "../src/components/CSVImportDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "../src/components/ui/dropdown-menu";
 import { EditPromptDialog } from "../src/components/EditPromptDialog";
 import { EmptyState } from "../src/components/EmptyState";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
@@ -53,6 +63,7 @@ import { GenerateDialog } from "../src/components/GenerateDialog";
 import { ManualAddDialog } from "../src/components/ManualAddDialog";
 import { OnboardingTour } from "../src/components/OnboardingTour";
 import { QueueControls } from "../src/components/QueueControls";
+import { RateLimitCountdown } from "../src/components/RateLimitCountdown";
 import ReactDOM from "react-dom/client";
 import { SearchBar } from "../src/components/SearchBar";
 import { SettingsDialog } from "../src/components/SettingsDialog";
@@ -60,7 +71,7 @@ import { SortablePromptCard } from "../src/components/SortablePromptCard";
 import { StatusBar } from "../src/components/StatusBar";
 import { Toaster } from "../src/components/ui/toaster";
 import { BatchOperationsPanel } from "../src/components/BatchOperationsPanel";
-import { QueueSortMenu, type SortType } from "../src/components/QueueSortMenu";
+import type { SortType } from "../src/components/QueueSortMenu";
 import { log } from "../src/utils/logger";
 import { storage } from "../src/utils/storage";
 
@@ -104,6 +115,9 @@ function SidePanel() {
   } | null>(null);
   const [currentSort, setCurrentSort] = React.useState<SortType | undefined>();
   const [showOnboarding, setShowOnboarding] = React.useState(false);
+  const [rateLimitState, setRateLimitState] = React.useState<RateLimitState>({
+    isLimited: false,
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -135,7 +149,12 @@ function SidePanel() {
     ) => {
       if (areaName !== "local") return;
 
-      const relevantKeys = ["config", "prompts", "queueState"];
+      const relevantKeys = [
+        "config",
+        "prompts",
+        "queueState",
+        "rateLimitState",
+      ];
       const hasRelevantChanges = relevantKeys.some((key) => key in changes);
 
       if (!hasRelevantChanges) return;
@@ -200,17 +219,31 @@ function SidePanel() {
 
   async function loadData() {
     try {
-      const [loadedConfig, loadedPrompts, loadedQueueState] = await Promise.all(
-        [storage.getConfig(), storage.getPrompts(), storage.getQueueState()],
-      );
+      const [
+        loadedConfig,
+        loadedPrompts,
+        loadedQueueState,
+        loadedRateLimitState,
+      ] = await Promise.all([
+        storage.getConfig(),
+        storage.getPrompts(),
+        storage.getQueueState(),
+        storage.getRateLimitState(),
+      ]);
       setConfig(loadedConfig);
       setPrompts(loadedPrompts);
       setQueueState(loadedQueueState);
+      setRateLimitState(loadedRateLimitState);
       setLoading(false);
     } catch (error) {
       log.ui.error("loadData", error);
       setLoading(false);
     }
+  }
+
+  async function handleDismissRateLimit() {
+    await chrome.runtime.sendMessage({ action: "clearRateLimitState" });
+    setRateLimitState({ isLimited: false });
   }
 
   const filteredPrompts = React.useMemo(() => {
@@ -845,6 +878,13 @@ function SidePanel() {
         </TabsList>
 
         <TabsContent value="queue" className="space-y-3 mt-3">
+          {rateLimitState.isLimited && (
+            <RateLimitCountdown
+              rateLimitState={rateLimitState}
+              onDismiss={handleDismissRateLimit}
+            />
+          )}
+
           <QueueControls
             queueState={queueState}
             totalCount={prompts.length}
@@ -862,42 +902,6 @@ function SidePanel() {
             failedCount={prompts.filter((p) => p.status === "failed").length}
           />
 
-          <div className="p-2 rounded-lg border border-border bg-card">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                <FaImages className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-medium">Bulk Download</span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleBulkDownload}
-                disabled={bulkDownloading}
-                className="h-7 text-xs gap-1.5"
-                title="Download all from Sora library"
-              >
-                {bulkDownloading ? (
-                  <FaSpinner className="h-3 w-3 animate-spin" />
-                ) : (
-                  <FaDownload className="h-3 w-3" />
-                )}
-              </Button>
-            </div>
-            {bulkDownloadResult && (
-              <div
-                className={`mt-1.5 text-xs p-1.5 rounded ${
-                  bulkDownloadResult.success
-                    ? "bg-green-500/10 text-green-600"
-                    : "bg-destructive/10 text-destructive"
-                }`}
-              >
-                {bulkDownloadResult.success
-                  ? `${bulkDownloadResult.successCount}/${bulkDownloadResult.totalCount} downloaded`
-                  : bulkDownloadResult.error}
-              </div>
-            )}
-          </div>
-
           {prompts.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center gap-1.5">
@@ -913,57 +917,126 @@ function SidePanel() {
                   filteredCount={filteredPrompts.length}
                 />
               </div>
-            </div>
-          )}
 
-          {prompts.length > 0 && (
-            <div className="flex flex-wrap justify-between items-center gap-1.5">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  className="h-7 text-xs gap-1.5"
-                >
-                  {selectedPrompts.size === filteredPrompts.length ? (
-                    <FaCheckSquare className="h-3 w-3" />
-                  ) : (
-                    <FaSquare className="h-3 w-3" />
-                  )}
-                  {selectedPrompts.size > 0
-                    ? `${selectedPrompts.size}`
-                    : "Select"}
-                </Button>
-                {selectedPrompts.size > 0 && (
+              <div className="flex justify-between items-center gap-1.5">
+                <div className="flex items-center gap-1.5">
                   <Button
-                    variant="default"
+                    variant="outline"
                     size="sm"
-                    onClick={handleProcessSelectedPrompts}
+                    onClick={handleSelectAll}
                     className="h-7 text-xs gap-1.5"
                   >
-                    <FaPlay className="h-3 w-3" />
-                    Run ({selectedPrompts.size})
+                    {selectedPrompts.size === filteredPrompts.length &&
+                    filteredPrompts.length > 0 ? (
+                      <FaCheckSquare className="h-3 w-3" />
+                    ) : (
+                      <FaSquare className="h-3 w-3" />
+                    )}
+                    {selectedPrompts.size > 0
+                      ? `${selectedPrompts.size}`
+                      : "Select"}
                   </Button>
-                )}
-              </div>
-              <div className="flex gap-1.5">
-                <QueueSortMenu onSort={handleSort} currentSort={currentSort} />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setExportDialogOpen(true)}
-                  className="h-7 text-xs"
-                >
-                  <FaDownload className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteAllPrompts}
-                  className="h-7 text-xs"
-                >
-                  <FaTrash className="h-3 w-3" />
-                </Button>
+                  {selectedPrompts.size > 0 && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleProcessSelectedPrompts}
+                      className="h-7 text-xs gap-1.5"
+                    >
+                      <FaPlay className="h-3 w-3" />
+                      Run ({selectedPrompts.size})
+                    </Button>
+                  )}
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 px-2.5 text-xs gap-1.5">
+                    <FaEllipsisH className="h-3 w-3" />
+                    More
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground font-normal flex items-center gap-1.5">
+                      <FaSort className="h-3 w-3" />
+                      Sort by
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                      onSelect={() => handleSort("timestamp-asc")}
+                      className={
+                        currentSort === "timestamp-asc" ? "bg-accent/50" : ""
+                      }
+                    >
+                      Oldest First
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => handleSort("timestamp-desc")}
+                      className={
+                        currentSort === "timestamp-desc" ? "bg-accent/50" : ""
+                      }
+                    >
+                      Newest First
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => handleSort("priority-desc")}
+                      className={
+                        currentSort === "priority-desc" ? "bg-accent/50" : ""
+                      }
+                    >
+                      Priority (High → Low)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => handleSort("mediaType-video")}
+                      className={
+                        currentSort === "mediaType-video" ? "bg-accent/50" : ""
+                      }
+                    >
+                      Videos First
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => handleSort("mediaType-image")}
+                      className={
+                        currentSort === "mediaType-image" ? "bg-accent/50" : ""
+                      }
+                    >
+                      Images First
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => handleSort("status-pending")}
+                      className={
+                        currentSort === "status-pending" ? "bg-accent/50" : ""
+                      }
+                    >
+                      Pending First
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={() => handleSort("batchLabel")}
+                      className={
+                        currentSort === "batchLabel" ? "bg-accent/50" : ""
+                      }
+                    >
+                      Group by Batch
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                      onSelect={() => setExportDialogOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <FaDownload className="h-3 w-3" />
+                      Export Queue
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                      onSelect={handleDeleteAllPrompts}
+                      className="flex items-center gap-2 text-destructive focus:text-destructive"
+                    >
+                      <FaTrash className="h-3 w-3" />
+                      Delete All Prompts
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           )}
@@ -1058,6 +1131,9 @@ function SidePanel() {
             onSave={handleSaveSettings}
             detectedSettings={detectedSettings}
             embedded={true}
+            onBulkDownload={handleBulkDownload}
+            bulkDownloading={bulkDownloading}
+            bulkDownloadResult={bulkDownloadResult}
           />
         </TabsContent>
       </Tabs>

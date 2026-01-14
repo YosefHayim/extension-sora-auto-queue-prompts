@@ -8,11 +8,19 @@ import {
   FaCoffee,
   FaPowerOff,
   FaExternalLinkAlt,
+  FaStar,
+  FaBug,
 } from "react-icons/fa";
 import { Button } from "../src/components/ui/button";
 import { Card } from "../src/components/ui/card";
+import { RateLimitCountdown } from "../src/components/RateLimitCountdown";
 import { cn } from "../src/lib/utils";
-import type { QueueState } from "../src/types";
+import type { QueueState, RateLimitState } from "../src/types";
+
+const CHROME_STORE_URL =
+  "https://chromewebstore.google.com/detail/sora-auto-queue-prompts/kbpbdckjechbjmnjagfkgcplmhdkkgph";
+const GITHUB_ISSUES_URL =
+  "https://github.com/YosefHayim/extension-sora-auto-queue-prompts/issues";
 
 function Popup() {
   const [isEnabled, setIsEnabled] = React.useState(true);
@@ -23,6 +31,9 @@ function Popup() {
     processedCount: 0,
     totalCount: 0,
     queueStartTime: undefined,
+  });
+  const [rateLimitState, setRateLimitState] = React.useState<RateLimitState>({
+    isLimited: false,
   });
 
   React.useEffect(() => {
@@ -37,6 +48,11 @@ function Popup() {
       if (changes.queueState) {
         setQueueState((prev) => ({ ...prev, ...changes.queueState.newValue }));
       }
+      if (changes.rateLimitState) {
+        setRateLimitState(
+          changes.rateLimitState.newValue ?? { isLimited: false },
+        );
+      }
     };
 
     chrome.storage.local.onChanged.addListener(handleStorageChange);
@@ -48,11 +64,20 @@ function Popup() {
     const result = await chrome.storage.local.get([
       "extensionEnabled",
       "queueState",
+      "rateLimitState",
     ]);
     setIsEnabled(result.extensionEnabled ?? true);
     if (result.queueState) {
       setQueueState((prev) => ({ ...prev, ...result.queueState }));
     }
+    if (result.rateLimitState) {
+      setRateLimitState(result.rateLimitState);
+    }
+  };
+
+  const handleDismissRateLimit = async () => {
+    await chrome.runtime.sendMessage({ action: "clearRateLimitState" });
+    setRateLimitState({ isLimited: false });
   };
 
   const toggleEnabled = async () => {
@@ -123,6 +148,14 @@ function Popup() {
               : "Ready"}
         </div>
 
+        {rateLimitState.isLimited && (
+          <RateLimitCountdown
+            rateLimitState={rateLimitState}
+            onDismiss={handleDismissRateLimit}
+            compact
+          />
+        )}
+
         <Button
           onClick={openSidePanel}
           className="w-full gap-2"
@@ -132,33 +165,68 @@ function Popup() {
           Open Queue Manager
         </Button>
 
-        <div className="flex items-center justify-center gap-4 pt-2 border-t">
+        <div className="flex items-center justify-center gap-3 pt-2 border-t text-xs">
+          <a
+            href={CHROME_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-muted-foreground hover:text-yellow-500 transition-colors"
+            title="Rate on Chrome Web Store"
+          >
+            <FaStar className="h-3.5 w-3.5" />
+            <span>Rate</span>
+          </a>
+          <span className="text-muted-foreground/30">|</span>
+          <a
+            href={GITHUB_ISSUES_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+            title="Report a bug or request a feature"
+          >
+            <FaBug className="h-3.5 w-3.5" />
+            <span>Feedback</span>
+          </a>
+          <span className="text-muted-foreground/30">|</span>
+          <a
+            href="https://buymeacoffee.com/yosefhayim"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-muted-foreground hover:text-yellow-500 transition-colors"
+            title="Support development"
+          >
+            <FaCoffee className="h-3.5 w-3.5" />
+            <span>Support</span>
+          </a>
+        </div>
+
+        <div className="flex items-center justify-center gap-3 text-muted-foreground">
           <a
             href="https://github.com/YosefHayim"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="hover:text-foreground transition-colors"
             title="GitHub"
           >
-            <FaGithub className="h-5 w-5" />
+            <FaGithub className="h-4 w-4" />
           </a>
           <a
             href="https://www.linkedin.com/in/yosef-hayim-sabag/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="hover:text-foreground transition-colors"
             title="LinkedIn"
           >
-            <FaLinkedin className="h-5 w-5" />
+            <FaLinkedin className="h-4 w-4" />
           </a>
           <a
             href="https://buymeacoffee.com/yosefhayim"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-yellow-500 transition-colors"
+            className="hover:text-yellow-500 transition-colors"
             title="Buy me a coffee"
           >
-            <FaCoffee className="h-5 w-5" />
+            <FaCoffee className="h-4 w-4" />
           </a>
         </div>
 

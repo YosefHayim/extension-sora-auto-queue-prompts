@@ -1,5 +1,3 @@
-import * as React from "react";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,25 +6,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import {
-  FaCheckCircle,
-  FaClock,
-  FaFilter,
-  FaImage,
-  FaList,
-  FaSpinner,
-  FaTh,
-  FaTimes,
-  FaTimesCircle,
-  FaVideo,
-} from "react-icons/fa";
+import { FaFilter, FaTimes } from "react-icons/fa";
 
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
-
-type StatusFilter = "all" | "pending" | "processing" | "completed" | "failed";
-type MediaTypeFilter = "all" | "video" | "image";
+import {
+  STATUS_CONFIG,
+  MEDIA_TYPE_CONFIG,
+  type StatusFilter,
+  type MediaTypeFilter,
+} from "../constants/filterConfig";
 
 interface FilterDropdownProps {
   statusFilter: StatusFilter;
@@ -37,52 +27,6 @@ interface FilterDropdownProps {
   filteredCount: number;
   className?: string;
 }
-
-const statusConfig = {
-  all: {
-    icon: FaList,
-    label: "All",
-    color: "text-blue-600 dark:text-blue-400",
-  },
-  pending: {
-    icon: FaClock,
-    label: "Pending",
-    color: "text-yellow-600 dark:text-yellow-400",
-  },
-  processing: {
-    icon: FaSpinner,
-    label: "Processing",
-    color: "text-purple-600 dark:text-purple-400",
-  },
-  completed: {
-    icon: FaCheckCircle,
-    label: "Completed",
-    color: "text-green-600 dark:text-green-400",
-  },
-  failed: {
-    icon: FaTimesCircle,
-    label: "Failed",
-    color: "text-red-600 dark:text-red-400",
-  },
-};
-
-const mediaTypeConfig = {
-  all: {
-    icon: FaTh,
-    label: "All Types",
-    color: "text-slate-600 dark:text-slate-400",
-  },
-  video: {
-    icon: FaVideo,
-    label: "Video",
-    color: "text-blue-600 dark:text-blue-400",
-  },
-  image: {
-    icon: FaImage,
-    label: "Image",
-    color: "text-purple-600 dark:text-purple-400",
-  },
-};
 
 export function FilterDropdown({
   statusFilter,
@@ -100,8 +44,8 @@ export function FilterDropdown({
     onMediaTypeFilterChange("all");
   };
 
-  const StatusIcon = statusConfig[statusFilter].icon;
-  const MediaTypeIcon = mediaTypeConfig[mediaTypeFilter].icon;
+  const StatusIcon = STATUS_CONFIG[statusFilter].icon;
+  const MediaTypeIcon = MEDIA_TYPE_CONFIG[mediaTypeFilter].icon;
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -133,7 +77,7 @@ export function FilterDropdown({
               "failed",
             ] as StatusFilter[]
           ).map((status) => {
-            const config = statusConfig[status];
+            const config = STATUS_CONFIG[status];
             const Icon = config.icon;
             const isActive = statusFilter === status;
 
@@ -146,7 +90,7 @@ export function FilterDropdown({
                 <Icon
                   className={cn(
                     "h-4 w-4",
-                    config.color,
+                    config.textColor,
                     status === "processing" && isActive && "animate-spin",
                   )}
                 />
@@ -158,7 +102,7 @@ export function FilterDropdown({
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Media Type</DropdownMenuLabel>
           {(["all", "video", "image"] as MediaTypeFilter[]).map((type) => {
-            const config = mediaTypeConfig[type];
+            const config = MEDIA_TYPE_CONFIG[type];
             const Icon = config.icon;
             const isActive = mediaTypeFilter === type;
 
@@ -168,7 +112,7 @@ export function FilterDropdown({
                 onSelect={() => onMediaTypeFilterChange(type)}
                 className={cn("gap-2 cursor-pointer", isActive && "bg-accent")}
               >
-                <Icon className={cn("h-4 w-4", config.color)} />
+                <Icon className={cn("h-4 w-4", config.textColor)} />
                 <span>{config.label}</span>
                 {isActive && <span className="ml-auto text-xs">✓</span>}
               </DropdownMenuItem>

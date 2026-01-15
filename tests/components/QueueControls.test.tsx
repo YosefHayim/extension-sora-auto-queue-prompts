@@ -11,7 +11,7 @@ describe("QueueControls", () => {
   const mockOnResume = jest.fn();
   const mockOnStop = jest.fn();
   const mockOnCleanCompletedAndFailed = jest.fn();
-  const mockOnAddPrompts = jest.fn();
+  const mockOnManualAdd = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -875,7 +875,7 @@ describe("QueueControls", () => {
           onPause={mockOnPause}
           onResume={mockOnResume}
           onStop={mockOnStop}
-          onAddPrompts={mockOnAddPrompts}
+          onManualAdd={mockOnManualAdd}
         />,
       );
 
@@ -897,7 +897,7 @@ describe("QueueControls", () => {
           onPause={mockOnPause}
           onResume={mockOnResume}
           onStop={mockOnStop}
-          onAddPrompts={mockOnAddPrompts}
+          onManualAdd={mockOnManualAdd}
         />,
       );
 

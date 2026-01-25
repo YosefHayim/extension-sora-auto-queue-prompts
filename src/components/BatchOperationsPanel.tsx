@@ -1,155 +1,97 @@
 import * as React from "react";
-import {
-  FaArrowDown,
-  FaArrowUp,
-  FaCheck,
-  FaTimes,
-  FaTrash,
-  FaTag,
-  FaFire,
-} from "react-icons/fa";
+import { LuCheck, LuX, LuTrash2, LuPlay } from "react-icons/lu";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+import { cn } from "../lib/utils";
+import { BulkActionsMenu } from "./BulkActionsMenu";
 
 interface BatchOperationsPanelProps {
   selectedCount: number;
-  onMoveToPosition: (position: number) => void;
-  onCreateBatch: (label: string) => void;
-  onSetPriority: (priority: "high" | "normal" | "low") => void;
-  onEnableAll: () => void;
-  onDisableAll: () => void;
+  onRunSelected?: () => void;
   onDeleteSelected: () => void;
   onClearSelection: () => void;
-  totalPrompts: number;
+  onEnableAll?: () => void;
+  onDisableAll?: () => void;
+  onMoveToTop?: () => void;
+  onMoveToBottom?: () => void;
+  onDuplicateAll?: () => void;
+  onShuffle?: () => void;
+  onRandomPresetToEach?: () => void;
+  className?: string;
 }
 
 export function BatchOperationsPanel({
   selectedCount,
-  onMoveToPosition,
-  onCreateBatch,
-  onSetPriority,
-  onEnableAll,
-  onDisableAll,
+  onRunSelected,
   onDeleteSelected,
   onClearSelection,
-  totalPrompts,
+  onEnableAll,
+  onDisableAll,
+  onMoveToTop,
+  onMoveToBottom,
+  onDuplicateAll,
+  onShuffle,
+  onRandomPresetToEach,
+  className,
 }: BatchOperationsPanelProps) {
-  const [batchName, setBatchName] = React.useState("");
-  const [showBatchInput, setShowBatchInput] = React.useState(false);
-
   if (selectedCount === 0) return null;
 
   return (
-    <div className="sticky top-0 z-10 rounded-lg border border-blue-500 bg-blue-500/10 p-4 backdrop-blur-sm mb-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <FaCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <span className="font-semibold text-blue-600 dark:text-blue-400">
-            {selectedCount} prompt{selectedCount !== 1 ? "s" : ""} selected
-          </span>
+    <div
+      className={cn(
+        "flex items-center justify-between gap-2 rounded-md bg-primary p-2 px-3",
+        className,
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <div className="flex h-[18px] w-[18px] items-center justify-center rounded bg-primary-foreground">
+          <LuCheck className="h-3 w-3 text-primary" />
         </div>
-
-        <Button variant="ghost" size="sm" onClick={onClearSelection}>
-          <FaTimes className="h-4 w-4 mr-2" />
-          Clear
-        </Button>
+        <span className="text-[13px] font-semibold text-primary-foreground">
+          {selectedCount} selected
+        </span>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <Select onValueChange={(value) => onMoveToPosition(parseInt(value))}>
-          <SelectTrigger>
-            <SelectValue placeholder="Move to..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="0">
-              <div className="flex items-center gap-2">
-                <FaArrowUp className="h-3 w-3" />
-                Move to top
-              </div>
-            </SelectItem>
-            <SelectItem value={String(totalPrompts)}>
-              <div className="flex items-center gap-2">
-                <FaArrowDown className="h-3 w-3" />
-                Move to bottom
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          onValueChange={(v) => onSetPriority(v as "high" | "normal" | "low")}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Priority..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="high">
-              <div className="flex items-center gap-2">
-                <FaFire className="h-3 w-3 text-red-500" />
-                High Priority
-              </div>
-            </SelectItem>
-            <SelectItem value="normal">Normal</SelectItem>
-            <SelectItem value="low">Low Priority</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {showBatchInput ? (
-          <div className="col-span-2 flex gap-2">
-            <Input
-              placeholder="Batch name..."
-              value={batchName}
-              onChange={(e) => setBatchName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && batchName.trim()) {
-                  onCreateBatch(batchName.trim());
-                  setBatchName("");
-                  setShowBatchInput(false);
-                }
-                if (e.key === "Escape") {
-                  setShowBatchInput(false);
-                }
-              }}
-              autoFocus
-            />
-            <Button
-              size="sm"
-              onClick={() => {
-                if (batchName.trim()) {
-                  onCreateBatch(batchName.trim());
-                  setBatchName("");
-                  setShowBatchInput(false);
-                }
-              }}
-            >
-              Create
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setShowBatchInput(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        ) : (
-          <Button variant="outline" onClick={() => setShowBatchInput(true)}>
-            <FaTag className="h-3 w-3 mr-2" />
-            Create Batch
+      <div className="flex items-center gap-1">
+        {onRunSelected && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRunSelected}
+            className="h-7 gap-1.5 rounded bg-primary-foreground px-2.5 text-[12px] text-primary hover:bg-primary-foreground/90"
+          >
+            <LuPlay className="h-3 w-3" />
+            Run
           </Button>
         )}
 
-        <Button variant="destructive" onClick={onDeleteSelected}>
-          <FaTrash className="h-3 w-3 mr-2" />
-          Delete
-        </Button>
+        <BulkActionsMenu
+          selectedCount={selectedCount}
+          onEnableAll={onEnableAll}
+          onDisableAll={onDisableAll}
+          onMoveToTop={onMoveToTop}
+          onMoveToBottom={onMoveToBottom}
+          onDuplicateAll={onDuplicateAll}
+          onShuffle={onShuffle}
+          onRandomPresetToEach={onRandomPresetToEach}
+          onDeleteAll={onDeleteSelected}
+          className="h-7 border-0 bg-transparent text-primary-foreground hover:bg-primary-foreground/20"
+        />
+
+        <button
+          onClick={onDeleteSelected}
+          className="flex h-7 w-7 items-center justify-center rounded hover:bg-primary-foreground/20"
+          title="Delete selected"
+        >
+          <LuTrash2 className="h-3.5 w-3.5 text-primary-foreground" />
+        </button>
+
+        <button
+          onClick={onClearSelection}
+          className="flex h-7 w-7 items-center justify-center rounded hover:bg-primary-foreground/20"
+          title="Clear selection"
+        >
+          <LuX className="h-3.5 w-3.5 text-primary-foreground" />
+        </button>
       </div>
     </div>
   );

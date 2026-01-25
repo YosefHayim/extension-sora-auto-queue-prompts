@@ -217,6 +217,23 @@ function SidePanel() {
     setShowOnboarding(false);
   }
 
+  async function handleLaunchDemo() {
+    const demoPrompt: GeneratedPrompt = {
+      id: `demo-${Date.now()}`,
+      text: "A cinematic slow-motion shot of a golden retriever running through a field of sunflowers at sunset, with lens flares and warm golden hour lighting",
+      timestamp: Date.now(),
+      status: "pending",
+      mediaType: "video",
+      aspectRatio: "16:9",
+      variations: 2,
+      enhanced: true,
+    };
+
+    const updatedPrompts = [demoPrompt, ...prompts];
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+  }
+
   async function loadData() {
     try {
       const [
@@ -826,7 +843,10 @@ function SidePanel() {
   return (
     <div className="sidepanel-container bg-background space-y-3">
       {showOnboarding && (
-        <OnboardingTour onComplete={handleOnboardingComplete} />
+        <OnboardingTour
+          onComplete={handleOnboardingComplete}
+          onLaunchDemo={handleLaunchDemo}
+        />
       )}
 
       <header className="border-b pb-2 space-y-2 bg-background sticky top-0 z-10">

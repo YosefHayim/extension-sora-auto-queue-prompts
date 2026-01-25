@@ -2,39 +2,35 @@ import * as React from "react";
 
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "./ui/collapsible";
-import {
-  FaCheckCircle,
-  FaCheckSquare,
-  FaChevronDown,
-  FaChevronUp,
-  FaClipboard,
-  FaClock,
-  FaCopy,
-  FaDice,
-  FaImage,
-  FaLink,
-  FaLocationArrow,
-  FaMagic,
-  FaPalette,
-  FaPencilAlt,
-  FaPlay,
-  FaPowerOff,
-  FaRedo,
-  FaSquare,
-  FaTimesCircle,
-  FaTrash,
-  FaUpload,
-  FaVideo,
-} from "react-icons/fa";
-import { FaWandMagicSparkles } from "react-icons/fa6";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+  LuCheck,
+  LuChevronDown,
+  LuChevronUp,
+  LuCircleCheck,
+  LuCircleX,
+  LuClock,
+  LuCopy,
+  LuDices,
+  LuImage,
+  LuLink,
+  LuNavigation,
+  LuPalette,
+  LuPencil,
+  LuPlay,
+  LuPower,
+  LuRefreshCw,
+  LuSparkles,
+  LuSquare,
+  LuSquareCheck,
+  LuTrash2,
+  LuUpload,
+  LuVideo,
+  LuX,
+  LuClipboard,
+} from "react-icons/lu";
 
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { PromptActionsMenu } from "./PromptActionsMenu";
 import type { GeneratedPrompt } from "../types";
 import { Progress } from "./ui/progress";
 import { cn } from "../lib/utils";
@@ -304,13 +300,13 @@ export function PromptCard({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return <FaCheckCircle className="h-3.5 w-3.5" />;
+        return <LuCircleCheck className="h-3.5 w-3.5" />;
       case "processing":
-        return <FaClock className="h-3.5 w-3.5" />;
+        return <LuClock className="h-3.5 w-3.5" />;
       case "pending":
-        return <FaClock className="h-3.5 w-3.5" />;
+        return <LuClock className="h-3.5 w-3.5" />;
       case "failed":
-        return <FaTimesCircle className="h-3.5 w-3.5" />;
+        return <LuCircleX className="h-3.5 w-3.5" />;
       default:
         return null;
     }
@@ -417,7 +413,7 @@ export function PromptCard({
               title={isEnabled ? "Disable prompt" : "Enable prompt"}
               data-no-drag
             >
-              <FaPowerOff
+              <LuPower
                 className={cn(
                   "h-3.5 w-3.5 transition-colors",
                   isEnabled
@@ -435,9 +431,9 @@ export function PromptCard({
               data-no-drag
             >
               {isSelected ? (
-                <FaCheckSquare className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                <LuSquareCheck className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
               ) : (
-                <FaSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                <LuSquare className="h-3.5 w-3.5 text-muted-foreground" />
               )}
             </button>
           )}
@@ -452,9 +448,9 @@ export function PromptCard({
               )}
             >
               {prompt.mediaType === "video" ? (
-                <FaVideo className="h-3 w-3 inline mr-1" />
+                <LuVideo className="h-3 w-3 inline mr-1" />
               ) : (
-                <FaImage className="h-3 w-3 inline mr-1" />
+                <LuImage className="h-3 w-3 inline mr-1" />
               )}
             </span>
             {prompt.aspectRatio && (
@@ -469,7 +465,7 @@ export function PromptCard({
             )}
             {prompt.enhanced && (
               <span className="text-xs text-purple-600 dark:text-purple-400">
-                <FaMagic className="h-3 w-3 inline mr-0.5" />
+                <LuSparkles className="h-3 w-3 inline mr-0.5" />
               </span>
             )}
             {prompt.preset && prompt.preset !== "none" && (
@@ -484,9 +480,9 @@ export function PromptCard({
               >
                 •
                 {prompt.preset === "random" ? (
-                  <FaDice className="h-3 w-3" />
+                  <LuDices className="h-3 w-3" />
                 ) : (
-                  <FaPalette className="h-3 w-3" />
+                  <LuPalette className="h-3 w-3" />
                 )}
               </span>
             )}
@@ -502,7 +498,7 @@ export function PromptCard({
               title="Process"
               data-no-drag
             >
-              <FaPlay className="h-3 w-3" />
+              <LuPlay className="h-3 w-3" />
             </Button>
           )}
           <Badge
@@ -533,12 +529,12 @@ export function PromptCard({
             >
               {isExpanded ? (
                 <>
-                  <FaChevronUp className="h-2.5 w-2.5" />
+                  <LuChevronUp className="h-2.5 w-2.5" />
                   Show less
                 </>
               ) : (
                 <>
-                  <FaChevronDown className="h-2.5 w-2.5" />
+                  <LuChevronDown className="h-2.5 w-2.5" />
                   Read more
                 </>
               )}
@@ -586,7 +582,7 @@ export function PromptCard({
             )}
             {isProcessing && prompt.startTime && (
               <span className="flex items-center gap-1">
-                <FaClock className="h-2.5 w-2.5 animate-pulse" />
+                <LuClock className="h-2.5 w-2.5 animate-pulse" />
                 {formatDuration(currentTime - prompt.startTime)}
               </span>
             )}
@@ -645,7 +641,7 @@ export function PromptCard({
                 data-no-drag
                 className="h-6 w-6 text-destructive hover:text-destructive"
               >
-                <FaTimesCircle className="h-3 w-3" />
+                <LuCircleX className="h-3 w-3" />
               </Button>
             )}
           </div>
@@ -716,7 +712,7 @@ export function PromptCard({
               data-no-drag
               className="h-6 w-6"
             >
-              <FaLocationArrow className="h-3.5 w-3.5" />
+              <LuNavigation className="h-3.5 w-3.5" />
             </Button>
           )}
           <Button
@@ -729,9 +725,9 @@ export function PromptCard({
             className="h-6 w-6"
           >
             {copied ? (
-              <FaCheckCircle className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+              <LuCircleCheck className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
             ) : (
-              <FaClipboard className="h-3.5 w-3.5" />
+              <LuClipboard className="h-3.5 w-3.5" />
             )}
           </Button>
           <Button
@@ -744,7 +740,7 @@ export function PromptCard({
             data-no-drag
             className="h-6 w-6"
           >
-            <FaPencilAlt className="h-3.5 w-3.5" />
+            <LuPencil className="h-3.5 w-3.5" />
           </Button>
           <Button
             variant="ghost"
@@ -755,7 +751,7 @@ export function PromptCard({
             data-no-drag
             className="h-6 w-6"
           >
-            <FaCopy className="h-3.5 w-3.5" />
+            <LuCopy className="h-3.5 w-3.5" />
           </Button>
           {canRefine && (
             <Button
@@ -767,7 +763,7 @@ export function PromptCard({
               data-no-drag
               className="h-6 w-6"
             >
-              <FaWandMagicSparkles className="h-3.5 w-3.5 text-purple-500" />
+              <LuSparkles className="h-3.5 w-3.5 text-purple-500" />
             </Button>
           )}
           {prompt.status === "failed" && onRetry && (
@@ -780,7 +776,7 @@ export function PromptCard({
               data-no-drag
               className="h-6 w-6 text-orange-500 hover:text-orange-600"
             >
-              <FaRedo className="h-3.5 w-3.5" />
+              <LuRefreshCw className="h-3.5 w-3.5" />
             </Button>
           )}
           {!prompt.imageUrl && !prompt.imageData && canEdit && (
@@ -798,7 +794,7 @@ export function PromptCard({
                   data-no-drag
                   className="h-6 w-6"
                 >
-                  <FaLink className="h-3.5 w-3.5" />
+                  <LuLink className="h-3.5 w-3.5" />
                 </Button>
               )}
               {onAddLocalImage && (
@@ -814,7 +810,7 @@ export function PromptCard({
                   data-no-drag
                   className="h-6 w-6"
                 >
-                  <FaUpload className="h-3.5 w-3.5" />
+                  <LuUpload className="h-3.5 w-3.5" />
                 </Button>
               )}
             </>
@@ -829,7 +825,7 @@ export function PromptCard({
             data-no-drag
             className="h-6 w-6 text-destructive hover:text-destructive"
           >
-            <FaTrash className="h-3.5 w-3.5" />
+            <LuTrash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </CardFooter>

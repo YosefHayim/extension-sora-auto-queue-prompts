@@ -1,19 +1,18 @@
-import { Card, CardContent } from "./ui/card";
-import { FaInbox, FaMagic, FaPlus, FaUpload } from "react-icons/fa";
-
+import { LuInbox, LuSparkles, LuUpload } from "react-icons/lu";
 import { Button } from "./ui/button";
 import { log } from "../utils/logger";
+import { cn } from "../lib/utils";
 
 interface EmptyStateProps {
   onGenerate: () => void;
   onImport: () => void;
-  onManual: () => void;
+  className?: string;
 }
 
 export function EmptyState({
   onGenerate,
   onImport,
-  onManual,
+  className,
 }: EmptyStateProps) {
   const handleGenerate = () => {
     log.ui.action("EmptyState:Generate");
@@ -25,64 +24,35 @@ export function EmptyState({
     onImport();
   };
 
-  const handleManual = () => {
-    log.ui.action("EmptyState:Manual");
-    onManual();
-  };
-
   return (
-    <Card className="border-dashed border-2">
-      <CardContent className="flex flex-col items-center justify-center py-16">
-        <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-6">
-          <FaInbox className="h-8 w-8 text-primary" />
-        </div>
-        <h3 className="text-xl font-bold mb-2">No prompts yet</h3>
-        <p className="text-sm text-muted-foreground mb-8 text-center max-w-sm">
-          Get started by generating AI prompts, adding them manually, or
-          importing from a CSV file
-        </p>
-        <div className="grid grid-cols-3 gap-3 w-full">
-          <Button
-            onClick={handleGenerate}
-            size="lg"
-            className="shadow-md w-full"
-          >
-            <FaMagic className="mr-2 h-4 w-4" />
-            Generate Prompts
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleManual}
-            size="lg"
-            className="w-full"
-          >
-            <FaPlus className="mr-2 h-4 w-4" />
-            Manual Add
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleImport}
-            size="lg"
-            className="w-full"
-          >
-            <FaUpload className="mr-2 h-4 w-4" />
-            Import CSV
-          </Button>
-        </div>
-        <div className="mt-8 pt-6 border-t w-full">
-          <p className="text-xs text-muted-foreground text-center">
-            💡 Tip: Press{" "}
-            <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">
-              ⌘K
-            </kbd>{" "}
-            to search or{" "}
-            <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">
-              ⌘N
-            </kbd>{" "}
-            to generate new prompts
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-4 p-6",
+        className,
+      )}
+    >
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+        <LuInbox className="h-7 w-7 text-muted-foreground" />
+      </div>
+
+      <h3 className="text-base font-semibold text-foreground">
+        No prompts yet
+      </h3>
+
+      <p className="max-w-[220px] text-center text-[13px] leading-relaxed text-muted-foreground">
+        Generate AI prompts or import from CSV to get started
+      </p>
+
+      <div className="flex items-center gap-2">
+        <Button onClick={handleGenerate} className="gap-1.5">
+          <LuSparkles className="h-4 w-4" />
+          Generate
+        </Button>
+        <Button variant="outline" onClick={handleImport} className="gap-1.5">
+          <LuUpload className="h-4 w-4" />
+          Import
+        </Button>
+      </div>
+    </div>
   );
 }

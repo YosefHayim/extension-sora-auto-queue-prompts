@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import type { GeneratedPrompt, PromptConfig } from "../types";
-import { FaPlus, FaSpinner, FaTimes } from "react-icons/fa";
+import { LuPlus, LuLoader, LuX } from "react-icons/lu";
 
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -104,7 +104,7 @@ export function ManualAddDialog({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FaPlus className="h-5 w-5 text-primary" />
+            <LuPlus className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Add Prompts Manually</h2>
           </div>
           <Button
@@ -113,7 +113,7 @@ export function ManualAddDialog({
             onClick={onClose}
             disabled={loading}
           >
-            <FaTimes className="h-4 w-4" />
+            <LuX className="h-4 w-4" />
           </Button>
         </div>
 
@@ -191,12 +191,12 @@ export function ManualAddDialog({
             >
               {loading ? (
                 <>
-                  <FaSpinner className="h-4 w-4 mr-2 animate-spin" />
+                  <LuLoader className="h-4 w-4 mr-2 animate-spin" />
                   Adding...
                 </>
               ) : (
                 <>
-                  <FaPlus className="h-4 w-4 mr-2" />
+                  <LuPlus className="h-4 w-4 mr-2" />
                   Add {promptCount > 0 ? `${promptCount} ` : ""}Prompt
                   {promptCount === 1 ? "" : "s"}
                 </>

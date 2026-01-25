@@ -1,6 +1,4 @@
-import { Input } from "./ui/input";
-import { FaSearch, FaTimes } from "react-icons/fa";
-import { Button } from "./ui/button";
+import { LuSearch } from "react-icons/lu";
 import { cn } from "../lib/utils";
 
 interface SearchBarProps {
@@ -17,25 +15,20 @@ export function SearchBar({
   className,
 }: SearchBarProps) {
   return (
-    <div className={cn("relative", className)}>
-      <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-      <Input
+    <div
+      className={cn(
+        "flex h-9 items-center gap-2 rounded-md bg-muted px-3",
+        className,
+      )}
+    >
+      <LuSearch className="h-4 w-4 text-muted-foreground" />
+      <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="pl-9 pr-9"
+        className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none"
       />
-      {value && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7"
-          onClick={() => onChange("")}
-        >
-          <FaTimes className="h-3 w-3" />
-        </Button>
-      )}
     </div>
   );
 }

@@ -1,15 +1,17 @@
-import { FaClock, FaPlay, FaCheck } from "react-icons/fa";
+import { cn } from "../lib/utils";
 
 interface StatusBarProps {
   pendingCount: number;
   processingCount: number;
   completedCount: number;
+  className?: string;
 }
 
 export function StatusBar({
   pendingCount,
   processingCount,
   completedCount,
+  className,
 }: StatusBarProps) {
   const total = pendingCount + processingCount + completedCount;
 
@@ -18,26 +20,32 @@ export function StatusBar({
   }
 
   return (
-    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1.5">
+    <div
+      className={cn(
+        "flex items-center justify-around gap-2 rounded-md bg-muted px-3 py-2",
+        className,
+      )}
+    >
       <div className="flex items-center gap-1.5">
-        <FaClock className="h-3 w-3 text-yellow-600 dark:text-yellow-500" />
-        <span className="font-medium text-foreground">{pendingCount}</span>
-        <span className="hidden sm:inline">Pending</span>
+        <span className="h-2 w-2 rounded-full bg-muted-foreground" />
+        <span className="text-[13px] font-semibold text-foreground">
+          {pendingCount}
+        </span>
       </div>
 
       <div className="flex items-center gap-1.5">
-        <FaPlay className="h-3 w-3 text-blue-600 dark:text-blue-500" />
-        <span className="font-medium text-foreground">{processingCount}</span>
-        <span className="hidden sm:inline">Processing</span>
+        <span className="h-2 w-2 rounded-full bg-blue-500" />
+        <span className="text-[13px] font-semibold text-foreground">
+          {processingCount}
+        </span>
       </div>
 
       <div className="flex items-center gap-1.5">
-        <FaCheck className="h-3 w-3 text-green-600 dark:text-green-500" />
-        <span className="font-medium text-foreground">{completedCount}</span>
-        <span className="hidden sm:inline">Completed</span>
+        <span className="h-2 w-2 rounded-full bg-green-500" />
+        <span className="text-[13px] font-semibold text-foreground">
+          {completedCount}
+        </span>
       </div>
-
-      <div className="ml-auto text-xs opacity-70">{total} total</div>
     </div>
   );
 }

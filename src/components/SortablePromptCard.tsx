@@ -95,10 +95,12 @@ export function SortablePromptCard(props: SortablePromptCardProps) {
         onGenerateSimilar={props.onGenerateSimilar}
         onDelete={props.onDelete}
         onRetry={props.onRetry}
+        onSkip={props.onSkip}
         onAddImage={props.onAddImage}
         onAddLocalImage={props.onAddLocalImage}
         onRemoveImage={props.onRemoveImage}
         searchQuery={props.searchQuery}
+        showDragHandle={true}
       />
     </div>
   );

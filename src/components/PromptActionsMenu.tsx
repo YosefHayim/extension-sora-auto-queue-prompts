@@ -16,8 +16,8 @@ import {
   LuRefreshCw,
   LuWand,
   LuTrash2,
+  LuEllipsis,
 } from "react-icons/lu";
-import { FaEllipsisH } from "react-icons/fa";
 import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
 
@@ -64,7 +64,7 @@ export function PromptActionsMenu({
           className={cn("h-6 w-6", className)}
           data-no-drag
         >
-          <FaEllipsisH className="h-4 w-4" />
+          <LuEllipsis className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[180px]">

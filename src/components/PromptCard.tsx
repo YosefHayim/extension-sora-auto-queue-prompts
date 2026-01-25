@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import {
   LuCheck,
   LuChevronDown,
@@ -9,27 +8,20 @@ import {
   LuCircleX,
   LuClock,
   LuCopy,
-  LuDices,
+  LuGripVertical,
   LuImage,
-  LuLink,
-  LuNavigation,
-  LuPalette,
+  LuLoader,
+  LuPaperclip,
   LuPencil,
-  LuPlay,
-  LuPower,
-  LuRefreshCw,
+  LuSkipForward,
   LuSparkles,
-  LuSquare,
-  LuSquareCheck,
   LuTrash2,
-  LuUpload,
   LuVideo,
-  LuX,
   LuClipboard,
+  LuX,
 } from "react-icons/lu";
 
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
 import { PromptActionsMenu } from "./PromptActionsMenu";
 import type { GeneratedPrompt } from "../types";
 import { Progress } from "./ui/progress";
@@ -51,6 +43,7 @@ interface PromptCardProps {
   onGenerateSimilar: (id: string) => void;
   onDelete: (id: string) => void;
   onRetry?: (id: string) => void;
+  onSkip?: (id: string) => void;
   onAddImage?: (id: string, imageUrl: string) => void;
   onAddLocalImage?: (
     id: string,
@@ -60,13 +53,11 @@ interface PromptCardProps {
   ) => void;
   onRemoveImage?: (id: string) => void;
   searchQuery?: string;
+  showDragHandle?: boolean;
 }
 
 const MAX_TEXT_LENGTH = 200;
 
-/**
- * Highlights matching text in a string based on search query
- */
 function highlightText(text: string, query: string): React.ReactNode {
   if (!query || !query.trim()) {
     return text;
@@ -81,19 +72,16 @@ function highlightText(text: string, query: string): React.ReactNode {
   while (true) {
     const index = textLower.indexOf(queryLower, searchIndex);
     if (index === -1) {
-      // Add remaining text
       if (lastIndex < text.length) {
         parts.push({ text: text.substring(lastIndex), isMatch: false });
       }
       break;
     }
 
-    // Add text before match
     if (index > lastIndex) {
       parts.push({ text: text.substring(lastIndex, index), isMatch: false });
     }
 
-    // Add matched text
     parts.push({
       text: text.substring(index, index + query.length),
       isMatch: true,
@@ -134,29 +122,27 @@ export function PromptCard({
   onGenerateSimilar,
   onDelete,
   onRetry,
+  onSkip,
   onAddImage,
   onAddLocalImage,
   onRemoveImage,
   searchQuery = "",
+  showDragHandle = true,
 }: PromptCardProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
-  const [isMetadataOpen, setIsMetadataOpen] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(Date.now());
   const [showImageInput, setShowImageInput] = React.useState(false);
   const [imageUrlInput, setImageUrlInput] = React.useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Update current time for processing prompts to refresh progress bar and time displays
   React.useEffect(() => {
     const isProcessing = prompt.status === "processing";
-    if (!isProcessing) {
-      return;
-    }
+    if (!isProcessing) return;
 
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
-    }, 1000); // Update every second
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [prompt.status]);
@@ -205,10 +191,13 @@ export function PromptCard({
   };
 
   const handleRetry = () => {
-    log.ui.action("PromptCard:Retry", {
-      promptId: prompt.id,
-    });
+    log.ui.action("PromptCard:Retry", { promptId: prompt.id });
     onRetry?.(prompt.id);
+  };
+
+  const handleSkip = () => {
+    log.ui.action("PromptCard:Skip", { promptId: prompt.id });
+    onSkip?.(prompt.id);
   };
 
   const handleAddImage = () => {
@@ -234,7 +223,6 @@ export function PromptCard({
     const file = e.target.files?.[0];
     if (!file || !onAddLocalImage) return;
 
-    // Validate file size (max 10MB)
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       log.ui.error("PromptCard:FileSelect", {
@@ -246,7 +234,6 @@ export function PromptCard({
       return;
     }
 
-    // Validate file type
     const validTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"];
     if (!validTypes.includes(file.type)) {
       log.ui.error("PromptCard:FileSelect", {
@@ -266,11 +253,9 @@ export function PromptCard({
       fileSize: file.size,
     });
 
-    // Convert to base64
     const reader = new FileReader();
     reader.onload = () => {
       const base64DataUrl = reader.result as string;
-      // Remove data URL prefix to get pure base64
       const base64Content = base64DataUrl.split(",")[1];
       onAddLocalImage(prompt.id, base64Content, file.name, file.type);
     };
@@ -280,7 +265,6 @@ export function PromptCard({
     };
     reader.readAsDataURL(file);
 
-    // Reset input so same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -297,53 +281,12 @@ export function PromptCard({
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <LuCircleCheck className="h-3.5 w-3.5" />;
-      case "processing":
-        return <LuClock className="h-3.5 w-3.5" />;
-      case "pending":
-        return <LuClock className="h-3.5 w-3.5" />;
-      case "failed":
-        return <LuCircleX className="h-3.5 w-3.5" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusBorderColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "border-l-green-500 dark:border-l-green-400";
-      case "processing":
-        return "border-l-yellow-500 dark:border-l-yellow-400";
-      case "pending":
-        return "border-l-gray-400 dark:border-l-gray-500";
-      case "failed":
-        return "border-l-red-500 dark:border-l-red-400";
-      default:
-        return "border-l-gray-400";
-    }
-  };
-
   const handleToggleSelection = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleSelection?.(prompt.id);
   };
 
-  const handleToggleEnabled = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onToggleEnabled?.(prompt.id);
-  };
-
-  const handleProcess = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onProcess?.(prompt.id);
-  };
-
   const handleCardClick = (e: React.MouseEvent) => {
-    // Only navigate if clicking on the card itself, not on interactive elements
     const target = e.target as HTMLElement;
     if (
       target.closest("button") ||
@@ -358,12 +301,6 @@ export function PromptCard({
       return;
     }
 
-    // Allow clicks on mark elements (highlighted search text) to work
-    // If clicking on mark, use the parent element to check
-    const clickTarget =
-      target.tagName === "MARK" ? target.parentElement : target;
-
-    // Only navigate for completed prompts
     if (prompt.status === "completed" && onNavigateToPrompt) {
       onNavigateToPrompt(prompt.id, prompt.text);
     }
@@ -371,29 +308,77 @@ export function PromptCard({
 
   const isCompleted = prompt.status === "completed";
   const isProcessing = prompt.status === "processing";
+  const isPending = prompt.status === "pending";
+  const isFailed = prompt.status === "failed";
   const canEdit = !isCompleted && !isProcessing;
   const canRefine = !isCompleted && !isProcessing;
 
-  // Estimate completion time for processing prompts (average 2-3 minutes)
-  const estimatedCompletion =
-    isProcessing && prompt.startTime
-      ? prompt.startTime + 2.5 * 60 * 1000 // 2.5 minutes average
-      : null;
-  const estimatedTimeRemaining = estimatedCompletion
-    ? Math.max(0, estimatedCompletion - currentTime)
-    : null;
+  const getStatusBadge = () => {
+    switch (prompt.status) {
+      case "completed":
+        return (
+          <Badge className="gap-1 bg-green-500 text-white border-0 px-2 py-0.5 rounded-full text-[11px] font-medium">
+            <LuCheck className="h-3 w-3" />
+            Completed
+          </Badge>
+        );
+      case "processing":
+        return (
+          <Badge className="gap-1 bg-blue-500 text-white border-0 px-2 py-0.5 rounded-full text-[11px] font-medium">
+            <LuLoader className="h-3 w-3 animate-spin" />
+            Processing
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge className="gap-1 bg-muted text-muted-foreground border-0 px-2 py-0.5 rounded-full text-[11px] font-medium">
+            <LuClock className="h-3 w-3" />
+            Pending
+          </Badge>
+        );
+      case "failed":
+        return (
+          <Badge className="gap-1 bg-destructive text-destructive-foreground border-0 px-2 py-0.5 rounded-full text-[11px] font-medium">
+            <LuX className="h-3 w-3" />
+            Failed
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getTypeBadge = () => {
+    if (prompt.mediaType === "video") {
+      return (
+        <Badge
+          variant="outline"
+          className="gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium text-muted-foreground"
+        >
+          <LuVideo className="h-3 w-3" />
+          Video
+        </Badge>
+      );
+    }
+    return (
+      <Badge
+        variant="outline"
+        className="gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium text-muted-foreground"
+      >
+        <LuImage className="h-3 w-3" />
+        Image
+      </Badge>
+    );
+  };
 
   return (
-    <Card
+    <div
       onClick={handleCardClick}
       className={cn(
-        "group transition-all duration-200 hover:shadow-md hover:border-primary/30 relative overflow-hidden",
-        "border-l-4",
-        getStatusBorderColor(prompt.status),
-        isProcessing && "ring-1 ring-yellow-500/20 dark:ring-yellow-400/20",
+        "w-[280px] bg-card rounded-lg border border-border transition-all duration-200 hover:shadow-md hover:border-primary/30",
         isSelected &&
-          "border-2 border-blue-500 dark:border-blue-400 ring-1 ring-blue-500/20 dark:ring-blue-400/20 bg-blue-50/50 dark:bg-blue-950/30",
-        prompt.status === "failed" && "bg-destructive/5 dark:bg-destructive/10",
+          "border-2 border-blue-500 ring-1 ring-blue-500/20 bg-blue-50/50 dark:bg-blue-950/30",
+        isFailed && "bg-destructive/5 dark:bg-destructive/10",
         isCompleted &&
           onNavigateToPrompt &&
           "cursor-pointer hover:ring-1 hover:ring-green-500/30",
@@ -404,144 +389,81 @@ export function PromptCard({
           : undefined
       }
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-3 pt-2.5">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          {onToggleEnabled && (
-            <button
-              onClick={handleToggleEnabled}
-              className="flex-shrink-0 p-0.5 rounded hover:bg-accent transition-colors"
-              title={isEnabled ? "Disable prompt" : "Enable prompt"}
-              data-no-drag
-            >
-              <LuPower
-                className={cn(
-                  "h-3.5 w-3.5 transition-colors",
-                  isEnabled
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-muted-foreground opacity-50",
-                )}
-              />
-            </button>
+      <div className="flex gap-2 p-3">
+        <div className="flex flex-col items-center gap-2 pt-1">
+          {showDragHandle && (
+            <LuGripVertical className="h-3.5 w-3.5 text-muted-foreground cursor-grab" />
           )}
+
           {onToggleSelection && (
             <button
               onClick={handleToggleSelection}
-              className="flex-shrink-0 p-0.5 rounded hover:bg-accent transition-colors"
+              className={cn(
+                "flex h-4 w-4 items-center justify-center rounded border-[1.5px] transition-colors",
+                isSelected
+                  ? "bg-primary border-primary"
+                  : "border-border hover:border-primary/50",
+              )}
               title={isSelected ? "Deselect" : "Select"}
               data-no-drag
             >
-              {isSelected ? (
-                <LuSquareCheck className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-              ) : (
-                <LuSquare className="h-3.5 w-3.5 text-muted-foreground" />
+              {isSelected && (
+                <LuCheck className="h-2.5 w-2.5 text-primary-foreground" />
               )}
             </button>
           )}
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span
-              className={cn(
-                "text-xs font-medium",
-                prompt.mediaType === "video" &&
-                  "text-blue-600 dark:text-blue-400",
-                prompt.mediaType === "image" &&
-                  "text-purple-600 dark:text-purple-400",
-              )}
-            >
-              {prompt.mediaType === "video" ? (
-                <LuVideo className="h-3 w-3 inline mr-1" />
-              ) : (
-                <LuImage className="h-3 w-3 inline mr-1" />
-              )}
-            </span>
-            {prompt.aspectRatio && (
-              <span className="text-xs text-muted-foreground">
-                • {prompt.aspectRatio}
-              </span>
-            )}
-            {prompt.variations && (
-              <span className="text-xs text-muted-foreground">
-                • {prompt.variations}v
-              </span>
-            )}
-            {prompt.enhanced && (
-              <span className="text-xs text-purple-600 dark:text-purple-400">
-                <LuSparkles className="h-3 w-3 inline mr-0.5" />
-              </span>
-            )}
-            {prompt.preset && prompt.preset !== "none" && (
-              <span
-                className={cn(
-                  "text-xs flex items-center gap-0.5",
-                  prompt.preset === "random"
-                    ? "text-purple-600 dark:text-purple-400"
-                    : "text-orange-600 dark:text-orange-400",
-                )}
-                title={`Preset: ${prompt.preset === "random" ? "Random" : prompt.preset}`}
+        </div>
+
+        <div className="flex-1 flex flex-col gap-2.5 min-w-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              {getStatusBadge()}
+              {getTypeBadge()}
+            </div>
+
+            <PromptActionsMenu
+              promptId={prompt.id}
+              status={prompt.status}
+              onEdit={handleEdit}
+              onDuplicate={handleDuplicate}
+              onRefine={handleRefine}
+              onGenerateSimilar={handleGenerateSimilar}
+              onSkip={isPending && onSkip ? handleSkip : undefined}
+              onAttachImage={
+                canEdit && onAddImage
+                  ? () => setShowImageInput(true)
+                  : undefined
+              }
+              onRetry={isFailed && onRetry ? handleRetry : undefined}
+              onDelete={handleDelete}
+              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-[13px] leading-[1.4] text-card-foreground">
+              {highlightText(displayText, searchQuery)}
+            </p>
+            {shouldTruncate && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
               >
-                •
-                {prompt.preset === "random" ? (
-                  <LuDices className="h-3 w-3" />
+                {isExpanded ? (
+                  <>
+                    <LuChevronUp className="h-2.5 w-2.5" />
+                    Show less
+                  </>
                 ) : (
-                  <LuPalette className="h-3 w-3" />
+                  <>
+                    <LuChevronDown className="h-2.5 w-2.5" />
+                    Read more
+                  </>
                 )}
-              </span>
+              </button>
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {onProcess && prompt.status === "pending" && (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleProcess}
-              className="h-6 px-2 text-xs gap-1"
-              title="Process"
-              data-no-drag
-            >
-              <LuPlay className="h-3 w-3" />
-            </Button>
-          )}
-          <Badge
-            variant="outline"
-            className={cn(
-              "flex items-center gap-1 px-2 py-0.5 text-xs font-medium border-0",
-              isProcessing && "text-yellow-600 dark:text-yellow-400",
-              isCompleted && "text-green-600 dark:text-green-400",
-              prompt.status === "pending" && "text-muted-foreground",
-              prompt.status === "failed" && "text-red-600 dark:text-red-400",
-            )}
-          >
-            {getStatusIcon(prompt.status)}
-            <span className="capitalize text-[10px]">{prompt.status}</span>
-          </Badge>
-        </div>
-      </CardHeader>
 
-      <CardContent className="px-3 pb-2">
-        <div className="space-y-1.5">
-          <p className="text-sm leading-relaxed text-foreground">
-            {highlightText(displayText, searchQuery)}
-          </p>
-          {shouldTruncate && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-            >
-              {isExpanded ? (
-                <>
-                  <LuChevronUp className="h-2.5 w-2.5" />
-                  Show less
-                </>
-              ) : (
-                <>
-                  <LuChevronDown className="h-2.5 w-2.5" />
-                  Read more
-                </>
-              )}
-            </button>
-          )}
-
-          {/* Progress indicator for processing prompts */}
           {isProcessing && (
             <div className="space-y-1">
               <Progress
@@ -564,271 +486,217 @@ export function PromptCard({
                   {Math.round(prompt.progress)}%
                 </span>
               )}
-              {prompt.progress === undefined &&
-                estimatedTimeRemaining !== null &&
-                estimatedTimeRemaining > 0 && (
-                  <span className="text-[10px] text-muted-foreground">
-                    ~{formatDuration(estimatedTimeRemaining)} remaining
-                  </span>
-                )}
             </div>
           )}
 
-          {/* Compact timing info */}
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-            {prompt.timestamp && <span>{formatTimeAgo(prompt.timestamp)}</span>}
-            {isCompleted && prompt.duration && (
-              <span>• {formatDuration(prompt.duration)}</span>
-            )}
-            {isProcessing && prompt.startTime && (
-              <span className="flex items-center gap-1">
-                <LuClock className="h-2.5 w-2.5 animate-pulse" />
-                {formatDuration(currentTime - prompt.startTime)}
-              </span>
-            )}
-          </div>
-        </div>
-      </CardContent>
-
-      <CardFooter
-        className="flex-col gap-2 pt-1.5 border-t px-3 pb-2 relative"
-        data-no-drag
-      >
-        {/* Hidden file input for local image upload */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png,image/jpeg,image/gif,image/webp"
-          onChange={handleFileSelect}
-          className="hidden"
-          data-no-drag
-        />
-
-        {/* Image attachment section - supports both URL and local files */}
-        {(prompt.imageUrl || prompt.imageData) && (
-          <div className="w-full flex items-center gap-2 p-2 bg-muted/50 rounded-md">
-            <img
-              src={
-                prompt.imageUrl ||
-                `data:${prompt.imageType || "image/png"};base64,${prompt.imageData}`
-              }
-              alt="Reference"
-              className="h-10 w-10 object-cover rounded"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-muted-foreground truncate">
-                {prompt.imageUrl || prompt.imageName || "Local image"}
-              </p>
-              {prompt.imageData && !prompt.imageUrl && (
-                <p className="text-[9px] text-muted-foreground/70">
-                  Local file
+          {(prompt.imageUrl || prompt.imageData) && (
+            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+              <img
+                src={
+                  prompt.imageUrl ||
+                  `data:${prompt.imageType || "image/png"};base64,${prompt.imageData}`
+                }
+                alt="Reference"
+                className="h-10 w-10 object-cover rounded"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {prompt.imageUrl || prompt.imageName || "Local image"}
                 </p>
+              </div>
+              {onRemoveImage && canEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveImage();
+                  }}
+                  className="p-1 text-destructive hover:text-destructive/80"
+                  title="Remove image"
+                  data-no-drag
+                >
+                  <LuCircleX className="h-3 w-3" />
+                </button>
               )}
             </div>
-            {onRemoveImage && canEdit && (
-              <Button
-                variant="ghost"
-                size="icon"
+          )}
+
+          {showImageInput && (
+            <div className="flex items-center gap-2">
+              <input
+                type="url"
+                placeholder="Enter image URL..."
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                className="flex-1 h-7 px-2 text-xs border rounded bg-background"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === "Enter") handleAddImage();
+                  else if (e.key === "Escape") {
+                    setShowImageInput(false);
+                    setImageUrlInput("");
+                  }
+                }}
+                data-no-drag
+              />
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleRemoveImage();
-                }}
-                title="Remove image"
-                type="button"
-                data-no-drag
-                className="h-6 w-6 text-destructive hover:text-destructive"
-              >
-                <LuCircleX className="h-3 w-3" />
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Image URL input */}
-        {showImageInput && (
-          <div className="w-full flex items-center gap-2">
-            <input
-              type="url"
-              placeholder="Enter image URL..."
-              value={imageUrlInput}
-              onChange={(e) => setImageUrlInput(e.target.value)}
-              className="flex-1 h-7 px-2 text-xs border rounded bg-background"
-              onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => {
-                e.stopPropagation();
-                if (e.key === "Enter") {
                   handleAddImage();
-                } else if (e.key === "Escape") {
+                }}
+                disabled={!imageUrlInput.trim()}
+                className="h-7 px-2 text-xs bg-primary text-primary-foreground rounded disabled:opacity-50"
+                data-no-drag
+              >
+                Add
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
                   setShowImageInput(false);
                   setImageUrlInput("");
-                }
-              }}
-              data-no-drag
-            />
-            <Button
-              variant="default"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddImage();
-              }}
-              disabled={!imageUrlInput.trim()}
-              className="h-7 px-2 text-xs"
-              data-no-drag
-            >
-              Add
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowImageInput(false);
-                setImageUrlInput("");
-              }}
-              className="h-7 px-2 text-xs"
-              data-no-drag
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
+                }}
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                data-no-drag
+              >
+                Cancel
+              </button>
+            </div>
+          )}
 
-        {/* Action buttons */}
-        <div className="w-full flex items-center gap-0.5">
-          {isCompleted && onNavigateToPrompt && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                onNavigateToPrompt(prompt.id, prompt.text);
-              }}
-              title="Navigate to generated media"
-              type="button"
-              data-no-drag
-              className="h-6 w-6"
-            >
-              <LuNavigation className="h-3.5 w-3.5" />
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleCopyText}
-            title="Copy"
-            type="button"
-            data-no-drag
-            className="h-6 w-6"
-          >
-            {copied ? (
-              <LuCircleCheck className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-            ) : (
-              <LuClipboard className="h-3.5 w-3.5" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleEdit}
-            disabled={!canEdit}
-            title="Edit"
-            type="button"
-            data-no-drag
-            className="h-6 w-6"
-          >
-            <LuPencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleDuplicate}
-            title="Duplicate"
-            type="button"
-            data-no-drag
-            className="h-6 w-6"
-          >
-            <LuCopy className="h-3.5 w-3.5" />
-          </Button>
-          {canRefine && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRefine}
-              title="Duplicate with AI refinement"
-              type="button"
-              data-no-drag
-              className="h-6 w-6"
-            >
-              <LuSparkles className="h-3.5 w-3.5 text-purple-500" />
-            </Button>
-          )}
-          {prompt.status === "failed" && onRetry && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRetry}
-              title="Retry failed prompt"
-              type="button"
-              data-no-drag
-              className="h-6 w-6 text-orange-500 hover:text-orange-600"
-            >
-              <LuRefreshCw className="h-3.5 w-3.5" />
-            </Button>
-          )}
-          {!prompt.imageUrl && !prompt.imageData && canEdit && (
-            <>
-              {onAddImage && (
-                <Button
-                  variant="ghost"
-                  size="icon"
+          <div className="flex items-center justify-between pt-1" data-no-drag>
+            <span className="text-[11px] text-muted-foreground">
+              {prompt.timestamp && formatTimeAgo(prompt.timestamp)}
+              {isCompleted &&
+                prompt.duration &&
+                ` • ${formatDuration(prompt.duration)}`}
+              {isProcessing && prompt.startTime && (
+                <span className="inline-flex items-center gap-0.5">
+                  <LuClock className="h-2.5 w-2.5 animate-pulse" />
+                  {formatDuration(currentTime - prompt.startTime)}
+                </span>
+              )}
+            </span>
+
+            <div className="flex items-center gap-2">
+              {canEdit && (
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowImageInput(true);
+                    handleEdit();
                   }}
-                  title="Add image URL"
-                  type="button"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="Edit"
                   data-no-drag
-                  className="h-6 w-6"
                 >
-                  <LuLink className="h-3.5 w-3.5" />
-                </Button>
+                  <LuPencil className="h-3.5 w-3.5" />
+                </button>
               )}
-              {onAddLocalImage && (
-                <Button
-                  variant="ghost"
-                  size="icon"
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyText();
+                }}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title="Copy to clipboard"
+                data-no-drag
+              >
+                {copied ? (
+                  <LuCircleCheck className="h-3.5 w-3.5 text-green-500" />
+                ) : (
+                  <LuClipboard className="h-3.5 w-3.5" />
+                )}
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDuplicate();
+                }}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title="Duplicate"
+                data-no-drag
+              >
+                <LuCopy className="h-3.5 w-3.5" />
+              </button>
+
+              {canRefine && (
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    fileInputRef.current?.click();
+                    handleRefine();
                   }}
-                  title="Upload local image"
-                  type="button"
+                  className="text-purple-500 hover:text-purple-600 transition-colors"
+                  title="Refine with AI"
                   data-no-drag
-                  className="h-6 w-6"
                 >
-                  <LuUpload className="h-3.5 w-3.5" />
-                </Button>
+                  <LuSparkles className="h-3.5 w-3.5" />
+                </button>
               )}
-            </>
-          )}
-          <div className="flex-1" />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleDelete}
-            title="Delete"
-            type="button"
-            data-no-drag
-            className="h-6 w-6 text-destructive hover:text-destructive"
-          >
-            <LuTrash2 className="h-3.5 w-3.5" />
-          </Button>
+
+              {isPending && onSkip && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSkip();
+                  }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  title="Skip"
+                  data-no-drag
+                >
+                  <LuSkipForward className="h-3.5 w-3.5" />
+                </button>
+              )}
+
+              {canEdit &&
+                !prompt.imageUrl &&
+                !prompt.imageData &&
+                (onAddImage || onAddLocalImage) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onAddLocalImage) {
+                        fileInputRef.current?.click();
+                      } else {
+                        setShowImageInput(true);
+                      }
+                    }}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    title="Attach image"
+                    data-no-drag
+                  >
+                    <LuPaperclip className="h-3.5 w-3.5" />
+                  </button>
+                )}
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete();
+                }}
+                className="text-muted-foreground hover:text-destructive transition-colors"
+                title="Delete"
+                data-no-drag
+              >
+                <LuTrash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/gif,image/webp"
+        onChange={handleFileSelect}
+        className="hidden"
+        data-no-drag
+      />
+    </div>
   );
 }

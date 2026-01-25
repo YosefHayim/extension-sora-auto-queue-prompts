@@ -153,6 +153,8 @@ describe("SettingsDialog", () => {
       />,
     );
 
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     expect(screen.getAllByText("Detected")[0]).toBeInTheDocument();
   });
 
@@ -174,6 +176,10 @@ describe("SettingsDialog", () => {
       />,
     );
 
+    // Navigate to the Generate tab first
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
+
     // Find the Sora Generation Settings card by finding the title and then its parent card
     const soraSettingsTitle = screen.getByText("Sora Generation Settings");
     const soraSettingsCard = soraSettingsTitle.closest(".rounded-lg");
@@ -194,6 +200,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const minDelayInput = screen.getByLabelText("Min Delay (seconds)");
     fireEvent.change(minDelayInput, { target: { value: "1" } });
     const form = minDelayInput.closest("form");
@@ -220,6 +228,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
     fireEvent.change(maxDelayInput, { target: { value: "1" } });
     const form = maxDelayInput.closest("form");
@@ -244,6 +254,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     const batchSizeInput = screen.getByLabelText("Batch Size");
     fireEvent.change(batchSizeInput, { target: { value: "101" } });
     const form = batchSizeInput.closest("form");
@@ -359,6 +371,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     const batchSizeInput = screen.getByLabelText("Batch Size");
     fireEvent.change(batchSizeInput, { target: { value: "20" } });
     expect((batchSizeInput as HTMLInputElement).value).toBe("20");
@@ -373,6 +387,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     const checkbox = screen.getByLabelText(/Enhanced Prompts/);
     fireEvent.click(checkbox);
     expect((checkbox as HTMLInputElement).checked).toBe(true);
@@ -387,6 +403,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const checkbox = screen.getByLabelText(/Auto-start Queue/);
     fireEvent.click(checkbox);
     expect((checkbox as HTMLInputElement).checked).toBe(true);
@@ -401,6 +419,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const checkbox = screen.getByLabelText(/Auto-generate on Empty Queue/);
     fireEvent.click(checkbox);
     expect((checkbox as HTMLInputElement).checked).toBe(true);
@@ -415,6 +435,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const checkbox = screen.getByLabelText(/Auto-generate on Prompt Received/);
     fireEvent.click(checkbox);
     expect((checkbox as HTMLInputElement).checked).toBe(true);
@@ -430,7 +452,13 @@ describe("SettingsDialog", () => {
       />,
     );
     expect(screen.getByText("API Configuration")).toBeInTheDocument();
+
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     expect(screen.getByText("Sora Generation Settings")).toBeInTheDocument();
+
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     expect(screen.getByText("Queue Processing Settings")).toBeInTheDocument();
   });
 
@@ -592,6 +620,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     const mediaTypeSelect = screen.getByLabelText(
       "Media Type",
     ) as HTMLSelectElement;
@@ -608,6 +638,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     const variationSelect = screen.getByLabelText(
       "Variations",
     ) as HTMLSelectElement;
@@ -624,6 +656,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const minDelayInput = screen.getByLabelText("Min Delay (seconds)");
     fireEvent.change(minDelayInput, { target: { value: "5" } });
     expect((minDelayInput as HTMLInputElement).value).toBe("5");
@@ -638,6 +672,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
     fireEvent.change(maxDelayInput, { target: { value: "10" } });
     expect((maxDelayInput as HTMLInputElement).value).toBe("10");
@@ -694,6 +730,9 @@ describe("SettingsDialog", () => {
     );
 
     expect(screen.getByDisplayValue("Updated context")).toBeInTheDocument();
+
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     expect(screen.getByDisplayValue("20")).toBeInTheDocument();
   });
 
@@ -724,6 +763,8 @@ describe("SettingsDialog", () => {
       />,
     );
 
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     const mediaTypeSelect = screen.getByLabelText(
       "Media Type",
     ) as HTMLSelectElement;
@@ -790,6 +831,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const minDelayInput = screen.getByLabelText("Min Delay (seconds)");
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
 
@@ -820,6 +863,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
 
     fireEvent.change(maxDelayInput, { target: { value: "61" } });
@@ -867,10 +912,16 @@ describe("SettingsDialog", () => {
 
     expect(screen.getByText("API Key")).toBeInTheDocument();
     expect(screen.getByText("Default Context Prompt")).toBeInTheDocument();
+
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     expect(screen.getByText("Media Type")).toBeInTheDocument();
     expect(screen.getByText("Variations")).toBeInTheDocument();
     expect(screen.getByText("Batch Size")).toBeInTheDocument();
     expect(screen.getByText("Enhanced Prompts")).toBeInTheDocument();
+
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     expect(screen.getByText("Min Delay (seconds)")).toBeInTheDocument();
     expect(screen.getByText("Max Delay (seconds)")).toBeInTheDocument();
   });
@@ -893,6 +944,8 @@ describe("SettingsDialog", () => {
       />,
     );
 
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     expect(screen.getByText("Using detected settings")).toBeInTheDocument();
   });
 
@@ -914,6 +967,8 @@ describe("SettingsDialog", () => {
       />,
     );
 
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     expect(screen.getByText("Using detected settings")).toBeInTheDocument();
   });
 
@@ -926,6 +981,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const generateTab = screen.getByRole("button", { name: /generate/i });
+    fireEvent.click(generateTab);
     const batchSizeInput = screen.getByLabelText("Batch Size");
 
     // Clear the input
@@ -953,6 +1010,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const minDelayInput = screen.getByLabelText("Min Delay (seconds)");
 
     // Set invalid value
@@ -974,6 +1033,8 @@ describe("SettingsDialog", () => {
         onSave={mockOnSave}
       />,
     );
+    const queueTab = screen.getByRole("button", { name: /queue/i });
+    fireEvent.click(queueTab);
     const maxDelayInput = screen.getByLabelText("Max Delay (seconds)");
 
     // Set invalid value

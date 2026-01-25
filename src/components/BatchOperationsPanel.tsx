@@ -12,9 +12,13 @@ interface BatchOperationsPanelProps {
   onDisableAll?: () => void;
   onMoveToTop?: () => void;
   onMoveToBottom?: () => void;
+  onMoveToPosition?: (position: number) => Promise<void>;
   onDuplicateAll?: () => void;
   onShuffle?: () => void;
   onRandomPresetToEach?: () => void;
+  onCreateBatch?: () => void;
+  onSetPriority?: () => void;
+  totalPrompts?: number;
   className?: string;
 }
 

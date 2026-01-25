@@ -18,19 +18,20 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
-  FaCheckSquare,
-  FaDownload,
-  FaEllipsisH,
-  FaList,
-  FaMoon,
-  FaPlay,
-  FaQuestion,
-  FaSort,
-  FaSpinner,
-  FaSquare,
-  FaSun,
-  FaTrash,
-} from "react-icons/fa";
+  LuCheck,
+  LuDownload,
+  LuEllipsis,
+  LuList,
+  LuMoon,
+  LuPlay,
+  LuCircleHelp,
+  LuArrowUpDown,
+  LuLoader,
+  LuSquare,
+  LuSun,
+  LuTrash2,
+  LuSparkles,
+} from "react-icons/lu";
 import {
   SortableContext,
   arrayMove,
@@ -825,7 +826,7 @@ function SidePanel() {
   if (loading) {
     return (
       <div className="sidepanel-container flex items-center justify-center min-h-screen">
-        <FaSpinner className="h-6 w-6 animate-spin text-primary" />
+        <LuLoader className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -849,11 +850,14 @@ function SidePanel() {
         />
       )}
 
-      <header className="border-b pb-2 space-y-2 bg-background sticky top-0 z-10">
+      <header className="border-b py-3 px-4 bg-background sticky top-0 z-10">
         <div className="flex items-center justify-between">
-          <h1 className="text-base font-semibold text-foreground">
-            Sora Queue
-          </h1>
+          <div className="flex items-center gap-2">
+            <LuSparkles className="h-5 w-5 text-foreground" />
+            <h1 className="text-base font-semibold text-foreground">
+              Sora Queue
+            </h1>
+          </div>
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -862,7 +866,7 @@ function SidePanel() {
               className="h-7 w-7 inline-flex items-center justify-center rounded-md text-sm cursor-pointer hover:bg-accent transition-colors"
               data-tour="help"
             >
-              <FaQuestion className="h-3 w-3" />
+              <LuCircleHelp className="h-3 w-3" />
             </button>
             <button
               type="button"
@@ -871,25 +875,27 @@ function SidePanel() {
               className="h-7 w-7 inline-flex items-center justify-center rounded-md text-sm cursor-pointer hover:bg-accent transition-colors"
             >
               {darkMode ? (
-                <FaSun className="h-3.5 w-3.5" />
+                <LuSun className="h-3.5 w-3.5" />
               ) : (
-                <FaMoon className="h-3.5 w-3.5" />
+                <LuMoon className="h-3.5 w-3.5" />
               )}
             </button>
           </div>
         </div>
+      </header>
 
+      <div className="py-2 px-4">
         <StatusBar
           pendingCount={pendingCount}
           processingCount={processingCount}
           completedCount={completedCount}
         />
-      </header>
+      </div>
 
       <Tabs defaultValue="queue" className="w-full">
         <TabsList className="w-full grid grid-cols-2 h-9">
           <TabsTrigger value="queue" className="text-xs" data-tour="queue-tab">
-            <FaList className="h-3 w-3 mr-1.5" />
+            <LuList className="h-3 w-3 mr-1.5" />
             Queue
           </TabsTrigger>
           <TabsTrigger value="settings" className="text-xs">
@@ -948,9 +954,9 @@ function SidePanel() {
                   >
                     {selectedPrompts.size === filteredPrompts.length &&
                     filteredPrompts.length > 0 ? (
-                      <FaCheckSquare className="h-3 w-3" />
+                      <LuCheck className="h-3 w-3" />
                     ) : (
-                      <FaSquare className="h-3 w-3" />
+                      <LuSquare className="h-3 w-3" />
                     )}
                     {selectedPrompts.size > 0
                       ? `${selectedPrompts.size}`
@@ -963,7 +969,7 @@ function SidePanel() {
                       onClick={handleProcessSelectedPrompts}
                       className="h-7 text-xs gap-1.5"
                     >
-                      <FaPlay className="h-3 w-3" />
+                      <LuPlay className="h-3 w-3" />
                       Run ({selectedPrompts.size})
                     </Button>
                   )}
@@ -971,12 +977,12 @@ function SidePanel() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-7 px-2.5 text-xs gap-1.5">
-                    <FaEllipsisH className="h-3 w-3" />
+                    <LuEllipsis className="h-3 w-3" />
                     More
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel className="text-xs text-muted-foreground font-normal flex items-center gap-1.5">
-                      <FaSort className="h-3 w-3" />
+                      <LuArrowUpDown className="h-3 w-3" />
                       Sort by
                     </DropdownMenuLabel>
                     <DropdownMenuItem
@@ -1042,7 +1048,7 @@ function SidePanel() {
                       onSelect={() => setExportDialogOpen(true)}
                       className="flex items-center gap-2"
                     >
-                      <FaDownload className="h-3 w-3" />
+                      <LuDownload className="h-3 w-3" />
                       Export Queue
                     </DropdownMenuItem>
 
@@ -1052,7 +1058,7 @@ function SidePanel() {
                       onSelect={handleDeleteAllPrompts}
                       className="flex items-center gap-2 text-destructive focus:text-destructive"
                     >
-                      <FaTrash className="h-3 w-3" />
+                      <LuTrash2 className="h-3 w-3" />
                       Delete All Prompts
                     </DropdownMenuItem>
                   </DropdownMenuContent>

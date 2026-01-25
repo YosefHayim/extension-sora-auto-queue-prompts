@@ -6,6 +6,7 @@ import { cn } from "../lib/utils";
 interface EmptyStateProps {
   onGenerate: () => void;
   onImport: () => void;
+  onManual?: () => void;
   className?: string;
 }
 

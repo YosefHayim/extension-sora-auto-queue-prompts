@@ -21,6 +21,8 @@ interface FilterDropdownProps {
   mediaTypeFilter: MediaTypeFilter;
   onStatusFilterChange: (filter: StatusFilter) => void;
   onMediaTypeFilterChange: (filter: MediaTypeFilter) => void;
+  promptCount: number;
+  filteredCount?: number;
   className?: string;
 }
 

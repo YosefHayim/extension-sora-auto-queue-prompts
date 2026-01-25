@@ -19,6 +19,7 @@ interface SortablePromptCardProps {
   onGenerateSimilar: (id: string) => void;
   onDelete: (id: string) => void;
   onRetry?: (id: string) => void;
+  onSkip?: (id: string) => void;
   onAddImage?: (id: string, imageUrl: string) => void;
   onAddLocalImage?: (
     id: string,

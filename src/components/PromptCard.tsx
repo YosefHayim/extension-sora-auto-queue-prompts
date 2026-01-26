@@ -350,29 +350,25 @@ export function PromptCard({
     switch (prompt.status) {
       case "completed":
         return (
-          <Badge className="gap-1 bg-green-500 text-white border-0 px-2 py-0.5 rounded-full text-[11px] font-medium">
-            <LuCheck className="h-3 w-3" />
+          <Badge variant="completed" showIcon>
             Completed
           </Badge>
         );
       case "processing":
         return (
-          <Badge className="gap-1 bg-blue-500 text-white border-0 px-2 py-0.5 rounded-full text-[11px] font-medium">
-            <LuLoader className="h-3 w-3 animate-spin" />
+          <Badge variant="processing" showIcon>
             Processing
           </Badge>
         );
       case "pending":
         return (
-          <Badge className="gap-1 bg-muted text-muted-foreground border-0 px-2 py-0.5 rounded-full text-[11px] font-medium">
-            <LuClock className="h-3 w-3" />
+          <Badge variant="pending" showIcon>
             Pending
           </Badge>
         );
       case "failed":
         return (
-          <Badge className="gap-1 bg-destructive text-destructive-foreground border-0 px-2 py-0.5 rounded-full text-[11px] font-medium">
-            <LuX className="h-3 w-3" />
+          <Badge variant="failed" showIcon>
             Failed
           </Badge>
         );
@@ -384,21 +380,13 @@ export function PromptCard({
   const getTypeBadge = () => {
     if (prompt.mediaType === "video") {
       return (
-        <Badge
-          variant="outline"
-          className="gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium text-muted-foreground"
-        >
-          <LuVideo className="h-3 w-3" />
+        <Badge variant="video" showIcon>
           Video
         </Badge>
       );
     }
     return (
-      <Badge
-        variant="outline"
-        className="gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium text-muted-foreground"
-      >
-        <LuImage className="h-3 w-3" />
+      <Badge variant="image" showIcon>
         Image
       </Badge>
     );
@@ -408,13 +396,13 @@ export function PromptCard({
     <div
       onClick={handleCardClick}
       className={cn(
-        "w-full bg-card rounded-lg border border-border transition-all duration-200 hover:shadow-md hover:border-primary/30",
+        "w-full bg-card rounded-xl border border-border transition-all duration-200 hover:shadow-md hover:border-primary/30",
         isSelected &&
           "border-2 border-blue-500 ring-1 ring-blue-500/20 bg-blue-50/50 dark:bg-blue-950/30",
         isFailed && "bg-destructive/5 dark:bg-destructive/10",
         isCompleted &&
           onNavigateToPrompt &&
-          "cursor-pointer hover:ring-1 hover:ring-green-500/30",
+          "cursor-pointer hover:ring-1 hover:ring-success/30",
       )}
       title={
         isCompleted && onNavigateToPrompt

@@ -11,23 +11,22 @@ import {
 } from "react-icons/lu";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1",
+  "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 gap-1",
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+        default: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground border-border",
-        pending: "border-transparent bg-muted text-muted-foreground",
-        processing: "border-transparent bg-blue-500 text-white",
-        completed: "border-transparent bg-green-500 text-white",
-        failed: "border-transparent bg-destructive text-destructive-foreground",
-        video: "border-border bg-transparent text-muted-foreground",
-        image: "border-border bg-transparent text-muted-foreground",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        outline: "text-foreground border border-border",
+        pending: "bg-muted text-muted-foreground",
+        processing: "bg-blue-500 text-white",
+        completed: "bg-success text-success-foreground",
+        failed: "bg-destructive text-destructive-foreground",
+        video: "border border-border bg-transparent text-muted-foreground",
+        image: "border border-border bg-transparent text-muted-foreground",
       },
     },
     defaultVariants: {

@@ -102,7 +102,7 @@ const DropdownMenuContent = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "absolute z-[110] min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
+        "absolute z-[110] min-w-[8rem] overflow-hidden rounded-xl border bg-card p-1 text-card-foreground shadow-md",
         align === "end" ? "right-0" : "left-0",
         "mt-2",
         className,
@@ -135,7 +135,7 @@ const DropdownMenuItem = React.forwardRef<
       ref={ref}
       type="button"
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50",
+        "relative flex w-full cursor-pointer select-none items-center rounded-md px-3 py-2 text-[13px] outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50",
         className,
       )}
       onClick={handleClick}

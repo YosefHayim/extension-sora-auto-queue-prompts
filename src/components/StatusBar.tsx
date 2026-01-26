@@ -22,7 +22,7 @@ export function StatusBar({
   return (
     <div
       className={cn(
-        "flex items-center justify-around gap-2 rounded-md bg-muted px-3 py-2",
+        "flex items-center justify-around gap-2 rounded-lg bg-muted px-3 py-2",
         className,
       )}
     >
@@ -41,7 +41,7 @@ export function StatusBar({
       </div>
 
       <div className="flex items-center gap-1.5">
-        <span className="h-2 w-2 rounded-full bg-green-500" />
+        <span className="h-2 w-2 rounded-full bg-success" />
         <span className="text-[13px] font-semibold text-foreground">
           {completedCount}
         </span>

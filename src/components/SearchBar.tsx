@@ -17,7 +17,7 @@ export function SearchBar({
   return (
     <div
       className={cn(
-        "flex h-9 items-center gap-2 rounded-md bg-muted px-3",
+        "flex h-9 items-center gap-2 rounded-lg bg-muted px-3",
         className,
       )}
     >

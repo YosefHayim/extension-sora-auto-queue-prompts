@@ -67,7 +67,7 @@ export function PromptActionsMenu({
           <LuEllipsis className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[180px]">
+      <DropdownMenuContent align="end" className="w-[180px] p-1 gap-0.5">
         <DropdownMenuItem
           onClick={onEdit}
           disabled={!canEdit}

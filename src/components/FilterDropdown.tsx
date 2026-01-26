@@ -55,7 +55,7 @@ export function FilterDropdown({
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[200px]">
+      <DropdownMenuContent align="start" className="w-[200px] p-2 gap-1">
         <DropdownMenuLabel className="text-[12px] font-semibold text-muted-foreground">
           Filter by
         </DropdownMenuLabel>

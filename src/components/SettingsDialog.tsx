@@ -28,7 +28,10 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import { recognizeApiProvider, verifyApiKey } from "../utils/apiKeyUtils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Toggle } from "./ui/toggle";
+import { SettingsSection } from "./SettingsSection";
+import { AccountCard } from "./AccountCard";
+import { PlanCard } from "./PlanCard";
 
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -935,132 +938,35 @@ export function SettingsDialog({
         </div>
       )}
 
-      {/* Tabbed Form */}
+      {/* Section-based Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Tabs defaultValue="api" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-4">
-            <TabsTrigger value="api" className="text-xs gap-1">
-              <FaKey className="h-3 w-3" />
-              <span className="hidden sm:inline">API</span>
-            </TabsTrigger>
-            <TabsTrigger value="generation" className="text-xs gap-1">
-              <FaMagic className="h-3 w-3" />
-              <span className="hidden sm:inline">Generate</span>
-            </TabsTrigger>
-            <TabsTrigger value="queue" className="text-xs gap-1">
-              <FaPlayCircle className="h-3 w-3" />
-              <span className="hidden sm:inline">Queue</span>
-            </TabsTrigger>
-            <TabsTrigger value="download" className="text-xs gap-1">
-              <FaDownload className="h-3 w-3" />
-              <span className="hidden sm:inline">Download</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="text-xs gap-1">
-              <FaBell className="h-3 w-3" />
-              <span className="hidden sm:inline">Notify</span>
-            </TabsTrigger>
-          </TabsList>
+        {/* Content - Single scrollable layout */}
+        <div className="flex-1 overflow-y-auto space-y-4">
+          {/* API Configuration Section */}
+          <SettingsSection title="API Configuration">
+            {ApiTabContent}
+          </SettingsSection>
 
-          <TabsContent value="api">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <FaKey className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-base">API Configuration</CardTitle>
-                </div>
-                <CardDescription>
-                  Configure your AI API settings for prompt generation (OpenAI,
-                  Anthropic, or Google)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>{ApiTabContent}</CardContent>
-            </Card>
-          </TabsContent>
+          {/* Queue Settings Section */}
+          <SettingsSection title="Queue Settings">
+            {QueueTabContent}
+          </SettingsSection>
 
-          <TabsContent value="generation">
-            <Card
-              className={
-                detectedSettings?.success &&
-                (detectedSettings.mediaType || detectedSettings.variations)
-                  ? "border-green-500/60 border-2"
-                  : ""
-              }
-            >
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
-                    <FaMagic className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-base">
-                      Sora Generation Settings
-                    </CardTitle>
-                  </div>
-                  {detectedSettings?.success &&
-                    (detectedSettings.mediaType ||
-                      detectedSettings.variations) && (
-                      <span className="text-xs text-green-600 dark:text-green-400 font-medium flex items-center gap-1.5">
-                        <FaCheckCircle className="h-3 w-3" />
-                        Using detected settings
-                      </span>
-                    )}
-                </div>
-                <CardDescription>
-                  Configure how prompts are generated for Sora
-                </CardDescription>
-              </CardHeader>
-              <CardContent>{GenerationTabContent}</CardContent>
-            </Card>
-          </TabsContent>
+          {/* Downloads Section */}
+          <SettingsSection title="Downloads">
+            {DownloadTabContent}
+          </SettingsSection>
 
-          <TabsContent value="queue">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <FaPlayCircle className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-base">
-                    Queue Processing Settings
-                  </CardTitle>
-                </div>
-                <CardDescription>
-                  Configure how the queue processes and submits prompts to Sora
-                </CardDescription>
-              </CardHeader>
-              <CardContent>{QueueTabContent}</CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="download">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <FaDownload className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-base">Download Settings</CardTitle>
-                </div>
-                <CardDescription>
-                  Configure automatic and bulk downloading of generated images
-                  and videos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>{DownloadTabContent}</CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <FaTelegramPlane className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-base">
-                    Notification Settings
-                  </CardTitle>
-                </div>
-                <CardDescription>
-                  Configure notifications (e.g. Telegram) on completion
-                </CardDescription>
-              </CardHeader>
-              <CardContent>{NotificationsTabContent}</CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          {/* Account Section */}
+          <SettingsSection title="Account">
+            <AccountCard name="John Doe" email="john@example.com" />
+            <PlanCard
+              planName="Lifetime License"
+              description="Unlimited access forever"
+              isActive={true}
+            />
+          </SettingsSection>
+        </div>
 
         {error && (
           <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">

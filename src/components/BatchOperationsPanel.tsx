@@ -393,10 +393,10 @@ export function BatchOperationsPanel({
 
         <button
           onClick={onDeleteSelected}
-          className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-primary-foreground/20"
+          className="group flex h-7 w-7 items-center justify-center rounded-md hover:bg-destructive/20"
           title="Delete selected"
         >
-          <LuTrash2 className="h-3.5 w-3.5 text-primary-foreground" />
+          <LuTrash2 className="h-3.5 w-3.5 text-primary-foreground group-hover:text-destructive" />
         </button>
 
         <button

@@ -84,6 +84,11 @@ import {
   type SelectOption,
 } from "../src/components/BulkInputDialog";
 import {
+  ConfirmDialog,
+  AlertDialog,
+  type ConfirmDialogVariant,
+} from "../src/components/ConfirmDialog";
+import {
   LuChevronLeft,
   LuChevronRight,
   LuReplace,
@@ -157,6 +162,22 @@ function SidePanel() {
     options?: SelectOption[];
     icon?: React.ReactNode;
     onConfirm: (value: string | { search: string; replace: string }) => void;
+  } | null>(null);
+
+  const [confirmDialog, setConfirmDialog] = React.useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmLabel?: string;
+    variant?: ConfirmDialogVariant;
+    onConfirm: () => void;
+  } | null>(null);
+
+  const [alertDialog, setAlertDialog] = React.useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    variant?: ConfirmDialogVariant;
   } | null>(null);
 
   const sensors = useSensors(
@@ -399,7 +420,7 @@ function SidePanel() {
     }
   }
 
-  async function handleCleanCompletedAndFailed() {
+  function handleCleanCompletedAndFailed() {
     const completedCount = prompts.filter(
       (p) => p.status === "completed",
     ).length;
@@ -408,17 +429,21 @@ function SidePanel() {
 
     if (totalToDelete === 0) return;
 
-    const confirmed = window.confirm(
-      `Delete ${totalToDelete} prompt(s)? (${completedCount} completed, ${failedCount} failed)`,
-    );
-    if (!confirmed) return;
-
-    try {
-      await storage.deleteCompletedAndFailed();
-      await loadData();
-    } catch (error) {
-      log.ui.error("handleCleanCompletedAndFailed", error);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Clean Queue",
+      description: `Delete ${totalToDelete} prompt(s)? (${completedCount} completed, ${failedCount} failed)`,
+      confirmLabel: "Delete",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          await storage.deleteCompletedAndFailed();
+          await loadData();
+        } catch (error) {
+          log.ui.error("handleCleanCompletedAndFailed", error);
+        }
+      },
+    });
   }
 
   async function handleEditPrompt(id: string) {
@@ -620,23 +645,27 @@ function SidePanel() {
     }
   }
 
-  async function handleDeleteAllPrompts() {
+  function handleDeleteAllPrompts() {
     if (prompts.length === 0) return;
 
-    const confirmed = window.confirm(
-      `Delete all ${prompts.length} prompt(s)? This cannot be undone.`,
-    );
-    if (!confirmed) return;
-
-    try {
-      if (queueState?.isRunning) {
-        await handleStopQueue();
-      }
-      await storage.clearPrompts();
-      await loadData();
-    } catch (error) {
-      log.ui.error("handleDeleteAllPrompts", error);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete All Prompts",
+      description: `Delete all ${prompts.length} prompt(s)? This cannot be undone.`,
+      confirmLabel: "Delete All",
+      variant: "destructive",
+      onConfirm: async () => {
+        try {
+          if (queueState?.isRunning) {
+            await handleStopQueue();
+          }
+          await storage.clearPrompts();
+          await loadData();
+        } catch (error) {
+          log.ui.error("handleDeleteAllPrompts", error);
+        }
+      },
+    });
   }
 
   function handleGenerate() {
@@ -765,41 +794,71 @@ function SidePanel() {
     setSelectedPrompts(new Set());
   }
 
-  async function handleOpenPriorityDialog() {
-    const priority = window.prompt(
-      "Set priority for selected prompts:\n\nEnter: high, normal, or low",
-      "normal",
-    );
-    if (priority && ["high", "normal", "low"].includes(priority)) {
-      await handleSetPriorityForSelected(priority as "high" | "normal" | "low");
-    }
+  function handleOpenPriorityDialog() {
+    if (selectedPrompts.size === 0) return;
+
+    setBulkDialog({
+      isOpen: true,
+      type: "select",
+      title: "Set Priority",
+      description: "Choose the priority level for selected prompts.",
+      inputLabel: "Select priority",
+      confirmLabel: "Apply",
+      options: [
+        { value: "high", label: "High" },
+        { value: "normal", label: "Normal" },
+        { value: "low", label: "Low" },
+      ],
+      onConfirm: async (value) => {
+        if (
+          typeof value === "string" &&
+          ["high", "normal", "low"].includes(value)
+        ) {
+          await handleSetPriorityForSelected(
+            value as "high" | "normal" | "low",
+          );
+        }
+      },
+    });
   }
 
-  async function handleOpenBatchLabelDialog() {
-    const batchLabel = window.prompt(
-      "Enter batch label for selected prompts:",
-      "",
-    );
-    if (batchLabel && batchLabel.trim()) {
-      await handleCreateBatchFromSelected(batchLabel);
-    }
+  function handleOpenBatchLabelDialog() {
+    if (selectedPrompts.size === 0) return;
+
+    setBulkDialog({
+      isOpen: true,
+      type: "text",
+      title: "Create Batch",
+      description: "Group selected prompts under a batch label.",
+      inputLabel: "Batch label",
+      inputPlaceholder: "e.g., Nature scenes, Product shots",
+      confirmLabel: "Create Batch",
+      onConfirm: async (value) => {
+        if (typeof value === "string" && value.trim()) {
+          await handleCreateBatchFromSelected(value.trim());
+        }
+      },
+    });
   }
 
-  async function handleDeleteSelected() {
+  function handleDeleteSelected() {
     const selectedIds = Array.from(selectedPrompts);
     if (selectedIds.length === 0) return;
 
-    const confirmed = window.confirm(
-      `Delete ${selectedIds.length} selected prompt(s)?`,
-    );
-    if (!confirmed) return;
-
-    for (const id of selectedIds) {
-      await storage.deletePrompt(id);
-    }
-
-    await loadData();
-    setSelectedPrompts(new Set());
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Selected",
+      description: `Delete ${selectedIds.length} selected prompt(s)?`,
+      confirmLabel: "Delete",
+      variant: "destructive",
+      onConfirm: async () => {
+        for (const id of selectedIds) {
+          await storage.deletePrompt(id);
+        }
+        await loadData();
+        setSelectedPrompts(new Set());
+      },
+    });
   }
 
   // ============================================
@@ -1204,54 +1263,61 @@ function SidePanel() {
     await storage.setPrompts(updatedPrompts);
   }
 
-  // AI Enhancement Operations
-  async function handleEnhanceAllSelected() {
+  function handleEnhanceAllSelected() {
     const selectedIds = Array.from(selectedPrompts);
     if (selectedIds.length === 0) return;
 
-    const confirmed = window.confirm(
-      `Enhance ${selectedIds.length} selected prompt(s) with AI? This may take a moment.`,
-    );
-    if (!confirmed) return;
-
-    try {
-      for (const id of selectedIds) {
-        await chrome.runtime.sendMessage({
-          action: "promptAction",
-          data: { type: "refine", promptId: id },
-        });
-      }
-      await loadData();
-      setSelectedPrompts(new Set());
-    } catch (error) {
-      log.ui.error("handleEnhanceAllSelected", error);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Enhance Prompts",
+      description: `Enhance ${selectedIds.length} selected prompt(s) with AI? This may take a moment.`,
+      confirmLabel: "Enhance All",
+      variant: "info",
+      onConfirm: async () => {
+        try {
+          for (const id of selectedIds) {
+            await chrome.runtime.sendMessage({
+              action: "promptAction",
+              data: { type: "refine", promptId: id },
+            });
+          }
+          await loadData();
+          setSelectedPrompts(new Set());
+        } catch (error) {
+          log.ui.error("handleEnhanceAllSelected", error);
+        }
+      },
+    });
   }
 
-  async function handleGenerateSimilarForAll() {
+  function handleGenerateSimilarForAll() {
     const selectedIds = Array.from(selectedPrompts);
     if (selectedIds.length === 0) return;
 
-    const confirmed = window.confirm(
-      `Generate similar prompts for ${selectedIds.length} selected prompt(s)?`,
-    );
-    if (!confirmed) return;
-
-    try {
-      for (const id of selectedIds) {
-        await chrome.runtime.sendMessage({
-          action: "promptAction",
-          data: { type: "generate-similar", promptId: id },
-        });
-      }
-      await loadData();
-      setSelectedPrompts(new Set());
-    } catch (error) {
-      log.ui.error("handleGenerateSimilarForAll", error);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Generate Similar",
+      description: `Generate similar prompts for ${selectedIds.length} selected prompt(s)?`,
+      confirmLabel: "Generate",
+      variant: "info",
+      onConfirm: async () => {
+        try {
+          for (const id of selectedIds) {
+            await chrome.runtime.sendMessage({
+              action: "promptAction",
+              data: { type: "generate-similar", promptId: id },
+            });
+          }
+          await loadData();
+          setSelectedPrompts(new Set());
+        } catch (error) {
+          log.ui.error("handleGenerateSimilarForAll", error);
+        }
+      },
+    });
   }
 
-  async function handleResetToOriginal() {
+  function handleResetToOriginal() {
     const selectedIds = Array.from(selectedPrompts);
     if (selectedIds.length === 0) return;
 
@@ -1260,25 +1326,33 @@ function SidePanel() {
     );
 
     if (promptsWithOriginal.length === 0) {
-      window.alert("No selected prompts have original text to restore.");
+      setAlertDialog({
+        isOpen: true,
+        title: "No Original Text",
+        description: "No selected prompts have original text to restore.",
+        variant: "info",
+      });
       return;
     }
 
-    const confirmed = window.confirm(
-      `Reset ${promptsWithOriginal.length} prompt(s) to their original text?`,
-    );
-    if (!confirmed) return;
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id) && p.originalText) {
-        return { ...p, text: p.originalText };
-      }
-      return p;
+    setConfirmDialog({
+      isOpen: true,
+      title: "Reset to Original",
+      description: `Reset ${promptsWithOriginal.length} prompt(s) to their original text?`,
+      confirmLabel: "Reset",
+      variant: "warning",
+      onConfirm: async () => {
+        const updatedPrompts = prompts.map((p) => {
+          if (selectedIds.includes(p.id) && p.originalText) {
+            return { ...p, text: p.originalText };
+          }
+          return p;
+        });
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
   // Queue Operations
@@ -1316,8 +1390,7 @@ function SidePanel() {
     }
   }
 
-  // Danger Zone Operations
-  async function handleClearAttachedImages() {
+  function handleClearAttachedImages() {
     const selectedIds = Array.from(selectedPrompts);
     if (selectedIds.length === 0) return;
 
@@ -1326,31 +1399,39 @@ function SidePanel() {
     );
 
     if (promptsWithImages.length === 0) {
-      window.alert("No selected prompts have attached images.");
+      setAlertDialog({
+        isOpen: true,
+        title: "No Images",
+        description: "No selected prompts have attached images.",
+        variant: "info",
+      });
       return;
     }
 
-    const confirmed = window.confirm(
-      `Clear attached images from ${promptsWithImages.length} prompt(s)?`,
-    );
-    if (!confirmed) return;
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return {
-          ...p,
-          imageUrl: undefined,
-          imageData: undefined,
-          imageName: undefined,
-          imageType: undefined,
-        };
-      }
-      return p;
+    setConfirmDialog({
+      isOpen: true,
+      title: "Clear Images",
+      description: `Clear attached images from ${promptsWithImages.length} prompt(s)?`,
+      confirmLabel: "Clear Images",
+      variant: "warning",
+      onConfirm: async () => {
+        const updatedPrompts = prompts.map((p) => {
+          if (selectedIds.includes(p.id)) {
+            return {
+              ...p,
+              imageUrl: undefined,
+              imageData: undefined,
+              imageName: undefined,
+              imageType: undefined,
+            };
+          }
+          return p;
+        });
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
   async function handleGeneratePrompts(
@@ -1903,6 +1984,28 @@ function SidePanel() {
           options={bulkDialog.options}
           icon={bulkDialog.icon}
           selectedCount={selectedPrompts.size}
+        />
+      )}
+
+      {confirmDialog && (
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          onClose={() => setConfirmDialog(null)}
+          onConfirm={confirmDialog.onConfirm}
+          title={confirmDialog.title}
+          description={confirmDialog.description}
+          confirmLabel={confirmDialog.confirmLabel}
+          variant={confirmDialog.variant}
+        />
+      )}
+
+      {alertDialog && (
+        <AlertDialog
+          isOpen={alertDialog.isOpen}
+          onClose={() => setAlertDialog(null)}
+          title={alertDialog.title}
+          description={alertDialog.description}
+          variant={alertDialog.variant}
         />
       )}
 

@@ -1,6 +1,11 @@
 import * as React from "react";
 
-import type { ApiProvider, DetectedSettings, PromptConfig } from "../types";
+import type {
+  ApiProvider,
+  DetectedSettings,
+  PromptConfig,
+  UserProfile,
+} from "../types";
 import {
   Card,
   CardContent,
@@ -83,6 +88,9 @@ export function SettingsDialog({
   } | null>(null);
   const [detectedProvider, setDetectedProvider] =
     React.useState<ApiProvider | null>(null);
+  const [userProfile, setUserProfile] = React.useState<UserProfile | null>(
+    null,
+  );
   const { toast } = useToast();
 
   // Update form data when dialog opens or detected settings change
@@ -131,6 +139,27 @@ export function SettingsDialog({
       setVerificationStatus(null);
     }
   }, [formData.apiKey]);
+
+  // Load user profile from storage
+  React.useEffect(() => {
+    if (isOpen) {
+      chrome.storage.local.get(["userProfile"], (result) => {
+        if (result.userProfile) {
+          setUserProfile(result.userProfile);
+        } else {
+          // Set default profile if none exists
+          const defaultProfile: UserProfile = {
+            name: "User",
+            email: "user@example.com",
+            planType: "lifetime",
+            createdAt: Date.now(),
+          };
+          setUserProfile(defaultProfile);
+          chrome.storage.local.set({ userProfile: defaultProfile });
+        }
+      });
+    }
+  }, [isOpen]);
 
   const isDialogMode = showOnly === "all" && !embedded;
 
@@ -551,13 +580,12 @@ export function SettingsDialog({
 
       {/* Enhanced Prompts Toggle */}
       <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-        <input
-          type="checkbox"
-          id="useSecretPrompt"
+        <Toggle
           checked={formData.useSecretPrompt}
-          onChange={(e) => handleChange("useSecretPrompt", e.target.checked)}
+          onCheckedChange={(checked) =>
+            handleChange("useSecretPrompt", checked)
+          }
           disabled={loading}
-          className="h-4 w-4 mt-0.5 rounded border-input bg-background accent-primary cursor-pointer disabled:opacity-50"
         />
         <div className="space-y-1">
           <Label
@@ -616,12 +644,10 @@ export function SettingsDialog({
       <div className="border-t pt-4 space-y-3">
         <div className="space-y-2">
           <Label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
+            <Toggle
               checked={formData.autoRun}
-              onChange={(e) => handleChange("autoRun", e.target.checked)}
+              onCheckedChange={(checked) => handleChange("autoRun", checked)}
               disabled={loading}
-              className="h-4 w-4 rounded border-input bg-background accent-primary disabled:opacity-50"
             />
             <span>Auto-start Queue</span>
           </Label>
@@ -632,14 +658,12 @@ export function SettingsDialog({
 
         <div className="space-y-2">
           <Label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
+            <Toggle
               checked={formData.autoGenerateOnEmpty}
-              onChange={(e) =>
-                handleChange("autoGenerateOnEmpty", e.target.checked)
+              onCheckedChange={(checked) =>
+                handleChange("autoGenerateOnEmpty", checked)
               }
               disabled={loading}
-              className="h-4 w-4 rounded border-input bg-background accent-primary disabled:opacity-50"
             />
             <span>Auto-generate on Empty Queue</span>
           </Label>
@@ -650,14 +674,12 @@ export function SettingsDialog({
 
         <div className="space-y-2">
           <Label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
+            <Toggle
               checked={formData.autoGenerateOnReceived}
-              onChange={(e) =>
-                handleChange("autoGenerateOnReceived", e.target.checked)
+              onCheckedChange={(checked) =>
+                handleChange("autoGenerateOnReceived", checked)
               }
               disabled={loading}
-              className="h-4 w-4 rounded border-input bg-background accent-primary disabled:opacity-50"
             />
             <span>Auto-generate on Prompt Received</span>
           </Label>
@@ -673,13 +695,10 @@ export function SettingsDialog({
   const DownloadTabContent = (
     <div className="space-y-4">
       <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-        <input
-          type="checkbox"
-          id="autoDownload"
+        <Toggle
           checked={formData.autoDownload}
-          onChange={(e) => handleChange("autoDownload", e.target.checked)}
+          onCheckedChange={(checked) => handleChange("autoDownload", checked)}
           disabled={loading}
-          className="h-4 w-4 mt-0.5 rounded border-input bg-background accent-primary cursor-pointer disabled:opacity-50"
         />
         <div className="space-y-1">
           <Label
@@ -716,14 +735,12 @@ export function SettingsDialog({
 
       <div className="space-y-2">
         <Label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
+          <Toggle
             checked={formData.promptSaveLocation}
-            onChange={(e) =>
-              handleChange("promptSaveLocation", e.target.checked)
+            onCheckedChange={(checked) =>
+              handleChange("promptSaveLocation", checked)
             }
             disabled={loading || !formData.autoDownload}
-            className="h-4 w-4 rounded border-input bg-background accent-primary disabled:opacity-50"
           />
           <span>Ask where to save each file</span>
         </Label>
@@ -959,12 +976,28 @@ export function SettingsDialog({
 
           {/* Account Section */}
           <SettingsSection title="Account">
-            <AccountCard name="John Doe" email="john@example.com" />
-            <PlanCard
-              planName="Lifetime License"
-              description="Unlimited access forever"
-              isActive={true}
-            />
+            {userProfile && (
+              <>
+                <AccountCard
+                  name={userProfile.name}
+                  email={userProfile.email}
+                  avatarUrl={userProfile.avatarUrl}
+                />
+                <PlanCard
+                  planName={
+                    userProfile.planType === "lifetime"
+                      ? "Lifetime License"
+                      : "Free Plan"
+                  }
+                  description={
+                    userProfile.planType === "lifetime"
+                      ? "Unlimited access forever"
+                      : "Limited features"
+                  }
+                  isActive={userProfile.planType === "lifetime"}
+                />
+              </>
+            )}
           </SettingsSection>
         </div>
 

@@ -89,12 +89,21 @@ export interface RateLimitState {
   detectedAt?: number; // When rate limit was detected (Unix timestamp)
 }
 
+export interface UserProfile {
+  name: string;
+  email: string;
+  planType: "free" | "lifetime";
+  avatarUrl?: string;
+  createdAt?: number;
+}
+
 export interface StorageData {
   config: PromptConfig;
   prompts: GeneratedPrompt[];
   history: GeneratedPrompt[];
   queueState: QueueState;
   availablePresets: SoraPreset[];
+  userProfile?: UserProfile;
 }
 
 export interface PromptGenerationRequest {

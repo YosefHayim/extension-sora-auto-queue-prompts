@@ -1,7 +1,6 @@
 import * as React from "react";
 import { LuCheck, LuX, LuTrash2, LuPlay } from "react-icons/lu";
 import { cn } from "../lib/utils";
-import { BulkActionsMenu } from "./BulkActionsMenu";
 
 interface BatchOperationsPanelProps {
   selectedCount: number;
@@ -16,8 +15,8 @@ interface BatchOperationsPanelProps {
   onDuplicateAll?: () => void;
   onShuffle?: () => void;
   onRandomPresetToEach?: () => void;
-  onCreateBatch?: () => void;
-  onSetPriority?: () => void;
+  onCreateBatch?: (batchLabel: string) => Promise<void>;
+  onSetPriority?: (priority: "high" | "normal" | "low") => Promise<void>;
   totalPrompts?: number;
   className?: string;
 }
@@ -46,7 +45,7 @@ export function BatchOperationsPanel({
       )}
     >
       <div className="flex items-center gap-2">
-        <div className="flex h-[18px] w-[18px] items-center justify-center rounded bg-primary-foreground">
+        <div className="flex h-[18px] w-[18px] items-center justify-center rounded-sm bg-primary-foreground">
           <LuCheck className="h-3 w-3 text-primary" />
         </div>
         <span className="text-[13px] font-semibold text-primary-foreground">
@@ -58,25 +57,12 @@ export function BatchOperationsPanel({
         {onRunSelected && (
           <button
             onClick={onRunSelected}
-            className="flex h-7 items-center gap-1 rounded-md bg-primary-foreground px-2.5"
+            className="flex h-7 items-center gap-1 rounded-md bg-primary-foreground py-1.5 px-2.5"
           >
             <LuPlay className="h-3 w-3 text-primary" />
             <span className="text-xs font-semibold text-primary">Run</span>
           </button>
         )}
-
-        <BulkActionsMenu
-          selectedCount={selectedCount}
-          onEnableAll={onEnableAll}
-          onDisableAll={onDisableAll}
-          onMoveToTop={onMoveToTop}
-          onMoveToBottom={onMoveToBottom}
-          onDuplicateAll={onDuplicateAll}
-          onShuffle={onShuffle}
-          onRandomPresetToEach={onRandomPresetToEach}
-          onDeleteAll={onDeleteSelected}
-          className="h-7 border-0 bg-transparent text-primary-foreground hover:bg-primary-foreground/20"
-        />
 
         <button
           onClick={onDeleteSelected}

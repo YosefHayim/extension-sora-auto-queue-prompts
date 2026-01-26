@@ -89,6 +89,12 @@ function SidePanel() {
   const [editingPrompt, setEditingPrompt] =
     React.useState<GeneratedPrompt | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = React.useState(false);
+  const [batchLabelDialogOpen, setBatchLabelDialogOpen] = React.useState(false);
+  const [priorityDialogOpen, setPriorityDialogOpen] = React.useState(false);
+  const [batchLabelInput, setBatchLabelInput] = React.useState("");
+  const [priorityInput, setPriorityInput] = React.useState<
+    "high" | "normal" | "low"
+  >("normal");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | "pending" | "processing" | "completed" | "failed"
@@ -716,6 +722,27 @@ function SidePanel() {
 
     await loadData();
     setSelectedPrompts(new Set());
+  }
+
+  function handleOpenPriorityDialog() {
+    setPriorityDialogOpen(true);
+  }
+
+  async function handleConfirmPriority() {
+    await handleSetPriorityForSelected(priorityInput);
+    setPriorityDialogOpen(false);
+  }
+
+  function handleOpenBatchLabelDialog() {
+    setBatchLabelDialogOpen(true);
+  }
+
+  async function handleConfirmBatchLabel() {
+    if (batchLabelInput.trim()) {
+      await handleCreateBatchFromSelected(batchLabelInput);
+      setBatchLabelDialogOpen(false);
+      setBatchLabelInput("");
+    }
   }
 
   async function handleDeleteSelected() {

@@ -77,6 +77,24 @@ import ReactDOM from "react-dom/client";
 import { SearchBar } from "../src/components/SearchBar";
 import { SettingsDialog } from "../src/components/SettingsDialog";
 import { SortablePromptCard } from "../src/components/SortablePromptCard";
+import { PromptCard } from "../src/components/PromptCard";
+import {
+  BulkInputDialog,
+  type BulkInputType,
+  type SelectOption,
+} from "../src/components/BulkInputDialog";
+import {
+  LuChevronLeft,
+  LuChevronRight,
+  LuReplace,
+  LuCirclePlus,
+  LuCircleMinus,
+  LuImagePlus,
+  LuPalette,
+  LuFilm,
+  LuRatio,
+  LuLayers,
+} from "react-icons/lu";
 import { StatusBar } from "../src/components/StatusBar";
 import { Toaster } from "../src/components/ui/toaster";
 import { BatchOperationsPanel } from "../src/components/BatchOperationsPanel";
@@ -127,6 +145,19 @@ function SidePanel() {
   const [rateLimitState, setRateLimitState] = React.useState<RateLimitState>({
     isLimited: false,
   });
+
+  const [bulkDialog, setBulkDialog] = React.useState<{
+    isOpen: boolean;
+    type: BulkInputType;
+    title: string;
+    description?: string;
+    inputLabel: string;
+    inputPlaceholder?: string;
+    confirmLabel: string;
+    options?: SelectOption[];
+    icon?: React.ReactNode;
+    onConfirm: (value: string | { search: string; replace: string }) => void;
+  } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -776,176 +807,205 @@ function SidePanel() {
   // ============================================
 
   // Text Operations
-  async function handleAddPrefix() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleAddPrefix() {
+    if (selectedPrompts.size === 0) return;
 
-    const prefix = window.prompt(
-      "Enter prefix to add to all selected prompts:",
-    );
-    if (!prefix || !prefix.trim()) return;
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, text: `${prefix.trim()} ${p.text}` };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "text",
+      title: "Add Prefix",
+      description:
+        "Text will be added to the beginning of each selected prompt.",
+      inputLabel: "Prefix text",
+      inputPlaceholder: "e.g., 'Cinematic shot of'",
+      confirmLabel: "Add Prefix",
+      icon: <LuChevronLeft className="h-5 w-5" />,
+      onConfirm: async (value) => {
+        if (typeof value !== "string" || !value.trim()) return;
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id)
+            ? { ...p, text: `${value.trim()} ${p.text}` }
+            : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
-  async function handleAddSuffix() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleAddSuffix() {
+    if (selectedPrompts.size === 0) return;
 
-    const suffix = window.prompt(
-      "Enter suffix to add to all selected prompts:",
-    );
-    if (!suffix || !suffix.trim()) return;
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, text: `${p.text} ${suffix.trim()}` };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "text",
+      title: "Add Suffix",
+      description: "Text will be added to the end of each selected prompt.",
+      inputLabel: "Suffix text",
+      inputPlaceholder: "e.g., ', 4K, cinematic lighting'",
+      confirmLabel: "Add Suffix",
+      icon: <LuChevronRight className="h-5 w-5" />,
+      onConfirm: async (value) => {
+        if (typeof value !== "string" || !value.trim()) return;
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id)
+            ? { ...p, text: `${p.text} ${value.trim()}` }
+            : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
-  async function handleSearchReplace() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleSearchReplace() {
+    if (selectedPrompts.size === 0) return;
 
-    const searchTerm = window.prompt("Enter text to search for:");
-    if (!searchTerm) return;
-
-    const replaceTerm = window.prompt(
-      "Enter replacement text (leave empty to delete):",
-    );
-    if (replaceTerm === null) return;
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, text: p.text.split(searchTerm).join(replaceTerm) };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "search-replace",
+      title: "Search & Replace",
+      description: "Find and replace text in all selected prompts.",
+      inputLabel: "",
+      confirmLabel: "Replace All",
+      icon: <LuReplace className="h-5 w-5" />,
+      onConfirm: async (value) => {
+        if (typeof value === "string") return;
+        const { search, replace } = value;
+        if (!search) return;
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id)
+            ? { ...p, text: p.text.split(search).join(replace) }
+            : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
-  async function handleAddPositivePrompt() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleAddPositivePrompt() {
+    if (selectedPrompts.size === 0) return;
 
-    const positiveText = window.prompt(
-      "Enter positive prompt text to add (e.g., 'high quality, detailed, 4K'):",
-    );
-    if (!positiveText || !positiveText.trim()) return;
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, text: `${p.text}, ${positiveText.trim()}` };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "textarea",
+      title: "Add Positive Prompt",
+      description:
+        "Quality-enhancing terms will be appended to each selected prompt.",
+      inputLabel: "Positive prompt text",
+      inputPlaceholder:
+        "e.g., high quality, detailed, 4K, cinematic lighting, sharp focus",
+      confirmLabel: "Add to All",
+      icon: <LuCirclePlus className="h-5 w-5 text-green-500" />,
+      onConfirm: async (value) => {
+        if (typeof value !== "string" || !value.trim()) return;
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id)
+            ? { ...p, text: `${p.text}, ${value.trim()}` }
+            : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
-  async function handleAddNegativePrompt() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleAddNegativePrompt() {
+    if (selectedPrompts.size === 0) return;
 
-    const negativeText = window.prompt(
-      "Enter negative prompt text to avoid (e.g., 'blurry, low quality'):",
-    );
-    if (!negativeText || !negativeText.trim()) return;
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, text: `${p.text}. Avoid: ${negativeText.trim()}` };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "textarea",
+      title: "Add Negative Prompt",
+      description: "Terms to avoid will be appended to each selected prompt.",
+      inputLabel: "Negative prompt text",
+      inputPlaceholder: "e.g., blurry, low quality, distorted, watermark",
+      confirmLabel: "Add to All",
+      icon: <LuCircleMinus className="h-5 w-5 text-red-500" />,
+      onConfirm: async (value) => {
+        if (typeof value !== "string" || !value.trim()) return;
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id)
+            ? { ...p, text: `${p.text}. Avoid: ${value.trim()}` }
+            : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
-  // Media & Settings Operations
-  async function handleAddImageToAll() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleAddImageToAll() {
+    if (selectedPrompts.size === 0) return;
 
-    const imageUrl = window.prompt(
-      "Enter image URL to add to all selected prompts:",
-    );
-    if (!imageUrl || !imageUrl.trim()) return;
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, imageUrl: imageUrl.trim() };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "text",
+      title: "Add Image to All",
+      description: "Enter an image URL to attach to all selected prompts.",
+      inputLabel: "Image URL",
+      inputPlaceholder: "https://example.com/image.jpg",
+      confirmLabel: "Add Image",
+      icon: <LuImagePlus className="h-5 w-5" />,
+      onConfirm: async (value) => {
+        if (typeof value !== "string" || !value.trim()) return;
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id) ? { ...p, imageUrl: value.trim() } : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
-  async function handleSetPresetForAll() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleSetPresetForAll() {
+    if (selectedPrompts.size === 0) return;
 
-    const preset = window.prompt(
-      "Enter preset for all selected prompts:\n\nOptions: cinematic, documentary, artistic, realistic, animated, none",
-    );
-    if (!preset) return;
-
-    const validPresets = [
-      "cinematic",
-      "documentary",
-      "artistic",
-      "realistic",
-      "animated",
-      "none",
-    ];
-    if (!validPresets.includes(preset.toLowerCase())) {
-      window.alert(
-        "Invalid preset. Please use: cinematic, documentary, artistic, realistic, animated, or none",
-      );
-      return;
-    }
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, preset: preset.toLowerCase() };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "select",
+      title: "Set Preset",
+      description: "Choose a preset to apply to all selected prompts.",
+      inputLabel: "Select preset",
+      confirmLabel: "Apply Preset",
+      icon: <LuPalette className="h-5 w-5 text-amber-500" />,
+      options: [
+        { value: "cinematic", label: "Cinematic" },
+        { value: "documentary", label: "Documentary" },
+        { value: "artistic", label: "Artistic" },
+        { value: "realistic", label: "Realistic" },
+        { value: "animated", label: "Animated" },
+        { value: "none", label: "None" },
+      ],
+      onConfirm: async (value) => {
+        if (typeof value !== "string" || !value) return;
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id) ? { ...p, preset: value } : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
   async function handleRandomPresetToEach() {
+    if (selectedPrompts.size === 0) return;
     const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
-
     const presets = [
       "cinematic",
       "documentary",
@@ -953,7 +1013,6 @@ function SidePanel() {
       "realistic",
       "animated",
     ];
-
     const updatedPrompts = prompts.map((p) => {
       if (selectedIds.includes(p.id)) {
         const randomPreset =
@@ -962,95 +1021,100 @@ function SidePanel() {
       }
       return p;
     });
-
     setPrompts(updatedPrompts);
     await storage.setPrompts(updatedPrompts);
     setSelectedPrompts(new Set());
   }
 
-  async function handleSetMediaType() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleSetMediaType() {
+    if (selectedPrompts.size === 0) return;
 
-    const mediaType = window.prompt(
-      "Set media type for all selected prompts:\n\nEnter: video or image",
-    );
-    if (!mediaType) return;
-
-    if (!["video", "image"].includes(mediaType.toLowerCase())) {
-      window.alert("Invalid media type. Please enter 'video' or 'image'.");
-      return;
-    }
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return {
-          ...p,
-          mediaType: mediaType.toLowerCase() as "video" | "image",
-        };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "select",
+      title: "Set Media Type",
+      description: "Choose the media type for all selected prompts.",
+      inputLabel: "Select media type",
+      confirmLabel: "Apply",
+      icon: <LuFilm className="h-5 w-5" />,
+      options: [
+        { value: "video", label: "Video" },
+        { value: "image", label: "Image" },
+      ],
+      onConfirm: async (value) => {
+        if (typeof value !== "string" || !value) return;
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id)
+            ? { ...p, mediaType: value as "video" | "image" }
+            : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
-  async function handleSetAspectRatio() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleSetAspectRatio() {
+    if (selectedPrompts.size === 0) return;
 
-    const aspectRatio = window.prompt(
-      "Set aspect ratio for all selected prompts:\n\nOptions: 16:9, 9:16, 1:1, 4:3, 3:4, 21:9",
-    );
-    if (!aspectRatio) return;
-
-    const validRatios = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"];
-    if (!validRatios.includes(aspectRatio)) {
-      window.alert(
-        "Invalid aspect ratio. Please use: 16:9, 9:16, 1:1, 4:3, 3:4, or 21:9",
-      );
-      return;
-    }
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, aspectRatio: aspectRatio as any };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "select",
+      title: "Set Aspect Ratio",
+      description: "Choose the aspect ratio for all selected prompts.",
+      inputLabel: "Select aspect ratio",
+      confirmLabel: "Apply",
+      icon: <LuRatio className="h-5 w-5" />,
+      options: [
+        { value: "16:9", label: "16:9 (Landscape)" },
+        { value: "9:16", label: "9:16 (Portrait)" },
+        { value: "1:1", label: "1:1 (Square)" },
+        { value: "4:3", label: "4:3 (Standard)" },
+        { value: "3:4", label: "3:4 (Portrait)" },
+        { value: "21:9", label: "21:9 (Ultrawide)" },
+      ],
+      onConfirm: async (value) => {
+        if (typeof value !== "string" || !value) return;
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id) ? { ...p, aspectRatio: value as any } : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
-  async function handleSetVariations() {
-    const selectedIds = Array.from(selectedPrompts);
-    if (selectedIds.length === 0) return;
+  function handleSetVariations() {
+    if (selectedPrompts.size === 0) return;
 
-    const variations = window.prompt(
-      "Set variations count for all selected prompts:\n\nEnter: 2 or 4",
-    );
-    if (!variations) return;
-
-    const numVariations = parseInt(variations, 10);
-    if (![2, 4].includes(numVariations)) {
-      window.alert("Invalid variations count. Please enter 2 or 4.");
-      return;
-    }
-
-    const updatedPrompts = prompts.map((p) => {
-      if (selectedIds.includes(p.id)) {
-        return { ...p, variations: numVariations };
-      }
-      return p;
+    setBulkDialog({
+      isOpen: true,
+      type: "select",
+      title: "Set Variations",
+      description: "Choose the number of variations for all selected prompts.",
+      inputLabel: "Select variations count",
+      confirmLabel: "Apply",
+      icon: <LuLayers className="h-5 w-5" />,
+      options: [
+        { value: "2", label: "2 variations" },
+        { value: "4", label: "4 variations" },
+      ],
+      onConfirm: async (value) => {
+        if (typeof value !== "string" || !value) return;
+        const numVariations = parseInt(value, 10);
+        const selectedIds = Array.from(selectedPrompts);
+        const updatedPrompts = prompts.map((p) =>
+          selectedIds.includes(p.id) ? { ...p, variations: numVariations } : p,
+        );
+        setPrompts(updatedPrompts);
+        await storage.setPrompts(updatedPrompts);
+        setSelectedPrompts(new Set());
+      },
     });
-
-    setPrompts(updatedPrompts);
-    await storage.setPrompts(updatedPrompts);
-    setSelectedPrompts(new Set());
   }
 
   // Order & Organization Operations
@@ -1686,6 +1750,34 @@ function SidePanel() {
                   Clear Filters
                 </Button>
               </div>
+            ) : searchQuery ||
+              statusFilter !== "all" ||
+              mediaTypeFilter !== "all" ? (
+              <div className="space-y-2">
+                {filteredPrompts.map((prompt) => (
+                  <PromptCard
+                    key={prompt.id}
+                    prompt={prompt}
+                    isSelected={selectedPrompts.has(prompt.id)}
+                    isEnabled={!enabledPrompts.has(prompt.id)}
+                    onToggleSelection={handleTogglePromptSelection}
+                    onToggleEnabled={handleTogglePromptEnabled}
+                    onProcess={handleProcessPrompt}
+                    onNavigateToPrompt={handleNavigateToPrompt}
+                    onEdit={handleEditPrompt}
+                    onDuplicate={handleDuplicatePrompt}
+                    onRefine={handleRefinePrompt}
+                    onGenerateSimilar={handleGenerateSimilar}
+                    onDelete={handleDeletePrompt}
+                    onRetry={handleRetryPrompt}
+                    onAddImage={handleAddImage}
+                    onAddLocalImage={handleAddLocalImage}
+                    onRemoveImage={handleRemoveImage}
+                    searchQuery={searchQuery}
+                    showDragHandle={false}
+                  />
+                ))}
+              </div>
             ) : (
               <DndContext
                 sensors={sensors}
@@ -1693,11 +1785,11 @@ function SidePanel() {
                 onDragEnd={handleDragEnd}
               >
                 <SortableContext
-                  items={filteredPrompts.map((p) => p.id)}
+                  items={prompts.map((p) => p.id)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
-                    {filteredPrompts.map((prompt) => (
+                    {prompts.map((prompt) => (
                       <SortablePromptCard
                         key={prompt.id}
                         prompt={prompt}
@@ -1795,6 +1887,23 @@ function SidePanel() {
             }
           />
         </>
+      )}
+
+      {bulkDialog && (
+        <BulkInputDialog
+          isOpen={bulkDialog.isOpen}
+          onClose={() => setBulkDialog(null)}
+          onConfirm={bulkDialog.onConfirm}
+          title={bulkDialog.title}
+          description={bulkDialog.description}
+          inputType={bulkDialog.type}
+          inputLabel={bulkDialog.inputLabel}
+          inputPlaceholder={bulkDialog.inputPlaceholder}
+          confirmLabel={bulkDialog.confirmLabel}
+          options={bulkDialog.options}
+          icon={bulkDialog.icon}
+          selectedCount={selectedPrompts.size}
+        />
       )}
 
       <Footer />

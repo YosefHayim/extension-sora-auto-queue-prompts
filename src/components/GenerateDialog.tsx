@@ -246,6 +246,11 @@ export function GenerateDialog({
                 <>
                   <FaMagic className="h-4 w-4 mr-2" />
                   Generate
+                  <span className="ml-auto text-xs text-primary-foreground/70">
+                    {navigator.platform.toLowerCase().includes("mac")
+                      ? "⌘↵"
+                      : "Ctrl+↵"}
+                  </span>
                 </>
               )}
             </Button>

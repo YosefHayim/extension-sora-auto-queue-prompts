@@ -398,11 +398,19 @@ function SidePanel() {
     }
   }
 
-  async function handleSaveEditedPrompt(id: string, newText: string) {
+  async function handleSaveEditedPrompt(
+    id: string,
+    newText: string,
+    mediaType?: "video" | "image",
+  ) {
     try {
+      const data: any = { type: "edit", promptId: id, newText };
+      if (mediaType) {
+        data.mediaType = mediaType;
+      }
       await chrome.runtime.sendMessage({
         action: "promptAction",
-        data: { type: "edit", promptId: id, newText },
+        data,
       });
       await loadData();
     } catch (error) {

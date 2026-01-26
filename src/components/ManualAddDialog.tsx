@@ -199,6 +199,11 @@ export function ManualAddDialog({
                   <LuPlus className="h-4 w-4 mr-2" />
                   Add {promptCount > 0 ? `${promptCount} ` : ""}Prompt
                   {promptCount === 1 ? "" : "s"}
+                  <span className="ml-auto text-xs text-primary-foreground/70">
+                    {navigator.platform.toLowerCase().includes("mac")
+                      ? "⌘↵"
+                      : "Ctrl+↵"}
+                  </span>
                 </>
               )}
             </Button>

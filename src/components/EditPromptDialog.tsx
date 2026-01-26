@@ -13,7 +13,11 @@ interface EditPromptDialogProps {
   prompt: GeneratedPrompt | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (id: string, newText: string) => Promise<void>;
+  onSave: (
+    id: string,
+    newText: string,
+    mediaType?: "video" | "image",
+  ) => Promise<void>;
 }
 
 export function EditPromptDialog({
@@ -40,7 +44,8 @@ export function EditPromptDialog({
 
   if (!isOpen || !prompt) return null;
 
-  const hasChanges = editedText.trim() !== prompt.text.trim();
+  const hasChanges =
+    editedText.trim() !== prompt.text.trim() || mediaType !== prompt.mediaType;
   const isValid = editedText.trim().length > 0;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -68,8 +73,11 @@ export function EditPromptDialog({
         newLength: trimmedText.length,
       });
 
-      await onSave(prompt?.id || "", trimmedText);
-      log.ui.action("EditPromptDialog:Success", { promptId: prompt?.id });
+      await onSave(prompt?.id || "", trimmedText, mediaType);
+      log.ui.action("EditPromptDialog:Success", {
+        promptId: prompt?.id,
+        mediaType,
+      });
 
       onClose();
     } catch (err) {

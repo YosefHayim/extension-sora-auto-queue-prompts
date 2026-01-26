@@ -28,6 +28,7 @@ import { Progress } from "./ui/progress";
 import { cn } from "../lib/utils";
 import { formatDuration, formatTimeAgo } from "../utils/formatters";
 import { log } from "../utils/logger";
+import { useToast } from "./ui/use-toast";
 
 interface PromptCardProps {
   prompt: GeneratedPrompt;
@@ -135,6 +136,7 @@ export function PromptCard({
   const [showImageInput, setShowImageInput] = React.useState(false);
   const [imageUrlInput, setImageUrlInput] = React.useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     const isProcessing = prompt.status === "processing";
@@ -158,6 +160,11 @@ export function PromptCard({
       promptId: prompt.id,
       status: prompt.status,
     });
+    toast({
+      title: "Opening editor",
+      description: "Edit your prompt text and settings.",
+      duration: 2000,
+    });
     onEdit(prompt.id);
   };
 
@@ -166,6 +173,11 @@ export function PromptCard({
       promptId: prompt.id,
       mediaType: prompt.mediaType,
     });
+    toast({
+      title: "Prompt duplicated",
+      description: "A copy has been added to your queue.",
+      duration: 2000,
+    });
     onDuplicate(prompt.id);
   };
 
@@ -173,6 +185,11 @@ export function PromptCard({
     log.ui.action("PromptCard:Refine", {
       promptId: prompt.id,
       enhanced: prompt.enhanced,
+    });
+    toast({
+      title: "Refining prompt",
+      description: "AI is improving your prompt...",
+      duration: 2000,
     });
     onRefine(prompt.id);
   };
@@ -186,6 +203,11 @@ export function PromptCard({
     log.ui.action("PromptCard:Delete", {
       promptId: prompt.id,
       status: prompt.status,
+    });
+    toast({
+      title: "Prompt deleted",
+      description: "The prompt has been removed from your queue.",
+      duration: 2000,
     });
     onDelete(prompt.id);
   };
@@ -275,9 +297,20 @@ export function PromptCard({
       await navigator.clipboard.writeText(prompt.text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      toast({
+        title: "Copied to clipboard",
+        description: "Prompt text has been copied.",
+        duration: 2000,
+      });
       log.ui.action("PromptCard:CopyText", { promptId: prompt.id });
     } catch (error) {
       console.error("Failed to copy text:", error);
+      toast({
+        title: "Copy failed",
+        description: "Could not copy text to clipboard.",
+        duration: 2000,
+        variant: "destructive",
+      });
     }
   };
 
@@ -375,7 +408,7 @@ export function PromptCard({
     <div
       onClick={handleCardClick}
       className={cn(
-        "w-[280px] bg-card rounded-lg border border-border transition-all duration-200 hover:shadow-md hover:border-primary/30",
+        "w-full bg-card rounded-lg border border-border transition-all duration-200 hover:shadow-md hover:border-primary/30",
         isSelected &&
           "border-2 border-blue-500 ring-1 ring-blue-500/20 bg-blue-50/50 dark:bg-blue-950/30",
         isFailed && "bg-destructive/5 dark:bg-destructive/10",

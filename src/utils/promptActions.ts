@@ -16,16 +16,23 @@ export class PromptActions {
   async editPrompt(
     promptId: string,
     newText: string,
+    mediaType?: "video" | "image",
   ): Promise<{ success: boolean; error?: string }> {
     try {
       // Set prompt to editing status to pause queue
-      await storage.updatePrompt(promptId, {
+      const updates: any = {
         status: "editing",
         originalText: (await storage.getPrompts()).find(
           (p) => p.id === promptId,
         )?.text,
         text: newText,
-      });
+      };
+
+      if (mediaType) {
+        updates.mediaType = mediaType;
+      }
+
+      await storage.updatePrompt(promptId, updates);
 
       // After edit is complete, set back to pending
       await storage.updatePrompt(promptId, { status: "pending" });
@@ -194,7 +201,11 @@ export class PromptActions {
             error: "New text is required for edit action",
           };
         }
-        return await this.editPrompt(action.promptId, action.newText);
+        return await this.editPrompt(
+          action.promptId,
+          action.newText,
+          action.mediaType,
+        );
 
       case "delete":
         return await this.deletePrompt(action.promptId);

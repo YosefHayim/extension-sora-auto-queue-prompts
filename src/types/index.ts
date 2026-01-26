@@ -132,6 +132,7 @@ export interface PromptEditAction {
   type: "edit" | "delete" | "refine" | "duplicate" | "generate-similar";
   promptId: string;
   newText?: string;
+  mediaType?: "video" | "image"; // For edit
   count?: number; // For duplicate/generate-similar
 }
 

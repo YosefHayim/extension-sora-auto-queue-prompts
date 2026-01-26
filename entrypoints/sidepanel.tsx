@@ -771,6 +771,524 @@ function SidePanel() {
     setSelectedPrompts(new Set());
   }
 
+  // ============================================
+  // Bulk Operations Handlers
+  // ============================================
+
+  // Text Operations
+  async function handleAddPrefix() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const prefix = window.prompt(
+      "Enter prefix to add to all selected prompts:",
+    );
+    if (!prefix || !prefix.trim()) return;
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return { ...p, text: `${prefix.trim()} ${p.text}` };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleAddSuffix() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const suffix = window.prompt(
+      "Enter suffix to add to all selected prompts:",
+    );
+    if (!suffix || !suffix.trim()) return;
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return { ...p, text: `${p.text} ${suffix.trim()}` };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleSearchReplace() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const searchTerm = window.prompt("Enter text to search for:");
+    if (!searchTerm) return;
+
+    const replaceTerm = window.prompt(
+      "Enter replacement text (leave empty to delete):",
+    );
+    if (replaceTerm === null) return;
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return { ...p, text: p.text.split(searchTerm).join(replaceTerm) };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleAddPositivePrompt() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const positiveText = window.prompt(
+      "Enter positive prompt text to add (e.g., 'high quality, detailed, 4K'):",
+    );
+    if (!positiveText || !positiveText.trim()) return;
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return { ...p, text: `${p.text}, ${positiveText.trim()}` };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleAddNegativePrompt() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const negativeText = window.prompt(
+      "Enter negative prompt text to avoid (e.g., 'blurry, low quality'):",
+    );
+    if (!negativeText || !negativeText.trim()) return;
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return { ...p, text: `${p.text}. Avoid: ${negativeText.trim()}` };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  // Media & Settings Operations
+  async function handleAddImageToAll() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const imageUrl = window.prompt(
+      "Enter image URL to add to all selected prompts:",
+    );
+    if (!imageUrl || !imageUrl.trim()) return;
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return { ...p, imageUrl: imageUrl.trim() };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleSetPresetForAll() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const preset = window.prompt(
+      "Enter preset for all selected prompts:\n\nOptions: cinematic, documentary, artistic, realistic, animated, none",
+    );
+    if (!preset) return;
+
+    const validPresets = [
+      "cinematic",
+      "documentary",
+      "artistic",
+      "realistic",
+      "animated",
+      "none",
+    ];
+    if (!validPresets.includes(preset.toLowerCase())) {
+      window.alert(
+        "Invalid preset. Please use: cinematic, documentary, artistic, realistic, animated, or none",
+      );
+      return;
+    }
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return { ...p, preset: preset.toLowerCase() };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleRandomPresetToEach() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const presets = [
+      "cinematic",
+      "documentary",
+      "artistic",
+      "realistic",
+      "animated",
+    ];
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        const randomPreset =
+          presets[Math.floor(Math.random() * presets.length)];
+        return { ...p, preset: randomPreset };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleSetMediaType() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const mediaType = window.prompt(
+      "Set media type for all selected prompts:\n\nEnter: video or image",
+    );
+    if (!mediaType) return;
+
+    if (!["video", "image"].includes(mediaType.toLowerCase())) {
+      window.alert("Invalid media type. Please enter 'video' or 'image'.");
+      return;
+    }
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return {
+          ...p,
+          mediaType: mediaType.toLowerCase() as "video" | "image",
+        };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleSetAspectRatio() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const aspectRatio = window.prompt(
+      "Set aspect ratio for all selected prompts:\n\nOptions: 16:9, 9:16, 1:1, 4:3, 3:4, 21:9",
+    );
+    if (!aspectRatio) return;
+
+    const validRatios = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9"];
+    if (!validRatios.includes(aspectRatio)) {
+      window.alert(
+        "Invalid aspect ratio. Please use: 16:9, 9:16, 1:1, 4:3, 3:4, or 21:9",
+      );
+      return;
+    }
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return { ...p, aspectRatio: aspectRatio as any };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleSetVariations() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const variations = window.prompt(
+      "Set variations count for all selected prompts:\n\nEnter: 2 or 4",
+    );
+    if (!variations) return;
+
+    const numVariations = parseInt(variations, 10);
+    if (![2, 4].includes(numVariations)) {
+      window.alert("Invalid variations count. Please enter 2 or 4.");
+      return;
+    }
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return { ...p, variations: numVariations };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  // Order & Organization Operations
+  async function handleDuplicateAllSelected() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const selectedItems = prompts.filter((p) => selectedIds.includes(p.id));
+    const duplicates = selectedItems.map((p) => ({
+      ...p,
+      id: `${p.id}-dup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Date.now(),
+      status: "pending" as const,
+    }));
+
+    const updatedPrompts = [...prompts, ...duplicates];
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleShuffleSelected() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length < 2) return;
+
+    const selectedIndices = prompts
+      .map((p, i) => (selectedIds.includes(p.id) ? i : -1))
+      .filter((i) => i !== -1);
+
+    const selectedItems = selectedIndices.map((i) => prompts[i]);
+
+    // Fisher-Yates shuffle
+    for (let i = selectedItems.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [selectedItems[i], selectedItems[j]] = [
+        selectedItems[j],
+        selectedItems[i],
+      ];
+    }
+
+    const updatedPrompts = [...prompts];
+    selectedIndices.forEach((originalIndex, newIndex) => {
+      updatedPrompts[originalIndex] = selectedItems[newIndex];
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+  }
+
+  async function handleSortSelectedAZ() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length < 2) return;
+
+    const selectedIndices = prompts
+      .map((p, i) => (selectedIds.includes(p.id) ? i : -1))
+      .filter((i) => i !== -1);
+
+    const selectedItems = selectedIndices.map((i) => prompts[i]);
+    selectedItems.sort((a, b) => a.text.localeCompare(b.text));
+
+    const updatedPrompts = [...prompts];
+    selectedIndices.forEach((originalIndex, newIndex) => {
+      updatedPrompts[originalIndex] = selectedItems[newIndex];
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+  }
+
+  async function handleSortSelectedZA() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length < 2) return;
+
+    const selectedIndices = prompts
+      .map((p, i) => (selectedIds.includes(p.id) ? i : -1))
+      .filter((i) => i !== -1);
+
+    const selectedItems = selectedIndices.map((i) => prompts[i]);
+    selectedItems.sort((a, b) => b.text.localeCompare(a.text));
+
+    const updatedPrompts = [...prompts];
+    selectedIndices.forEach((originalIndex, newIndex) => {
+      updatedPrompts[originalIndex] = selectedItems[newIndex];
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+  }
+
+  // AI Enhancement Operations
+  async function handleEnhanceAllSelected() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Enhance ${selectedIds.length} selected prompt(s) with AI? This may take a moment.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      for (const id of selectedIds) {
+        await chrome.runtime.sendMessage({
+          action: "promptAction",
+          data: { type: "refine", promptId: id },
+        });
+      }
+      await loadData();
+      setSelectedPrompts(new Set());
+    } catch (error) {
+      log.ui.error("handleEnhanceAllSelected", error);
+    }
+  }
+
+  async function handleGenerateSimilarForAll() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Generate similar prompts for ${selectedIds.length} selected prompt(s)?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      for (const id of selectedIds) {
+        await chrome.runtime.sendMessage({
+          action: "promptAction",
+          data: { type: "generate-similar", promptId: id },
+        });
+      }
+      await loadData();
+      setSelectedPrompts(new Set());
+    } catch (error) {
+      log.ui.error("handleGenerateSimilarForAll", error);
+    }
+  }
+
+  async function handleResetToOriginal() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const promptsWithOriginal = prompts.filter(
+      (p) => selectedIds.includes(p.id) && p.originalText,
+    );
+
+    if (promptsWithOriginal.length === 0) {
+      window.alert("No selected prompts have original text to restore.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Reset ${promptsWithOriginal.length} prompt(s) to their original text?`,
+    );
+    if (!confirmed) return;
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id) && p.originalText) {
+        return { ...p, text: p.originalText };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
+  // Queue Operations
+  async function handleMoveSelectedToTop() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const selectedItems = prompts.filter((p) => selectedIds.includes(p.id));
+    const remainingItems = prompts.filter((p) => !selectedIds.includes(p.id));
+
+    const reordered = [...selectedItems, ...remainingItems];
+
+    setPrompts(reordered);
+    await storage.setPrompts(reordered);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleMoveSelectedToBottom() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const selectedItems = prompts.filter((p) => selectedIds.includes(p.id));
+    const remainingItems = prompts.filter((p) => !selectedIds.includes(p.id));
+
+    const reordered = [...remainingItems, ...selectedItems];
+
+    setPrompts(reordered);
+    await storage.setPrompts(reordered);
+    setSelectedPrompts(new Set());
+  }
+
+  async function handleExportSelected() {
+    if (selectedPrompts.size > 0) {
+      setExportDialogOpen(true);
+    }
+  }
+
+  // Danger Zone Operations
+  async function handleClearAttachedImages() {
+    const selectedIds = Array.from(selectedPrompts);
+    if (selectedIds.length === 0) return;
+
+    const promptsWithImages = prompts.filter(
+      (p) => selectedIds.includes(p.id) && (p.imageUrl || p.imageData),
+    );
+
+    if (promptsWithImages.length === 0) {
+      window.alert("No selected prompts have attached images.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Clear attached images from ${promptsWithImages.length} prompt(s)?`,
+    );
+    if (!confirmed) return;
+
+    const updatedPrompts = prompts.map((p) => {
+      if (selectedIds.includes(p.id)) {
+        return {
+          ...p,
+          imageUrl: undefined,
+          imageData: undefined,
+          imageName: undefined,
+          imageType: undefined,
+        };
+      }
+      return p;
+    });
+
+    setPrompts(updatedPrompts);
+    await storage.setPrompts(updatedPrompts);
+    setSelectedPrompts(new Set());
+  }
+
   async function handleGeneratePrompts(
     count: number,
     context: string,
@@ -1105,6 +1623,7 @@ function SidePanel() {
 
           <BatchOperationsPanel
             selectedCount={selectedPrompts.size}
+            onRunSelected={handleProcessSelectedPrompts}
             onMoveToPosition={handleMoveSelectedToPosition}
             onCreateBatch={handleOpenBatchLabelDialog}
             onSetPriority={handleOpenPriorityDialog}
@@ -1119,6 +1638,28 @@ function SidePanel() {
             onDeleteSelected={handleDeleteSelected}
             onClearSelection={() => setSelectedPrompts(new Set())}
             totalPrompts={prompts.length}
+            onAddPrefix={handleAddPrefix}
+            onAddSuffix={handleAddSuffix}
+            onSearchReplace={handleSearchReplace}
+            onAddPositivePrompt={handleAddPositivePrompt}
+            onAddNegativePrompt={handleAddNegativePrompt}
+            onAddImageToAll={handleAddImageToAll}
+            onSetPresetForAll={handleSetPresetForAll}
+            onRandomPresetToEach={handleRandomPresetToEach}
+            onSetMediaType={handleSetMediaType}
+            onSetAspectRatio={handleSetAspectRatio}
+            onSetVariations={handleSetVariations}
+            onDuplicateAll={handleDuplicateAllSelected}
+            onShuffle={handleShuffleSelected}
+            onSortAZ={handleSortSelectedAZ}
+            onSortZA={handleSortSelectedZA}
+            onEnhanceAll={handleEnhanceAllSelected}
+            onGenerateSimilar={handleGenerateSimilarForAll}
+            onResetToOriginal={handleResetToOriginal}
+            onMoveToTop={handleMoveSelectedToTop}
+            onMoveToBottom={handleMoveSelectedToBottom}
+            onExportTo={handleExportSelected}
+            onClearAttachedImages={handleClearAttachedImages}
           />
 
           <div className="space-y-2">

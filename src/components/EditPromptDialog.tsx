@@ -23,13 +23,17 @@ export function EditPromptDialog({
   onSave,
 }: EditPromptDialogProps) {
   const [editedText, setEditedText] = React.useState("");
+  const [mediaType, setMediaType] = React.useState<"video" | "image">(
+    prompt?.mediaType || "video",
+  );
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
-  // Initialize editedText when prompt changes
+  // Initialize editedText and mediaType when prompt changes
   React.useEffect(() => {
     if (prompt) {
       setEditedText(prompt.text);
+      setMediaType(prompt.mediaType || "video");
       setError("");
     }
   }, [prompt]);
@@ -97,7 +101,7 @@ export function EditPromptDialog({
       onClick={handleBackdropClick}
     >
       <Card
-        className="w-full max-w-2xl p-6 space-y-4"
+        className="w-[400px] p-6 space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -116,22 +120,6 @@ export function EditPromptDialog({
           </Button>
         </div>
 
-        {/* Prompt Info */}
-        <div className="flex gap-4 text-xs text-muted-foreground">
-          <div>
-            <span className="font-medium">Type:</span> {prompt.mediaType}
-          </div>
-          <div>
-            <span className="font-medium">Status:</span> {prompt.status}
-          </div>
-          {prompt.aspectRatio && (
-            <div>
-              <span className="font-medium">Aspect Ratio:</span>{" "}
-              {prompt.aspectRatio}
-            </div>
-          )}
-        </div>
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -148,8 +136,7 @@ export function EditPromptDialog({
                 }
               }}
               disabled={loading}
-              rows={8}
-              className="resize-none font-mono text-sm"
+              className="resize-none text-[13px] h-40 p-3"
               autoFocus
             />
             <div className="flex justify-between text-xs text-muted-foreground">
@@ -162,6 +149,36 @@ export function EditPromptDialog({
                   Unsaved changes
                 </span>
               )}
+            </div>
+          </div>
+
+          {/* Media Type Section */}
+          <div className="space-y-2">
+            <Label className="text-sm">Media Type</Label>
+            <div className="flex items-center gap-4">
+              <label
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setMediaType("video")}
+              >
+                <div className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-primary">
+                  {mediaType === "video" && (
+                    <div className="h-2 w-2 rounded-full bg-primary" />
+                  )}
+                </div>
+                <span className="text-[13px]">Video</span>
+              </label>
+
+              <label
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => setMediaType("image")}
+              >
+                <div className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-muted-foreground">
+                  {mediaType === "image" && (
+                    <div className="h-2 w-2 rounded-full bg-muted-foreground" />
+                  )}
+                </div>
+                <span className="text-[13px] text-muted-foreground">Image</span>
+              </label>
             </div>
           </div>
 

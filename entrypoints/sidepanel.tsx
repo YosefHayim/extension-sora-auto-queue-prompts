@@ -54,6 +54,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "../src/components/ui/dropdown-menu";
+import { Input } from "../src/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../src/components/ui/select";
 import { EditPromptDialog } from "../src/components/EditPromptDialog";
 import { EmptyState } from "../src/components/EmptyState";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
@@ -89,12 +97,6 @@ function SidePanel() {
   const [editingPrompt, setEditingPrompt] =
     React.useState<GeneratedPrompt | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = React.useState(false);
-  const [batchLabelDialogOpen, setBatchLabelDialogOpen] = React.useState(false);
-  const [priorityDialogOpen, setPriorityDialogOpen] = React.useState(false);
-  const [batchLabelInput, setBatchLabelInput] = React.useState("");
-  const [priorityInput, setPriorityInput] = React.useState<
-    "high" | "normal" | "low"
-  >("normal");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | "pending" | "processing" | "completed" | "failed"
@@ -724,24 +726,23 @@ function SidePanel() {
     setSelectedPrompts(new Set());
   }
 
-  function handleOpenPriorityDialog() {
-    setPriorityDialogOpen(true);
+  async function handleOpenPriorityDialog() {
+    const priority = window.prompt(
+      "Set priority for selected prompts:\n\nEnter: high, normal, or low",
+      "normal",
+    );
+    if (priority && ["high", "normal", "low"].includes(priority)) {
+      await handleSetPriorityForSelected(priority as "high" | "normal" | "low");
+    }
   }
 
-  async function handleConfirmPriority() {
-    await handleSetPriorityForSelected(priorityInput);
-    setPriorityDialogOpen(false);
-  }
-
-  function handleOpenBatchLabelDialog() {
-    setBatchLabelDialogOpen(true);
-  }
-
-  async function handleConfirmBatchLabel() {
-    if (batchLabelInput.trim()) {
-      await handleCreateBatchFromSelected(batchLabelInput);
-      setBatchLabelDialogOpen(false);
-      setBatchLabelInput("");
+  async function handleOpenBatchLabelDialog() {
+    const batchLabel = window.prompt(
+      "Enter batch label for selected prompts:",
+      "",
+    );
+    if (batchLabel && batchLabel.trim()) {
+      await handleCreateBatchFromSelected(batchLabel);
     }
   }
 
@@ -1097,8 +1098,8 @@ function SidePanel() {
           <BatchOperationsPanel
             selectedCount={selectedPrompts.size}
             onMoveToPosition={handleMoveSelectedToPosition}
-            onCreateBatch={handleCreateBatchFromSelected}
-            onSetPriority={handleSetPriorityForSelected}
+            onCreateBatch={handleOpenBatchLabelDialog}
+            onSetPriority={handleOpenPriorityDialog}
             onEnableAll={() => {
               selectedPrompts.forEach((id) => enabledPrompts.delete(id));
               setEnabledPrompts(new Set(enabledPrompts));

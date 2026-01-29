@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2025-01-29
+
+### Added
+
+- **Chrome Web Store Launch**: Complete professional branding ready for store submission.
+- **14-Day Free Trial**: Full feature access without credit card requirement.
+- **$0.99 Lifetime Access**: One-time payment pricing model for unlimited use.
+- **5 Promotional Thumbnails (1280x800)**: Hero, Magic Moment, Secondary Power, Workflow Integration, Trust & CTA.
+- **Small Promotional Image (440x280)**: Compact store listing asset.
+- **Marquee Promotional Banner (1400x560)**: Featured store placement asset.
+- **Logo Assets**: 500x500 and 128x128 app icons with sparkles branding.
+
+### Changed
+
+- **Brand Identity Redesign**: Clean black/white/gray design system replacing blue accents.
+- **Logo Update**: Sparkles icon replacing zap icon for consistent branding.
+- **Store Messaging**: Focus on "Never Miss a Sora Generation" value proposition.
+- **Trust Indicators**: Manifest V3 compliant, Privacy First, Open Source badges.
+
+### Marketing
+
+- Consistent visual language across all 9 Chrome Web Store assets.
+- Benefit-driven headlines and feature showcases.
+- Social proof with 50+ users, 1,000+ prompts, 4.9 rating display.
+- Clear CTA: "Start 14-Day Free Trial" with "No credit card required".
+
 ## [2.5.0] - 2025-01-14
 
 ### Added

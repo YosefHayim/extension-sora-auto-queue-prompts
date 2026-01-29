@@ -7,17 +7,15 @@ A production-grade Chrome extension that automates prompt generation and queue m
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.3-61dafb?logo=react)](https://reactjs.org/)
 
-## What's New in v2.5.0
+## What's New in v3.0.0
 
-- **Side Panel UI**: Persistent queue visibility while working on Sora pages
-- **Preset System**: Save and load prompt configuration presets for quick style switching
-- **Onboarding Tour**: Interactive guided tour for new users
-- **Batch Operations Panel**: Select, enable/disable, and delete multiple prompts at once
-- **Queue Insertion Picker**: Choose exactly where new prompts are inserted
-- **Auto-Download**: Automatically save generated media when complete
-- **Bulk Download**: Download all visible media from your library with one click
-- **Enhanced Completion Detection**: Dual detection (API + DOM) for more reliable processing
-- **Improved Accessibility**: Thicker focus rings with theme-aware colors
+- **Chrome Web Store Launch**: Complete professional branding and store assets
+- **14-Day Free Trial**: Try all features free, no credit card required
+- **$0.99 Lifetime Access**: One-time payment for unlimited use
+- **Redesigned Brand Identity**: Clean black/white design system with sparkles icon
+- **5 Promotional Thumbnails**: Professional Chrome Web Store listing images
+- **Marketing Assets**: Small promo (440x280) and marquee banner (1400x560)
+- **All v2.5.0 Features**: Side Panel, Presets, Auto-Download, Batch Operations, and more
 
 See [CHANGELOG.md](CHANGELOG.md) for full release notes.
 

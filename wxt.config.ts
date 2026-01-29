@@ -24,7 +24,7 @@ export default defineConfig({
   }),
   manifest: {
     name: "Sora Auto Queue Prompts",
-    version: "2.5.0",
+    version: "3.0.0",
     description:
       "Automate prompt generation and queue management for Sora AI with Side Panel, Presets, Auto-Download, and Batch Operations",
     permissions: [
